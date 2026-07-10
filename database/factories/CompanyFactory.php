@@ -21,6 +21,7 @@ class CompanyFactory extends Factory
         return [
             'name' => $name,
             'slug' => str()->slug($name),
+            'type' => $this->faker->randomElement(['holding', 'sub-holding', 'operating']),
             'parent_id' => null,
             'logo' => null,
             'is_active' => true,
