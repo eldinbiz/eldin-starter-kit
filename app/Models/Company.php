@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Company extends Model
 {
@@ -19,6 +21,7 @@ class Company extends Model
     protected $fillable = [
         'name',
         'slug',
+        'type',
         'parent_id',
         'logo',
         'is_active',
@@ -72,6 +75,107 @@ class Company extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Get the human-readable type label from config.
+     */
+    public function getTypeLabelAttribute(): string
+    {
+        return config("company.types.{$this->type}", ucfirst((string) $this->type));
+    }
+
+    /**
+     * Recursively get all descendant companies (children, grandchildren, etc.).
+     *
+     * @return Collection<int, Company>
+     */
+    public function allChildren(): Collection
+    {
+        $children = $this->children()->get();
+        $result = $children;
+
+        foreach ($children as $child) {
+            $result = $result->merge($child->allChildren());
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get all ancestor companies up the chain (parent, grandparent, ...).
+     *
+     * @return Collection<int, Company>
+     */
+    public function allAncestors(): Collection
+    {
+        $ancestors = new Collection();
+        $current = $this->parent;
+
+        while ($current) {
+            $ancestors->push($current);
+            $current = $current->parent;
+        }
+
+        return $ancestors;
+    }
+
+    /**
+     * Check if this company is a descendant of the given company.
+     * Used for cycle detection when reparenting.
+     */
+    public function isDescendantOf(Company $target): bool
+    {
+        return $this->allAncestors()->contains('id', $target->id);
+    }
+
+    /**
+     * Check if this company is a root (top-level, no parent).
+     */
+    public function isRoot(): bool
+    {
+        return $this->parent_id === null;
+    }
+
+    /**
+     * Check if all descendants are disabled.
+     * Returns true if there are no children, or if all children (recursively) are disabled.
+     */
+    public function allChildrenDisabled(): bool
+    {
+        $children = $this->allChildren();
+
+        return $children->every(fn (Company $child): bool => ! $child->is_active);
+    }
+
+    /**
+     * Build a full nested tree from all companies, returning only root nodes
+     * with their children populated recursively.
+     *
+     * @return Collection<int, Company>
+     */
+    public static function buildTree(): Collection
+    {
+        $allCompanies = self::withCount('users')->get();
+
+        return self::nest($allCompanies, null);
+    }
+
+    /**
+     * Recursively nest companies under a given parent ID.
+     *
+     * @param  Collection<int, Company>  $companies
+     * @return Collection<int, Company>
+     */
+    private static function nest(Collection $companies, ?int $parentId): Collection
+    {
+        return $companies
+            ->filter(fn (Company $company): bool => $company->parent_id === $parentId)
+            ->map(function (Company $company) use ($companies): Company {
+                $company->setRelation('children', self::nest($companies, $company->id));
+
+                return $company;
+            });
     }
 
     /**
