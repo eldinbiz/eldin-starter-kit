@@ -39,9 +39,18 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            // Set initial active role in session
+            // Set initial active company and role in session
             $user = Auth::user();
-            $request->session()->put('active_role', $user->roles()->first()->name ?? 'user');
+            $company = $user->getActiveCompany();
+
+            if ($company) {
+                $request->session()->put('active_company_id', $company->id);
+
+                $activeRole = $user->getActiveRole($company);
+                if ($activeRole) {
+                    $request->session()->put("active_role.{$company->id}", $activeRole->name);
+                }
+            }
 
             return redirect()->intended('/');
         }
@@ -76,16 +85,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->string('password')->toString()),
         ]);
 
-        // Attach default 'user' role
-        $userRole = \App\Models\Role::where('name', 'user')->first();
-        if ($userRole) {
-            $user->roles()->attach($userRole->id);
-        }
-
         Auth::login($user);
-
-        // Set initial active role in session
-        $request->session()->put('active_role', 'user');
 
         return redirect('/');
     }

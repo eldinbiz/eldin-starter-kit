@@ -1,7 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+
+/*
+|--------------------------------------------------------------------------
+| Eager Application Bootstrap (for Browser Tests)
+|--------------------------------------------------------------------------
+|
+| The pest-plugin-browser fires its __markAsBrowserTest() filter during
+| test discovery, which calls config() before createApplication() runs
+| in setUp(). We force-boot the Laravel container at file-level so that
+| the config() facade is available when the filter executes.
+|
+*/
+
+$app = require __DIR__.'/../bootstrap/app.php';
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 /*
 |--------------------------------------------------------------------------

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Traits;
 
 use App\Models\Company;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Collection;
 
 trait HasCompanyContext
@@ -25,13 +26,15 @@ trait HasCompanyContext
     }
 
     /**
-     * Get the user's role within a specific company.
+     * Get all roles the user has within a specific company.
+     *
+     * @return Collection<int, Role>
      */
-    public function getCompanyRole(Company $company): string
+    public function getCompanyRoles(Company $company): Collection
     {
-        $membership = $this->companies()->where('companies.id', $company->id)->first();
-
-        return $membership?->pivot->role ?? 'employee';
+        return $this->companyRoles()
+            ->wherePivot('company_id', $company->id)
+            ->get();
     }
 
     /**

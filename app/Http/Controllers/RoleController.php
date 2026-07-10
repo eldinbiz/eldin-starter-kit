@@ -26,13 +26,19 @@ class RoleController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        // Validate that the user actually has this role
-        if (!$user->hasRole($roleName)) {
-            abort(403, 'You do not possess the ' . $roleName . ' role.');
+        $company = $user->getActiveCompany();
+
+        if (!$company) {
+            abort(403, 'No active company selected.');
         }
 
-        // Update active role in session
-        $request->session()->put('active_role', $roleName);
+        // Validate that the user actually has this role in the active company
+        if (!$user->hasRole($roleName, $company)) {
+            abort(403, 'You do not possess the ' . $roleName . ' role in this company.');
+        }
+
+        // Update active role in session (scoped to active company)
+        $request->session()->put("active_role.{$company->id}", $roleName);
 
         // Redirect back with success message
         return redirect()->back()->with('success', 'Switched to ' . ucfirst($roleName) . ' role.');
