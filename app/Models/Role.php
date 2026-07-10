@@ -15,11 +15,22 @@ class Role extends Model
     protected $fillable = ['name', 'permissions'];
 
     /**
-     * The users that belong to the role.
+     * The users that belong to this role (global, across all companies).
+     * This uses the legacy role_user pivot and remains for backward compatibility.
      */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
+    }
+
+    /**
+     * The users that have this role within specific companies.
+     */
+    public function companyUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'company_user_role')
+            ->withPivot('company_id')
+            ->withTimestamps();
     }
 
     /**

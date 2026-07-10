@@ -96,7 +96,9 @@
                     @foreach($companyUsers as $user)
                     <tr class="border-b border-gray-50 dark:border-gray-800">
                         <td class="px-3 py-2 font-medium text-gray-800 dark:text-white">{{ $user->name }}</td>
-                        <td class="px-3 py-2 text-gray-500 dark:text-gray-400 capitalize">{{ $user->pivot->role }}</td>
+                        <td class="px-3 py-2 text-gray-500 dark:text-gray-400 capitalize">
+                            {{ $user->companyRoles->pluck('name')->join(', ') ?: '—' }}
+                        </td>
                         <td class="px-3 py-2 text-gray-500 dark:text-gray-400">{{ $user->pivot->job_title ?? '—' }}</td>
                         <td class="px-3 py-2 text-right">
                             <form action="{{ route('admin.companies.remove-user', [$company, $user->id]) }}" method="POST" onsubmit="return confirm('Remove this user from the company?');" class="inline">
@@ -127,12 +129,14 @@
                         <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
                     @endforeach
                 </select>
-                <select name="role" required
-                    class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white">
-                    <option value="employee">Employee</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
-                </select>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($roles as $role)
+                    <label class="flex items-center gap-1.5 text-sm">
+                        <input type="checkbox" name="roles[]" value="{{ $role->id }}" class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
+                        <span class="text-gray-700 dark:text-gray-300">{{ ucfirst($role->name) }}</span>
+                    </label>
+                    @endforeach
+                </div>
                 <input type="text" name="job_title" placeholder="Job Title"
                     class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white" />
                 <select name="manager_id"

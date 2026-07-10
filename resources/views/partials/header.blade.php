@@ -94,7 +94,7 @@
                         @click="roleDropdown = !roleDropdown"
                         class="flex h-10 items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 text-sm text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-hidden"
                     >
-                        <span>Role: <strong class="text-gray-800 dark:text-white">{{ ucfirst(session('active_role') ?? Auth::user()->roles->first()->name ?? 'user') }}</strong></span>
+                        <span>Role: <strong class="text-gray-800 dark:text-white">{{ ucfirst(Auth::user()->getActiveRole()?->name ?? 'user') }}</strong></span>
                         <svg class="fill-current text-gray-500" width="10" height="6" viewBox="0 0 12 8" fill="none">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M1.41 0.589966L6 5.17997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" />
                         </svg>
@@ -105,11 +105,12 @@
                         x-cloak
                         class="absolute right-0 mt-2 flex w-[160px] flex-col rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-gray-700 dark:text-gray-300 z-9999"
                     >
-                        @foreach(Auth::user()->roles as $role)
+                        @php $activeCompany = Auth::user()->getActiveCompany(); @endphp
+                        @foreach(Auth::user()->getCompanyRoles($activeCompany) as $role)
                             <form action="{{ route('switch-role') }}" method="POST" class="w-full">
                                 @csrf
                                 <input type="hidden" name="role" value="{{ $role->name }}">
-                                <button type="submit" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/5 {{ (session('active_role') ?? Auth::user()->roles->first()->name ?? 'user') === $role->name ? 'text-brand-500 font-semibold' : '' }}">
+                                <button type="submit" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/5 {{ (Auth::user()->getActiveRole()?->name ?? 'user') === $role->name ? 'text-brand-500 font-semibold' : '' }}">
                                     {{ ucfirst($role->name) }}
                                 </button>
                             </form>
@@ -129,7 +130,7 @@
                                 {{ Auth::user()->name }}
                             </span>
                             <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">
-                                {{ ucfirst(session('active_role') ?? Auth::user()->roles->first()->name ?? 'User') }}
+                                {{ ucfirst(Auth::user()->getActiveRole()?->name ?? 'User') }}
                             </span>
                         </span>
 

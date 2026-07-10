@@ -82,7 +82,7 @@
                 <ul class="flex flex-col gap-1.5">
 
                     <!-- User Management -->
-                    @if (session('active_role') === 'admin')
+                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <li>
                         <a
                             href="{{ route('admin.users.index') }}"
@@ -100,7 +100,7 @@
                     @endif
 
                     <!-- User Roles -->
-                    @if (session('active_role') === 'admin')
+                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <li>
                         <a
                             href="{{ route('admin.roles.index') }}"
@@ -118,7 +118,7 @@
                     @endif
 
                     <!-- Company Management -->
-                    @if (session('active_role') === 'admin')
+                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <li>
                         <a
                             href="{{ route('admin.companies.index') }}"
@@ -136,7 +136,7 @@
                     @endif
 
                     <!-- Org Structure -->
-                    @if (session('active_role') === 'admin' || Gate::allows('manage-org-chart'))
+                    @if (Auth::user()?->getActiveRole()?->name === 'admin' || Gate::allows('manage-org-chart'))
                     <li>
                         <a
                             href="{{ route('admin.org-chart.index') }}"

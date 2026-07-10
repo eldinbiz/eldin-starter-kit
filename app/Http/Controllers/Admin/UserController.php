@@ -24,9 +24,9 @@ class UserController extends Controller
         $activeCompany = auth()->user()?->getActiveCompany();
 
         if ($activeCompany) {
-            $users = $activeCompany->users()->with('roles')->get();
+            $users = $activeCompany->users()->with('companyRoles')->get();
         } else {
-            $users = User::with('roles')->get();
+            $users = User::with('companyRoles')->get();
         }
 
         return view('admin.users.index', compact('users'));
@@ -68,16 +68,16 @@ class UserController extends Controller
             $roleIds[] = $userRoleId;
         }
 
-        $user->roles()->attach($roleIds);
-
         // Assign the user to the active company if one is selected
         $activeCompany = auth()->user()?->getActiveCompany();
         if ($activeCompany) {
             $user->companies()->attach($activeCompany->id, [
-                'role' => $request->input('company_role', 'employee'),
                 'job_title' => $request->input('job_title'),
                 'manager_id' => $request->input('manager_id'),
             ]);
+
+            // Attach company-scoped roles
+            $user->companyRoles()->attach($roleIds, ['company_id' => $activeCompany->id]);
         }
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
@@ -89,7 +89,16 @@ class UserController extends Controller
     public function edit(User $user): View
     {
         $roles = Role::all();
-        $userRoleIds = $user->roles->pluck('id')->toArray();
+        $activeCompany = auth()->user()?->getActiveCompany();
+
+        if ($activeCompany) {
+            $userRoleIds = $user->companyRoles()
+                ->wherePivot('company_id', $activeCompany->id)
+                ->pluck('roles.id')
+                ->toArray();
+        } else {
+            $userRoleIds = [];
+        }
 
         return view('admin.users.edit', compact('user', 'roles', 'userRoleIds'));
     }
@@ -125,7 +134,14 @@ class UserController extends Controller
             $roleIds[] = $userRoleId;
         }
 
-        $user->roles()->sync($roleIds);
+        // Sync company-scoped roles for the active company
+        $activeCompany = auth()->user()?->getActiveCompany();
+        if ($activeCompany) {
+            $pivotData = array_fill(0, count($roleIds), ['company_id' => $activeCompany->id]);
+            $user->companyRoles()
+                ->wherePivot('company_id', $activeCompany->id)
+                ->sync(array_combine($roleIds, $pivotData));
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }

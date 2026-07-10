@@ -9,6 +9,7 @@ use App\Traits\HasCompanyContext;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -22,11 +23,28 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasCompanyContext;
 
     /**
-     * The roles that belong to the user (system-level roles).
+     * The roles that belong to the user within specific companies.
+     * Returns a BelongsToMany scoped to the company_user_role pivot.
+     *
+     * @return BelongsToMany<Role>
      */
-    public function roles(): BelongsToMany
+    public function companyRoles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class);
+        return $this->belongsToMany(Role::class, 'company_user_role')
+            ->withPivot('company_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all roles for this user within a specific company.
+     *
+     * @return Collection<int, Role>
+     */
+    public function getCompanyRoles(Company $company): Collection
+    {
+        return $this->companyRoles()
+            ->wherePivot('company_id', $company->id)
+            ->get();
     }
 
     /**
@@ -35,39 +53,73 @@ class User extends Authenticatable
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class)
-            ->withPivot(['role', 'manager_id', 'job_title', 'status'])
+            ->withPivot(['manager_id', 'job_title', 'status'])
             ->withTimestamps();
     }
 
     /**
-     * Check if user has a specific system role.
+     * Check if user has a specific role, optionally scoped to a company.
+     * If no company is provided, uses the active company from session.
      */
-    public function hasRole(string $role): bool
+    public function hasRole(string $role, ?Company $company = null): bool
     {
-        return $this->roles()->where('name', $role)->exists();
-    }
+        $company ??= $this->getActiveCompany();
 
-    /**
-     * Check if user has any of the given system roles.
-     */
-    public function hasAnyRole(array $roles): bool
-    {
-        return $this->roles()->whereIn('name', $roles)->exists();
-    }
-
-    /**
-     * Get the currently active system role from the session,
-     * falling back to the user's first assigned role.
-     */
-    public function getActiveRole(): ?Role
-    {
-        $activeRoleName = session('active_role');
-
-        if ($activeRoleName) {
-            return $this->roles()->where('name', $activeRoleName)->first();
+        if (! $company) {
+            return false;
         }
 
-        return $this->roles()->first();
+        return $this->companyRoles()
+            ->wherePivot('company_id', $company->id)
+            ->where('name', $role)
+            ->exists();
+    }
+
+    /**
+     * Check if user has any of the given roles, optionally scoped to a company.
+     * If no company is provided, uses the active company from session.
+     *
+     * @param array<int, string> $roles
+     */
+    public function hasAnyRole(array $roles, ?Company $company = null): bool
+    {
+        $company ??= $this->getActiveCompany();
+
+        if (! $company) {
+            return false;
+        }
+
+        return $this->companyRoles()
+            ->wherePivot('company_id', $company->id)
+            ->whereIn('name', $roles)
+            ->exists();
+    }
+
+    /**
+     * Get the currently active role within a specific company,
+     * falling back to the user's first assigned role in that company.
+     * If no company is provided, uses the active company from session.
+     */
+    public function getActiveRole(?Company $company = null): ?Role
+    {
+        $company ??= $this->getActiveCompany();
+
+        if (! $company) {
+            return null;
+        }
+
+        $activeRoleName = session("active_role.{$company->id}");
+
+        if ($activeRoleName) {
+            return $this->companyRoles()
+                ->wherePivot('company_id', $company->id)
+                ->where('name', $activeRoleName)
+                ->first();
+        }
+
+        return $this->companyRoles()
+            ->wherePivot('company_id', $company->id)
+            ->first();
     }
 
     /**
@@ -83,4 +135,3 @@ class User extends Authenticatable
         ];
     }
 }
-

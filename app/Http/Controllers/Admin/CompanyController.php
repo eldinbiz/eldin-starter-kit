@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,11 +69,18 @@ class CompanyController extends Controller
 
         $companyUsers = $company->users()->get();
 
+        // Eager load company-scoped roles for each user in this company
+        $companyUsers->load(['companyRoles' => function ($query) use ($company): void {
+            $query->wherePivot('company_id', $company->id);
+        }]);
+
         $availableUsers = User::whereDoesntHave('companies', function ($query) use ($company): void {
             $query->where('company_id', $company->id);
         })->get();
 
-        return view('admin.companies.edit', compact('company', 'parentCompanies', 'companyUsers', 'availableUsers'));
+        $roles = Role::all();
+
+        return view('admin.companies.edit', compact('company', 'parentCompanies', 'companyUsers', 'availableUsers', 'roles'));
     }
 
     /**
@@ -116,17 +124,25 @@ class CompanyController extends Controller
     {
         $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
-            'role' => ['required', 'string', 'in:admin,manager,employee'],
+            'roles' => ['required', 'array'],
+            'roles.*' => ['exists:roles,id'],
             'job_title' => ['nullable', 'string', 'max:255'],
             'manager_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
 
-        $company->users()->attach((int) $request->input('user_id'), [
-            'role' => $request->string('role')->toString(),
+        $userId = (int) $request->input('user_id');
+
+        $company->users()->attach($userId, [
             'job_title' => $request->input('job_title'),
             'manager_id' => $request->input('manager_id') ? (int) $request->input('manager_id') : null,
             'status' => 'active',
         ]);
+
+        // Attach company-scoped roles
+        $user = User::find($userId);
+        if ($user) {
+            $user->companyRoles()->attach($request->input('roles'), ['company_id' => $company->id]);
+        }
 
         return redirect()->route('admin.companies.edit', $company)->with('success', 'User assigned to company.');
     }
