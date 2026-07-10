@@ -57,18 +57,26 @@
 
                         <div class="flex flex-col gap-2">
                             @foreach($groupPermissions as $key => $definition)
-                                <label class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.02] dark:hover:bg-white/[0.05]">
+                                @php $isAlwaysEnabled = $definition['always_enabled'] ?? false; @endphp
+                                <label class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 cursor-pointer hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.02] dark:hover:bg-white/[0.05] {{ $isAlwaysEnabled ? 'opacity-75' : '' }}">
                                     <input
                                         type="checkbox"
-                                        name="permissions[]"
+                                        name="{{ $isAlwaysEnabled ? '' : 'permissions[]' }}"
                                         value="{{ $key }}"
                                         class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-white/[0.05]"
-                                        {{ in_array($key, old('permissions', $assignedPermissions)) ? 'checked' : '' }}
+                                        {{ ($isAlwaysEnabled || in_array($key, old('permissions', $assignedPermissions))) ? 'checked' : '' }}
+                                        {{ $isAlwaysEnabled ? 'disabled' : '' }}
                                     />
-                                    <div>
+                                    @if($isAlwaysEnabled)
+                                        <input type="hidden" name="permissions[]" value="{{ $key }}" />
+                                    @endif
+                                    <div class="flex items-center gap-2">
                                         <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ $definition['label'] }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $key }}</p>
+                                        @if($isAlwaysEnabled)
+                                            <span class="rounded bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">Always enabled</span>
+                                        @endif
                                     </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 ml-auto">{{ $key }}</p>
                                 </label>
                             @endforeach
                         </div>

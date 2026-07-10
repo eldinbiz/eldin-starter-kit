@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\HasCompanyContext;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -18,10 +19,10 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasCompanyContext;
 
     /**
-     * The roles that belong to the user.
+     * The roles that belong to the user (system-level roles).
      */
     public function roles(): BelongsToMany
     {
@@ -29,7 +30,17 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific role.
+     * The companies that the user belongs to, with pivot data.
+     */
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class)
+            ->withPivot(['role', 'manager_id', 'job_title', 'status'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if user has a specific system role.
      */
     public function hasRole(string $role): bool
     {
@@ -37,7 +48,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has any of the given roles.
+     * Check if user has any of the given system roles.
      */
     public function hasAnyRole(array $roles): bool
     {
@@ -45,7 +56,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the currently active role from the session,
+     * Get the currently active system role from the session,
      * falling back to the user's first assigned role.
      */
     public function getActiveRole(): ?Role

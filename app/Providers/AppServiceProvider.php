@@ -29,5 +29,12 @@ class AppServiceProvider extends ServiceProvider
                 return $user->getActiveRole()?->hasPermission($key) ?? false;
             });
         }
+
+        // Share the active company with all views
+        view()->composer('*', function ($view): void {
+            if (auth()->check()) {
+                $view->with('activeCompany', auth()->user()?->getActiveCompany());
+            }
+        });
     }
 }

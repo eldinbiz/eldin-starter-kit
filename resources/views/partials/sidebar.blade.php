@@ -117,24 +117,41 @@
                     </li>
                     @endif
 
-                    <!-- Org Structure (Placeholder) -->
+                    <!-- Company Management -->
+                    @if (session('active_role') === 'admin')
                     <li>
                         <a
-                            href="#"
-                            onclick="return false;"
-                            class="menu-item group menu-item-inactive opacity-60 cursor-not-allowed flex items-center justify-between"
-                            title="Coming Soon"
+                            href="{{ route('admin.companies.index') }}"
+                            class="menu-item group {{ Request::is('admin/companies*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        >
+                            <span class="flex items-center gap-3">
+                                <!-- Building Icon -->
+                                <svg class="fill-current {{ Request::is('admin/companies*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2.75C4.75736 2.75 3.75 3.75736 3.75 5V19C3.75 19.4142 4.08579 19.75 4.5 19.75H19.5C19.9142 19.75 20.25 19.4142 20.25 19V5C20.25 3.75736 19.2426 2.75 18 2.75H6ZM5.25 5C5.25 4.58579 5.58579 4.25 6 4.25H18C18.4142 4.25 18.75 4.58579 18.75 5V18.25H5.25V5ZM8.75 8C8.75 7.58579 9.08579 7.25 9.5 7.25H10.5C10.9142 7.25 11.25 7.58579 11.25 8V8.5C11.25 8.9142 10.9142 9.25 10.5 9.25H9.5C9.08579 9.25 8.75 8.9142 8.75 8.5V8ZM9.5 11.25C9.08579 11.25 8.75 11.5858 8.75 12V12.5C8.75 12.9142 9.08579 13.25 9.5 13.25H10.5C10.9142 13.25 11.25 12.9142 11.25 12.5V12C11.25 11.5858 10.9142 11.25 10.5 11.25H9.5ZM13.5 7.25C13.0858 7.25 12.75 7.58579 12.75 8V8.5C12.75 8.9142 13.0858 9.25 13.5 9.25H14.5C14.9142 9.25 15.25 8.9142 15.25 8.5V8C15.25 7.58579 14.9142 7.25 14.5 7.25H13.5ZM13.5 11.25C13.0858 11.25 12.75 11.5858 12.75 12V12.5C12.75 12.9142 13.0858 13.25 13.5 13.25H14.5C14.9142 13.25 15.25 12.9142 15.25 12.5V12C15.25 11.5858 14.9142 11.25 14.5 11.25H13.5Z" />
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Company Management</span>
+                            </span>
+                        </a>
+                    </li>
+                    @endif
+
+                    <!-- Org Structure -->
+                    @if (session('active_role') === 'admin' || Gate::allows('manage-org-chart'))
+                    <li>
+                        <a
+                            href="{{ route('admin.org-chart.index') }}"
+                            class="menu-item group {{ Request::is('admin/org-chart*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
                                 <!-- Structure Icon -->
-                                <svg class="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <svg class="fill-current {{ Request::is('admin/org-chart*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2C9.34315 2 8 3.34315 8 5V7H6C4.89543 7 4 7.89543 4 9V12C4 13.1046 4.89543 14 6 14H8V16C8 17.6569 9.34315 19 11 19H13C14.6569 19 16 17.6569 16 16V14H18C19.1046 14 20 13.1046 20 12V9C20 7.89543 19.1046 7 18 7H16V5C16 3.34315 14.6569 2 13 2H11ZM9.5 5C9.5 4.17157 10.1716 3.5 11 3.5H13C13.8284 3.5 14.5 4.17157 14.5 5V7H9.5V5ZM5.5 9C5.5 8.72386 5.72386 8.5 6 8.5H18C18.2761 8.5 18.5 8.72386 18.5 9V12C18.5 12.2761 18.2761 12.5 18 12.5H6C5.72386 12.5 5.5 12.2761 5.5 12V9ZM11 17.5C10.1716 17.5 9.5 16.8284 9.5 16V14H14.5V16C14.5 16.8284 13.8284 17.5 13 17.5H11Z" />
                                 </svg>
                                 <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Org Structure</span>
                             </span>
-                            <span class="text-[9px] bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded" x-show="!sidebarToggle || sidebarHover" x-cloak>Lock</span>
                         </a>
                     </li>
+                    @endif
 
                     <!-- System Variables (Placeholder) -->
                     <li>

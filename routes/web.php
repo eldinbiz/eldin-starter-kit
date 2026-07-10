@@ -22,10 +22,24 @@ Route::middleware('auth')->group(function () {
 
     // Role Switch Route
     Route::post('/switch-role', [\App\Http\Controllers\RoleController::class, 'switch'])->name('switch-role');
+
+    // Company Switch Route
+    Route::post('/switch-company', [\App\Http\Controllers\CompanyController::class, 'switch'])->name('switch-company');
 });
 
 // Administration Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
     Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
+
+    // Company Management Routes
+    Route::resource('companies', \App\Http\Controllers\Admin\CompanyController::class);
+    Route::post('/companies/{company}/assign-user', [\App\Http\Controllers\Admin\CompanyController::class, 'assignUser'])->name('companies.assign-user');
+    Route::delete('/companies/{company}/remove-user/{user}', [\App\Http\Controllers\Admin\CompanyController::class, 'removeUser'])->name('companies.remove-user');
+
+    // Organization Chart Routes
+    Route::get('/org-chart', [\App\Http\Controllers\Admin\OrgChartController::class, 'index'])->name('org-chart.index');
+    Route::get('/org-chart/tree', [\App\Http\Controllers\Admin\OrgChartController::class, 'tree'])->name('org-chart.tree');
+    Route::patch('/org-chart/reassign', [\App\Http\Controllers\Admin\OrgChartController::class, 'updateManager'])->name('org-chart.reassign');
+    Route::get('/org-chart/trace/{user}', [\App\Http\Controllers\Admin\OrgChartController::class, 'trace'])->name('org-chart.trace');
 });

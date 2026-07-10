@@ -21,7 +21,13 @@ class UserController extends Controller
      */
     public function index(): View
     {
-        $users = User::with('roles')->get();
+        $activeCompany = auth()->user()?->getActiveCompany();
+
+        if ($activeCompany) {
+            $users = $activeCompany->users()->with('roles')->get();
+        } else {
+            $users = User::with('roles')->get();
+        }
 
         return view('admin.users.index', compact('users'));
     }
@@ -63,6 +69,16 @@ class UserController extends Controller
         }
 
         $user->roles()->attach($roleIds);
+
+        // Assign the user to the active company if one is selected
+        $activeCompany = auth()->user()?->getActiveCompany();
+        if ($activeCompany) {
+            $user->companies()->attach($activeCompany->id, [
+                'role' => $request->input('company_role', 'employee'),
+                'job_title' => $request->input('job_title'),
+                'manager_id' => $request->input('manager_id'),
+            ]);
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }

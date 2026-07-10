@@ -46,9 +46,11 @@ class RoleController extends Controller
             'permissions.*' => ['string'],
         ]);
 
+        $permissions = $this->mergeAlwaysEnabledPermissions($validated['permissions'] ?? []);
+
         Role::create([
             'name' => $validated['name'],
-            'permissions' => $validated['permissions'] ?? [],
+            'permissions' => $permissions,
         ]);
 
         return redirect()->route('admin.roles.index')->with('success', 'Role created successfully.');
@@ -77,9 +79,11 @@ class RoleController extends Controller
             'permissions.*' => ['string'],
         ]);
 
+        $permissions = $this->mergeAlwaysEnabledPermissions($validated['permissions'] ?? []);
+
         $role->update([
             'name' => $validated['name'],
-            'permissions' => $validated['permissions'] ?? [],
+            'permissions' => $permissions,
         ]);
 
         return redirect()->route('admin.roles.index')->with('success', 'Role updated successfully.');
@@ -101,6 +105,23 @@ class RoleController extends Controller
         $role->delete();
 
         return redirect()->route('admin.roles.index')->with('success', 'Role deleted successfully.');
+    }
+
+    /**
+     * Merge any always-enabled permissions into the given permissions array.
+     *
+     * @param  array<string>  $permissions
+     * @return array<string>
+     */
+    private function mergeAlwaysEnabledPermissions(array $permissions): array
+    {
+        foreach (config('permissions.list', []) as $key => $definition) {
+            if (($definition['always_enabled'] ?? false) && !in_array($key, $permissions, true)) {
+                $permissions[] = $key;
+            }
+        }
+
+        return $permissions;
     }
 
     /**

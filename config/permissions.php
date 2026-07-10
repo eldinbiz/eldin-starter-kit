@@ -30,6 +30,11 @@ return [
         'view-dashboard' => [
             'label' => 'View Dashboard',
             'group' => 'General',
+            'always_enabled' => true,
+        ],
+        'manage-org-chart' => [
+            'label' => 'Manage Organization Chart',
+            'group' => 'System Administration',
         ],
     ],
 
@@ -42,6 +47,7 @@ return [
         'General',
         'User Management',
         'Role Management',
+        'System Administration',
     ],
 
 ];

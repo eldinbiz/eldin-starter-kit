@@ -4,7 +4,7 @@
 >
     <div class="flex grow flex-col justify-between lg:flex-row lg:px-6 w-full">
         <div class="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4 dark:border-gray-800">
-            
+
             <!-- Hamburger Menu Toggle (Desktop & Mobile) -->
             <button
                 class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
@@ -50,6 +50,42 @@
                         <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
                     </svg>
                 </button>
+
+                <!-- Company Selector Dropdown -->
+                @auth
+                @php $activeCompany = Auth::user()->getActiveCompany(); @endphp
+                @if(Auth::user()->companies->count() > 0)
+                <div class="relative" x-data="{ companyDropdown: false }" @click.outside="companyDropdown = false">
+                    <button
+                        @click="companyDropdown = !companyDropdown"
+                        class="flex h-10 items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 text-sm text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-hidden"
+                    >
+                        <svg class="fill-current text-brand-500" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 6C2 4.34315 3.34315 3 5 3H19C20.6569 3 22 4.34315 22 6V18C22 19.6569 20.6569 21 19 21H5C3.34315 21 2 19.6569 2 18V6ZM5 4.5C4.17157 4.5 3.5 5.17157 3.5 6V7.5H20.5V6C20.5 5.17157 19.8284 4.5 19 4.5H5ZM3.5 9V18C3.5 18.8284 4.17157 19.5 5 19.5H19C19.8284 19.5 20.5 18.8284 20.5 18V9H3.5Z" />
+                        </svg>
+                        <span class="max-w-[120px] truncate"><strong class="text-gray-800 dark:text-white">{{ $activeCompany?->name ?? 'Select Company' }}</strong></span>
+                        <svg class="fill-current text-gray-500" width="10" height="6" viewBox="0 0 12 8" fill="none">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M1.41 0.589966L6 5.17997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" />
+                        </svg>
+                    </button>
+                    <div
+                        x-show="companyDropdown"
+                        x-cloak
+                        class="absolute right-0 mt-2 flex w-[220px] flex-col rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-gray-700 dark:text-gray-300 z-9999"
+                    >
+                        @foreach(Auth::user()->companies as $company)
+                            <form action="{{ route('switch-company') }}" method="POST" class="w-full">
+                                @csrf
+                                <input type="hidden" name="company_id" value="{{ $company->id }}">
+                                <button type="submit" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/5 {{ ($activeCompany?->id === $company->id) ? 'text-brand-500 font-semibold' : '' }}">
+                                    {{ $company->name }}
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+                @endauth
 
                 <!-- Role Selector Dropdown -->
                 @auth

@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'active.company' => \App\Http\Middleware\SetActiveCompany::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\SetActiveCompany::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

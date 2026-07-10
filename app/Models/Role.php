@@ -39,9 +39,12 @@ class Role extends Model
      */
     public function hasPermission(string $permission): bool
     {
-        $permissions = $this->permissions ?? [];
+        // Always-enabled permissions are granted regardless of stored state
+        if (config("permissions.list.{$permission}.always_enabled", false)) {
+            return true;
+        }
 
-        return in_array($permission, $permissions, true);
+        return in_array($permission, $this->permissions ?? [], true);
     }
 
     /**
