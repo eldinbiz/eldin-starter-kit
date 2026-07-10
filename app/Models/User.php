@@ -45,6 +45,21 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the currently active role from the session,
+     * falling back to the user's first assigned role.
+     */
+    public function getActiveRole(): ?Role
+    {
+        $activeRoleName = session('active_role');
+
+        if ($activeRoleName) {
+            return $this->roles()->where('name', $activeRoleName)->first();
+        }
+
+        return $this->roles()->first();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
