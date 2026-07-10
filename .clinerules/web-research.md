@@ -4,19 +4,19 @@ This rule strictly governs how the agent researches and implements external pack
 
 ## 1. MCP-First Research Requirement
 
-When tasked with **implementing, configuring, or debugging** an external package or library, the agent **MUST** prioritize external web research via the `mcp-webresearch` MCP server before falling back to internal knowledge.
+When tasked with **implementing, configuring, or debugging** an external package or library, the agent **MUST** prioritize external web research via the `github.com/executeautomation/mcp-playwright` MCP server before falling back to internal knowledge.
 
 ### Research Workflow
 
-1. **Search:** Use the `search_google` tool to find official documentation, relevant blog posts, Stack Overflow answers, or GitHub issues for the specific package/version.
-2. **Visit:** Use the `visit_page` tool to extract detailed installation instructions, API signatures, configuration options, and usage examples from authoritative sources (official docs, package README, well-known tutorials).
+1. **Search:** Use `playwright_navigate` with a search engine URL (e.g., `https://www.google.com/search?q=...`) or directly navigate to package registries (Packagist, npm) to discover relevant documentation, blog posts, or GitHub issues for the specific package/version.
+2. **Visit:** Use `playwright_navigate` to open official documentation pages, README files, or API reference pages. Use `playwright_get_visible_text` or `playwright_get_visible_html` to extract detailed installation instructions, API signatures, configuration options, and usage examples from authoritative sources.
 3. **Synthesize:** Base the implementation on the research findings — not on internal training data alone.
 
 ### When to Fall Back to Internal Knowledge
 
 Only fall back to internal (training) knowledge when ALL of the following are true:
 
-- `search_google` returned no relevant results for the specific package/version.
+- Web research via Playwright tools returned no relevant results for the specific package/version (e.g., documentation pages are unavailable, return 404, or are behind authentication).
 - OR the results returned are outdated, contradictory, or insufficient to implement the feature correctly.
 - In such cases, the agent **MUST explicitly note** in its response: *"External research was inconclusive; proceeding based on internal knowledge."*
 
