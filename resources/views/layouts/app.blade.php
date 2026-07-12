@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
-    
+
     <!-- ApexCharts CDN (Loaded before Alpine) -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
@@ -21,7 +21,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body
-    x-data="{ page: 'dashboard', loaded: true, darkMode: false, stickyMenu: false, sidebarToggle: false, scrollTop: false }"
+    x-data="{ page: 'dashboard', loaded: true, darkMode: false, stickyMenu: false, sidebarToggle: true, scrollTop: false }"
     x-init="
         darkMode = JSON.parse(localStorage.getItem('darkMode')) || false;
         $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))
