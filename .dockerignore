@@ -1,63 +1,13 @@
-# Git
-.git/
-.gitignore
-.gitattributes
-
-# IDE
-.idea/
-.vscode/
-*.sublime-*
-
-# Dependencies
 vendor/
 node_modules/
-
-# Build artifacts
+.git/
+.env
+storage/logs/*
+!storage/logs/.gitkeep
 public/build/
 public/hot
-
-# Storage (will be linked via volume)
-storage/logs/*
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
-storage/framework/testing/*
-storage/app/public/*
-!storage/logs/.gitkeep
-!storage/framework/cache/.gitkeep
-!storage/framework/sessions/.gitkeep
-!storage/framework/views/.gitkeep
-!storage/framework/testing/.gitkeep
-!storage/app/public/.gitkeep
-
-# Environment
-.env
-.env.*
-!.env.example
-
-# Docker
-Dockerfile
-docker-compose*.yml
-.dockerignore
-
-# Tests
 tests/
-phpunit.xml
-.pest/
-
-# Docs
+.dockerignore
+Dockerfile
+docker-compose.yml
 README.md
-LICENSE
-
-# CI
-.github/
-.gitlab-ci.yml
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Agent files
-.agents/
-.cline/
-.clinerules/
