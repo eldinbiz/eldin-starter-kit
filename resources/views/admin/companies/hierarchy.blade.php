@@ -102,7 +102,7 @@
         </div>
 
         <div x-show="!loading && rootNodes.length > 0" x-cloak class="overflow-x-auto">
-            <div class="min-w-max py-4">
+            <div class="min-w-max py-4 flex items-start gap-8">
                 <template x-for="node in filteredRootNodes" :key="node.id">
                     <div x-data="{ node: node }" x-init="node = node">
                         <!-- LEVEL 1: Root Company Node -->
