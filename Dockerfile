@@ -2,6 +2,7 @@ FROM php:8.4-fpm-alpine
 
 # System packages
 RUN apk add --no-cache \
+    autoconf \
     linux-headers \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -15,11 +16,14 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # PHP extensions
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-    pdo pdo_mysql mbstring exif pcntl bcmath gd intl xml opcache \
-    && pecl install redis \
-    && docker-php-ext-enable redis
+    pdo pdo_mysql mbstring exif pcntl bcmath gd intl xml opcache
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -28,7 +32,7 @@ WORKDIR /var/www/html
 
 # Dependencies first (cached layer)
 COPY composer.json composer.lock ./
-RUN composer install --no-interaction --no-progress
+RUN composer install --no-interaction --no-progress --no-scripts
 
 # App code
 COPY . .
