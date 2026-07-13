@@ -87,7 +87,7 @@
 
         <div x-show="!loading && rootNodes.length > 0" x-cloak class="overflow-x-auto">
             <div class="min-w-max py-4 flex items-start gap-8">
-                <template x-for="node in filteredRootNodes" :key="node.id">
+                <template x-for="node in filteredRootNodes" :key="`${node.id}-${treeVersion}`">
                     <div x-data="{ node: node }" x-init="node = node">
                         <div x-html="renderSubtree(node)"></div>
                     </div>
@@ -106,6 +106,7 @@ function companyHierarchy() {
         loading: true,
         flashMessage: '',
         flashType: 'success',
+        treeVersion: 0,
 
         buildTree(parentId) {
             return this.allCompanies
@@ -114,6 +115,7 @@ function companyHierarchy() {
         },
 
         async init() {
+            window.__companyTree = this;
             try {
                 const resp = await fetch('{{ route("admin.companies.tree") }}');
                 const data = await resp.json();
@@ -252,7 +254,7 @@ function companyHierarchy() {
                     body: JSON.stringify({ company_id: companyId, new_parent_id: newParentId }),
                 });
                 const data = await resp.json();
-                if (data.success) { await this.reloadTree(); this.showFlash('Company moved successfully.', 'success'); }
+                if (data.success) { await this.reloadTree(); this.treeVersion++; this.showFlash('Company moved successfully.', 'success'); }
                 else if (data.error) this.showFlash(data.error, 'error');
             } catch (e) { this.showFlash('Failed to move company.', 'error'); }
         },
@@ -267,7 +269,21 @@ function companyHierarchy() {
                     },
                 });
                 const data = await resp.json();
-                if (data.success) { await this.reloadTree(); this.showFlash(data.is_active ? 'Company enabled.' : 'Company disabled.', 'success'); }
+                if (data.success) {
+                    // Update local cached data
+                    const idx = this.allCompanies.findIndex(c => c.id === companyId);
+                    if (idx !== -1) {
+                        this.allCompanies[idx].is_active = data.is_active;
+                    }
+                    // Rebuild tree from updated local data, preserving collapse state
+                    const oldCollapsed = {};
+                    this.collectCollapsed(this.rootNodes, oldCollapsed);
+                    this.rootNodes = this.buildTree(null);
+                    this.restoreCollapsed(this.rootNodes, oldCollapsed);
+                    // Force all x-html directives to re-render by bumping the version
+                    this.treeVersion++;
+                    this.showFlash(data.is_active ? 'Company enabled.' : 'Company disabled.', 'success');
+                }
                 else if (data.error) this.showFlash(data.error, 'error');
             } catch (e) { this.showFlash('Failed to toggle company status.', 'error'); }
         },
@@ -288,6 +304,7 @@ function companyHierarchy() {
                 this.collectCollapsed(this.rootNodes, oldCollapsed);
                 this.rootNodes = this.buildTree(null);
                 this.restoreCollapsed(this.rootNodes, oldCollapsed);
+                this.treeVersion++;
             } catch (e) { console.error('Failed to reload tree:', e); }
         },
 
@@ -366,7 +383,7 @@ function companyHierarchy() {
                     ${node.children && node.children.length > 0
                         ? `<button onclick="event.stopPropagation(); const d=this.closest('[x-data]').__x.$data.node; d.collapsed=!d.collapsed;" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><span>${node.children.length} subs</span></button>`
                         : '<span class="text-[11px] text-gray-400 px-2 py-1">No subs</span>'}
-                    <button onclick="event.stopPropagation(); document.querySelector('[x-data=companyHierarchy()]').__x.$data.toggleCompanyActive(${node.id});" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md transition-colors ${toggleClass}">${node.is_active ? 'Disable' : 'Enable'}</button>
+                    <button onclick="event.stopPropagation(); window.__companyTree.toggleCompanyActive(${node.id});" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md transition-colors ${toggleClass}">${node.is_active ? 'Disable' : 'Enable'}</button>
                     <a href="/admin/companies/${node.id}/edit" onclick="event.stopPropagation();" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Edit</a>
                     <a href="/admin/companies/create?parent_id=${node.id}" onclick="event.stopPropagation();" class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors">+Child</a>
                 </div>
