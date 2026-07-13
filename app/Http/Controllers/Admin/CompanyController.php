@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CompanyController extends Controller
@@ -119,16 +120,24 @@ class CompanyController extends Controller
             'slug' => ['required', 'string', 'max:255', 'unique:companies,slug'],
             'type' => ['required', 'string', 'in:' . implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
             'parent_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'logo' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg', 'max:2048'],
             'is_active' => ['boolean'],
         ]);
+
+        $logoPath = null;
+
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $filename = \Illuminate\Support\Str::slug($request->string('name')->toString()) . '.' . $file->getClientOriginalExtension();
+            $logoPath = $file->storeAs('logos', $filename, 'public');
+        }
 
         Company::create([
             'name' => $request->string('name')->toString(),
             'slug' => $request->string('slug')->toString(),
             'type' => $request->string('type')->toString(),
             'parent_id' => $request->input('parent_id') ? (int) $request->input('parent_id') : null,
-            'logo' => $request->input('logo'),
+            'logo' => $logoPath,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -172,7 +181,7 @@ class CompanyController extends Controller
             'slug' => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::unique('companies', 'slug')->ignore($company->id)],
             'type' => ['required', 'string', 'in:' . implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
             'parent_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'logo' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg', 'max:2048'],
             'is_active' => ['boolean'],
         ]);
 
@@ -192,12 +201,24 @@ class CompanyController extends Controller
             }
         }
 
+        $logoPath = $company->logo;
+
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($company->logo) {
+                Storage::disk('public')->delete($company->logo);
+            }
+            $file = $request->file('logo');
+            $filename = \Illuminate\Support\Str::slug($request->string('name')->toString()) . '.' . $file->getClientOriginalExtension();
+            $logoPath = $file->storeAs('logos', $filename, 'public');
+        }
+
         $company->update([
             'name' => $request->string('name')->toString(),
             'slug' => $request->string('slug')->toString(),
             'type' => $request->string('type')->toString(),
             'parent_id' => $newParentId,
-            'logo' => $request->input('logo'),
+            'logo' => $logoPath,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -264,6 +285,7 @@ class CompanyController extends Controller
                 'parent_id' => $parentId,
                 'is_active' => $node->is_active,
                 'users_count' => $node->users_count ?? $node->users()->count(),
+                'logo_url' => $node->logo ? asset('storage/' . $node->logo) : null,
             ];
 
             if ($node->relationLoaded('children') && $node->children->isNotEmpty()) {

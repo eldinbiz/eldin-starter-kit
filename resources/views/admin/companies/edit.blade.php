@@ -26,7 +26,7 @@
     @endif
 
     <!-- Company Details Form -->
-    <form action="{{ route('admin.companies.update', $company) }}" method="POST" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-5">
+    <form action="{{ route('admin.companies.update', $company) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-5">
         @csrf
         @method('PUT')
 
@@ -67,10 +67,21 @@
             <p class="text-xs text-gray-400 mt-1">Self and subsidiaries are excluded to prevent cycles.</p>
         </div>
 
-        <div>
-            <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Logo URL</label>
-            <input type="text" name="logo" id="logo" value="{{ old('logo', $company->logo) }}"
-                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500" />
+        <div x-data="{ logoPreview: null }">
+            <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Logo</label>
+            @if($company->logo)
+            <div class="mb-2 flex items-center gap-3" x-show="!logoPreview">
+                <img src="{{ asset('storage/' . $company->logo) }}" alt="{{ $company->name }} Logo" class="h-10 w-10 rounded object-contain bg-gray-100 dark:bg-gray-800" />
+                <span class="text-xs text-gray-500 dark:text-gray-400">Current logo</span>
+            </div>
+            @endif
+            <div x-show="logoPreview" x-cloak class="mb-2">
+                <img :src="logoPreview" alt="New logo preview" class="h-16 w-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700" />
+            </div>
+            <input type="file" name="logo" id="logo" accept=".ico,.png,.jpg,.jpeg"
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 dark:file:bg-brand-900/20 dark:file:text-brand-400"
+                @change="logoPreview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null" />
+            <p class="text-xs text-gray-400 mt-1">Accepted: .ico, .png, .jpg, .jpeg (max 2MB). Leave empty to keep the current logo.</p>
         </div>
 
         <div class="flex items-center gap-3">

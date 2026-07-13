@@ -19,7 +19,7 @@
     </div>
     @endif
 
-    <form action="{{ route('admin.companies.store') }}" method="POST" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-5">
+    <form action="{{ route('admin.companies.store') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-5">
         @csrf
 
         <div>
@@ -59,10 +59,15 @@
             <p class="text-xs text-gray-400 mt-1">Optional. Leave blank to create a top-level (root) company.</p>
         </div>
 
-        <div>
-            <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Logo URL</label>
-            <input type="text" name="logo" id="logo" value="{{ old('logo') }}"
-                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500" />
+        <div x-data="{ logoPreview: null }">
+            <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Logo</label>
+            <input type="file" name="logo" id="logo" accept=".ico,.png,.jpg,.jpeg"
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-50 file:text-brand-600 hover:file:bg-brand-100 dark:file:bg-brand-900/20 dark:file:text-brand-400"
+                @change="logoPreview = $event.target.files.length ? URL.createObjectURL($event.target.files[0]) : null" />
+            <p class="text-xs text-gray-400 mt-1">Accepted: .ico, .png, .jpg, .jpeg (max 2MB).</p>
+            <div x-show="logoPreview" x-cloak class="mt-2">
+                <img :src="logoPreview" alt="Logo preview" class="h-16 w-16 rounded-lg object-contain bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700" />
+            </div>
         </div>
 
         <div class="flex items-center gap-3">

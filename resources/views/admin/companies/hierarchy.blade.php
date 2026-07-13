@@ -358,15 +358,19 @@ function companyHierarchy() {
                 ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40'
                 : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40';
 
+            const iconOrLogo = node.logo_url
+                ? `<img src="${self.esc(node.logo_url)}" alt="${self.esc(node.name)} Logo" class="h-10 w-10 rounded-lg object-contain bg-gray-100 dark:bg-gray-700 shrink-0" />`
+                : `<div class="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${iconBg}">
+                    <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2.75C4.75736 2.75 3.75 3.75736 3.75 5V19C3.75 19.4142 4.08579 19.75 4.5 19.75H19.5C19.9142 19.75 20.25 19.4142 20.25 19V5C20.25 3.75736 19.2426 2.75 18 2.75H6ZM5.25 5C5.25 4.58579 5.58579 4.25 6 4.25H18C18.4142 4.25 18.75 4.58579 18.75 5V18.25H5.25V5ZM8.75 8C8.75 7.58579 9.08579 7.25 9.5 7.25H10.5C10.9142 7.25 11.25 7.58579 11.25 8V8.5C11.25 8.9142 10.9142 9.25 10.5 9.25H9.5C9.08579 9.25 8.75 8.9142 8.75 8.5V8Z"/>
+                    </svg>
+                </div>`;
+
             return `
             <div draggable="true" data-company-id="${node.id}"
                  class="w-64 rounded-xl border shadow-xs bg-white dark:bg-gray-800 p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing ${borderClass}">
                 <div class="flex items-start gap-3">
-                    <div class="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${iconBg}">
-                        <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2.75C4.75736 2.75 3.75 3.75736 3.75 5V19C3.75 19.4142 4.08579 19.75 4.5 19.75H19.5C19.9142 19.75 20.25 19.4142 20.25 19V5C20.25 3.75736 19.2426 2.75 18 2.75H6ZM5.25 5C5.25 4.58579 5.58579 4.25 6 4.25H18C18.4142 4.25 18.75 4.58579 18.75 5V18.25H5.25V5ZM8.75 8C8.75 7.58579 9.08579 7.25 9.5 7.25H10.5C10.9142 7.25 11.25 7.58579 11.25 8V8.5C11.25 8.9142 10.9142 9.25 10.5 9.25H9.5C9.08579 9.25 8.75 8.9142 8.75 8.5V8Z"/>
-                        </svg>
-                    </div>
+                    ${iconOrLogo}
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2">
                             <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">${self.esc(node.name)}</p>
