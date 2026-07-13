@@ -24,9 +24,9 @@ class UserController extends Controller
         $activeCompany = auth()->user()?->getActiveCompany();
 
         if ($activeCompany) {
-            $users = $activeCompany->users()->with('companyRoles')->get();
+            $users = $activeCompany->users()->with(['companyRoles', 'companies'])->get();
         } else {
-            $users = User::with('companyRoles')->get();
+            $users = User::with(['companyRoles', 'companies'])->get();
         }
 
         return view('admin.users.index', compact('users'));

@@ -49,6 +49,9 @@
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Roles</p>
                     </th>
                     <th class="py-3 text-left">
+                        <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Companies</p>
+                    </th>
+                    <th class="py-3 text-left">
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Joined Date</p>
                     </th>
                     <th class="py-3 text-right">
@@ -87,6 +90,17 @@
                                         </span>
                                     @endif
                                 @endforeach
+                            </div>
+                        </td>
+                        <td class="py-3.5">
+                            <div class="flex flex-wrap gap-1.5">
+                                @forelse($user->companies as $company)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
+                                        {{ $company->name }}
+                                    </span>
+                                @empty
+                                    <span class="text-gray-400 text-theme-sm dark:text-gray-500">&mdash;</span>
+                                @endforelse
                             </div>
                         </td>
                         <td class="py-3.5">
