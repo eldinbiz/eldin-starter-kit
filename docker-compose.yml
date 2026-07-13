@@ -3,6 +3,8 @@ services:
     build: .
     container_name: laravel-app
     restart: unless-stopped
+    env_file:
+      - .env.docker
     volumes:
       - .:/var/www/html       # live code (hot reload)
       - /var/www/html/vendor  # keep container's vendor
@@ -52,6 +54,8 @@ services:
     build: .
     container_name: laravel-queue
     restart: unless-stopped
+    env_file:
+      - .env.docker
     volumes:
       - .:/var/www/html
       - /var/www/html/vendor

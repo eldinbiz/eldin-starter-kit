@@ -18,9 +18,18 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Seed default roles
-        $adminRole = Role::create(['name' => 'admin']);
-        $managerRole = Role::create(['name' => 'manager']);
-        $userRole = Role::create(['name' => 'user']);
+        $adminRole = Role::create([
+            'name' => 'admin',
+            'permissions' => ['manage-users', 'manage-roles', 'manage-org-chart'],
+        ]);
+        $managerRole = Role::create([
+            'name' => 'manager',
+            'permissions' => ['manage-users', 'manage-org-chart'],
+        ]);
+        $userRole = Role::create([
+            'name' => 'user',
+            'permissions' => [],
+        ]);
 
         // Create Default Admin User
         $admin = User::create([
