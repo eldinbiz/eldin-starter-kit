@@ -72,7 +72,7 @@
                         </td>
                         <td class="py-3.5">
                             <div class="flex flex-wrap gap-1.5">
-                                @foreach($user->roles as $role)
+                                @foreach($user->companyRoles as $role)
                                     @if($role->name === 'admin')
                                         <span class="inline-flex items-center gap-1 rounded-full bg-[#f2f7ff] px-2 py-0.5 text-xs font-medium text-[#465fff] dark:bg-[#465fff]/10 dark:text-[#7592ff]">
                                             Admin

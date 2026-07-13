@@ -6,7 +6,7 @@
 <div class="space-y-6 max-w-2xl">
     <div>
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Create Company</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Add a new company to the system.</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Add a new company to the hierarchy.</p>
     </div>
 
     @if($errors->any())
@@ -36,14 +36,27 @@
         </div>
 
         <div>
+            <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Company Type *</label>
+            <select name="type" id="type" required
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500">
+                @foreach($types as $value => $label)
+                    <option value="{{ $value }}" {{ old('type', 'operating') == $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
             <label for="parent_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Parent Company</label>
             <select name="parent_id" id="parent_id"
                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500">
                 <option value="">None (Top-Level)</option>
                 @foreach($parentCompanies as $parent)
-                    <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>{{ $parent->name }}</option>
+                    <option value="{{ $parent->id }}" {{ old('parent_id', request('parent_id')) == $parent->id ? 'selected' : '' }}>
+                        {{ $parent->name }} — {{ $parent->type_label }}
+                    </option>
                 @endforeach
             </select>
+            <p class="text-xs text-gray-400 mt-1">Optional. Leave blank to create a top-level (root) company.</p>
         </div>
 
         <div>

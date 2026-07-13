@@ -36,7 +36,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'john@example.com',
             'password' => 'password',
         ]);
-        $admin->roles()->attach([$adminRole->id, $userRole->id]);
 
         // Create a manager user
         $manager = User::create([
@@ -44,7 +43,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'jane@example.com',
             'password' => 'password',
         ]);
-        $manager->roles()->attach([$managerRole->id, $userRole->id]);
 
         // Create a regular test user
         $testUser = User::create([
@@ -52,7 +50,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
             'password' => 'password',
         ]);
-        $testUser->roles()->attach([$userRole->id]);
 
         // Create regular staff users for org chart depth
         $staff1 = User::create([
@@ -60,21 +57,18 @@ class DatabaseSeeder extends Seeder
             'email' => 'alice@example.com',
             'password' => 'password',
         ]);
-        $staff1->roles()->attach([$userRole->id]);
 
         $staff2 = User::create([
             'name' => 'Bob Williams',
             'email' => 'bob@example.com',
             'password' => 'password',
         ]);
-        $staff2->roles()->attach([$userRole->id]);
 
         $staff3 = User::create([
             'name' => 'Carol Davis',
             'email' => 'carol@example.com',
             'password' => 'password',
         ]);
-        $staff3->roles()->attach([$userRole->id]);
 
         // Seed default company
         $acmeCorp = Company::create([
@@ -92,66 +86,68 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Assign users to Acme Corporation with org chart hierarchy
-        // John Doe = CEO (root, no manager)
+        // John Doe = CEO (root, no manager), has admin + user roles in this company
         $admin->companies()->attach($acmeCorp->id, [
-            'role' => 'admin',
             'job_title' => 'Chief Executive Officer',
             'manager_id' => null,
             'status' => 'active',
         ]);
+        $admin->companyRoles()->attach([$adminRole->id, $userRole->id], ['company_id' => $acmeCorp->id]);
 
-        // Jane Smith = VP of Engineering (reports to John)
+        // Jane Smith = VP of Engineering (reports to John), has manager + user roles
         $manager->companies()->attach($acmeCorp->id, [
-            'role' => 'manager',
             'job_title' => 'VP of Engineering',
             'manager_id' => $admin->id,
             'status' => 'active',
         ]);
+        $manager->companyRoles()->attach([$managerRole->id, $userRole->id], ['company_id' => $acmeCorp->id]);
 
-        // Alice = Senior Developer (reports to Jane)
+        // Alice = Senior Developer (reports to Jane), user role only
         $staff1->companies()->attach($acmeCorp->id, [
-            'role' => 'employee',
             'job_title' => 'Senior Developer',
             'manager_id' => $manager->id,
             'status' => 'active',
         ]);
+        $staff1->companyRoles()->attach($userRole->id, ['company_id' => $acmeCorp->id]);
 
-        // Bob = Developer (reports to Jane)
+        // Bob = Developer (reports to Jane), user role only
         $staff2->companies()->attach($acmeCorp->id, [
-            'role' => 'employee',
             'job_title' => 'Developer',
             'manager_id' => $manager->id,
             'status' => 'active',
         ]);
+        $staff2->companyRoles()->attach($userRole->id, ['company_id' => $acmeCorp->id]);
 
-        // Carol = QA Lead (reports to Jane — on leave status for variety)
+        // Carol = QA Lead (reports to Jane — on leave status for variety), user role only
         $staff3->companies()->attach($acmeCorp->id, [
-            'role' => 'employee',
             'job_title' => 'QA Lead',
             'manager_id' => $manager->id,
             'status' => 'on_leave',
         ]);
+        $staff3->companyRoles()->attach($userRole->id, ['company_id' => $acmeCorp->id]);
 
-        // Test User = regular employee (reports to John directly)
+        // Test User = regular employee (reports to John directly), user role only
         $testUser->companies()->attach($acmeCorp->id, [
-            'role' => 'employee',
             'job_title' => 'Administrative Assistant',
             'manager_id' => $admin->id,
             'status' => 'active',
         ]);
+        $testUser->companyRoles()->attach($userRole->id, ['company_id' => $acmeCorp->id]);
 
-        // Also assign the admin to the subsidiary
+        // Assign admin to subsidiary with admin role only (demonstrating different roles per company)
         $admin->companies()->attach($acmeSub->id, [
-            'role' => 'admin',
             'job_title' => 'Managing Director',
             'manager_id' => null,
             'status' => 'active',
         ]);
+        $admin->companyRoles()->attach($adminRole->id, ['company_id' => $acmeSub->id]);
+
+        // Manager in subsidiary has only manager role (different roles per company)
         $manager->companies()->attach($acmeSub->id, [
-            'role' => 'manager',
             'job_title' => 'Tech Lead',
             'manager_id' => $admin->id,
             'status' => 'active',
         ]);
+        $manager->companyRoles()->attach($managerRole->id, ['company_id' => $acmeSub->id]);
     }
 }

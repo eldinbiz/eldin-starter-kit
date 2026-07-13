@@ -22,10 +22,16 @@ class AdminMiddleware
             abort(403, 'Unauthorized.');
         }
 
-        // Get active role from session, fallback to user's first role
-        $activeRole = session('active_role') ?? $user->roles()->first()->name ?? 'user';
+        $company = $user->getActiveCompany();
 
-        if ($activeRole !== 'admin') {
+        if (!$company) {
+            abort(403, 'No active company selected.');
+        }
+
+        // Get active role from session (company-scoped), fallback to user's first role
+        $activeRole = $user->getActiveRole($company);
+
+        if (!$activeRole || $activeRole->name !== 'admin') {
             abort(403, 'Unauthorized access.');
         }
 

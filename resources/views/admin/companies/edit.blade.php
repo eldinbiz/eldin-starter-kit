@@ -6,7 +6,7 @@
 <div class="space-y-6 max-w-3xl">
     <div>
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Edit Company</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $company->name }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ $company->name }} — {{ $company->type_label }}</p>
     </div>
 
     @if(session('success'))
@@ -44,14 +44,27 @@
         </div>
 
         <div>
+            <label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Company Type *</label>
+            <select name="type" id="type" required
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500">
+                @foreach($types as $value => $label)
+                    <option value="{{ $value }}" {{ old('type', $company->type) == $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
             <label for="parent_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Parent Company</label>
             <select name="parent_id" id="parent_id"
                 class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500">
                 <option value="">None (Top-Level)</option>
                 @foreach($parentCompanies as $parent)
-                    <option value="{{ $parent->id }}" {{ old('parent_id', $company->parent_id) == $parent->id ? 'selected' : '' }}>{{ $parent->name }}</option>
+                    <option value="{{ $parent->id }}" {{ old('parent_id', $company->parent_id) == $parent->id ? 'selected' : '' }}>
+                        {{ $parent->name }} — {{ $parent->type_label }}
+                    </option>
                 @endforeach
             </select>
+            <p class="text-xs text-gray-400 mt-1">Self and subsidiaries are excluded to prevent cycles.</p>
         </div>
 
         <div>
@@ -96,7 +109,9 @@
                     @foreach($companyUsers as $user)
                     <tr class="border-b border-gray-50 dark:border-gray-800">
                         <td class="px-3 py-2 font-medium text-gray-800 dark:text-white">{{ $user->name }}</td>
-                        <td class="px-3 py-2 text-gray-500 dark:text-gray-400 capitalize">{{ $user->pivot->role }}</td>
+                        <td class="px-3 py-2 text-gray-500 dark:text-gray-400 capitalize">
+                            {{ $user->companyRoles->pluck('name')->join(', ') ?: '—' }}
+                        </td>
                         <td class="px-3 py-2 text-gray-500 dark:text-gray-400">{{ $user->pivot->job_title ?? '—' }}</td>
                         <td class="px-3 py-2 text-right">
                             <form action="{{ route('admin.companies.remove-user', [$company, $user->id]) }}" method="POST" onsubmit="return confirm('Remove this user from the company?');" class="inline">
@@ -127,12 +142,14 @@
                         <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
                     @endforeach
                 </select>
-                <select name="role" required
-                    class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white">
-                    <option value="employee">Employee</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
-                </select>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($roles as $role)
+                    <label class="flex items-center gap-1.5 text-sm">
+                        <input type="checkbox" name="roles[]" value="{{ $role->id }}" class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
+                        <span class="text-gray-700 dark:text-gray-300">{{ ucfirst($role->name) }}</span>
+                    </label>
+                    @endforeach
+                </div>
                 <input type="text" name="job_title" placeholder="Job Title"
                     class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white" />
                 <select name="manager_id"
