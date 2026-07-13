@@ -27,17 +27,6 @@
                     class="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500"
                 />
             </div>
-            <!-- Root Company Selector (visible when there's more than one top-level company) -->
-            <select
-                x-show="rootNodes.length > 1"
-                x-model="selectedRootId"
-                class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500"
-            >
-                <option value="">All Companies</option>
-                <template x-for="root in rootNodes" :key="root.id">
-                    <option :value="root.id" x-text="root.name"></option>
-                </template>
-            </select>
             <!-- Expand All / Collapse All -->
             <button @click="expandAll()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -219,7 +208,6 @@ function companyHierarchy() {
         allCompanies: [],
         rootNodes: [],
         searchQuery: '',
-        selectedRootId: '',
         loading: true,
         flashMessage: '',
         flashType: 'success',
@@ -240,10 +228,6 @@ function companyHierarchy() {
                 const data = await resp.json();
                 this.allCompanies = data.companies || [];
                 this.rootNodes = this.buildTree(null);
-                // Default to the first top-level company if multiple exist
-                if (this.rootNodes.length > 1) {
-                    this.selectedRootId = this.rootNodes[0].id;
-                }
             } catch (e) {
                 console.error('Failed to load company tree:', e);
                 this.showFlash('Failed to load company hierarchy.', 'error');
@@ -253,16 +237,10 @@ function companyHierarchy() {
         },
 
         get filteredRootNodes() {
-            let nodes = this.rootNodes;
-            // Filter by selected root company
-            if (this.selectedRootId) {
-                nodes = nodes.filter(n => n.id === this.selectedRootId);
+            if (!this.searchQuery || this.searchQuery.trim() === '') {
+                return this.rootNodes;
             }
-            // Filter by search query
-            if (this.searchQuery && this.searchQuery.trim() !== '') {
-                nodes = nodes.filter(n => this.treeHasMatch(n));
-            }
-            return nodes;
+            return this.rootNodes.filter(n => this.treeHasMatch(n));
         },
 
         treeHasMatch(node) {
@@ -392,10 +370,6 @@ function companyHierarchy() {
                 this.collectCollapsed(this.rootNodes, oldCollapsed);
                 this.rootNodes = this.buildTree(null);
                 this.restoreCollapsed(this.rootNodes, oldCollapsed);
-                // Re-apply root filter after reload
-                if (this.selectedRootId && !this.rootNodes.some(r => r.id === this.selectedRootId)) {
-                    this.selectedRootId = this.rootNodes.length > 0 ? this.rootNodes[0].id : '';
-                }
             } catch (e) { console.error('Failed to reload tree:', e); }
         },
 
