@@ -8,7 +8,6 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -35,7 +34,7 @@ class DatabaseSeeder extends Seeder
         $admin = User::create([
             'name' => 'John Doe',
             'email' => 'john@example.com',
-            'password' => Hash::make('password'),
+            'password' => 'password',
         ]);
         $admin->roles()->attach([$adminRole->id, $userRole->id]);
 
@@ -43,7 +42,7 @@ class DatabaseSeeder extends Seeder
         $manager = User::create([
             'name' => 'Jane Smith',
             'email' => 'jane@example.com',
-            'password' => Hash::make('password'),
+            'password' => 'password',
         ]);
         $manager->roles()->attach([$managerRole->id, $userRole->id]);
 
@@ -51,7 +50,7 @@ class DatabaseSeeder extends Seeder
         $testUser = User::create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => Hash::make('password'),
+            'password' => 'password',
         ]);
         $testUser->roles()->attach([$userRole->id]);
 
@@ -59,21 +58,21 @@ class DatabaseSeeder extends Seeder
         $staff1 = User::create([
             'name' => 'Alice Johnson',
             'email' => 'alice@example.com',
-            'password' => Hash::make('password'),
+            'password' => 'password',
         ]);
         $staff1->roles()->attach([$userRole->id]);
 
         $staff2 = User::create([
             'name' => 'Bob Williams',
             'email' => 'bob@example.com',
-            'password' => Hash::make('password'),
+            'password' => 'password',
         ]);
         $staff2->roles()->attach([$userRole->id]);
 
         $staff3 = User::create([
             'name' => 'Carol Davis',
             'email' => 'carol@example.com',
-            'password' => Hash::make('password'),
+            'password' => 'password',
         ]);
         $staff3->roles()->attach([$userRole->id]);
 
