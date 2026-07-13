@@ -16,6 +16,28 @@
                 </svg>
             </button>
 
+            <!-- Environment Badge -->
+            @unless(app()->environment('production'))
+            @php
+                $env = app()->environment();
+                $badgeColors = match(true) {
+                    in_array($env, ['local']) => 'bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
+                    in_array($env, ['dev', 'development']) => 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
+                    in_array($env, ['staging']) => 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
+                    default => 'bg-gray-100 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
+                };
+                $envLabel = match($env) {
+                    'dev', 'development' => 'DEV',
+                    'staging' => 'STAGING',
+                    'local' => 'LOCAL',
+                    default => strtoupper($env),
+                };
+            @endphp
+            <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide {{ $badgeColors }}">
+                {{ $envLabel }}
+            </span>
+            @endunless
+
             <!-- Search Bar -->
             <div class="hidden sm:block ml-4 flex-1 max-w-xs">
                 <form action="#" method="GET">
