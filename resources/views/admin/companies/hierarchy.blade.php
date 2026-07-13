@@ -198,8 +198,8 @@ function companyHierarchy() {
             }[type] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400';
         },
 
-        expandAll() { this.setAllCollapsed(this.rootNodes, false); },
-        collapseAll() { this.setAllCollapsed(this.rootNodes, true); },
+        expandAll() { this.setAllCollapsed(this.rootNodes, false); this.treeVersion++; },
+        collapseAll() { this.setAllCollapsed(this.rootNodes, true); this.treeVersion++; },
 
         setAllCollapsed(nodes, collapsed) {
             nodes.forEach(n => {
