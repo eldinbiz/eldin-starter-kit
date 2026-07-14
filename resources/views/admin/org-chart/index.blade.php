@@ -2,6 +2,26 @@
 
 @section('title', 'Organization Chart')
 
+@push('styles')
+<style>
+    .org-chart-container {
+        height: 500px;
+    }
+    .org-chart-container svg {
+        width: 100%;
+        width: 100%;
+        height: 100%;
+    }
+    .org-chart-container .node-rect {
+        rx: 12;
+        ry: 12;
+    }
+    .org-chart-container [data-search-dimmable] {
+        transition: opacity 0.3s ease;
+    }
+</style>
+@endpush
+
 @section('content')
 <div x-data="orgChart()" x-init="init()" class="space-y-6">
     <!-- Page Header -->
@@ -23,22 +43,17 @@
                 <input
                     type="text"
                     x-model="searchQuery"
+                    x-on:input.debounce.300ms="doSearch()"
                     placeholder="Search users..."
                     class="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500"
                 />
             </div>
-            <!-- Expand All / Collapse All -->
-            <button @click="expandAll()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
+            <!-- Reset View -->
+            <button @click="resetView()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
                 </svg>
-                Expand All
-            </button>
-            <button @click="collapseAll()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
-                <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Collapse All
+                Reset View
             </button>
         </div>
     </div>
@@ -57,7 +72,7 @@
         </div>
 
         <!-- Empty State -->
-        <div x-show="!loading && rootNodes.length === 0" x-cloak class="flex flex-col items-center justify-center py-20">
+        <div x-show="!loading && isEmpty" x-cloak class="flex flex-col items-center justify-center py-20">
             <svg class="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" fill="none" viewBox="0 0 24 24">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
@@ -65,283 +80,400 @@
             <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">Assign users to this company and set reporting lines to build the chart.</p>
         </div>
 
-        <!-- Tree View -->
-        <div x-show="!loading && rootNodes.length > 0" x-cloak class="overflow-x-auto">
-            <div class="min-w-max py-4">
-                <template x-for="node in rootNodes" :key="node.id">
-                    <div x-data>
-                        <!-- RECURSIVE ORG NODE TEMPLATE -->
-                        <div class="flex flex-col items-center">
-                            <!-- Node Card -->
-                            <div
-                                class="relative flex flex-col items-center"
-                                :class="{ 'opacity-30': searchQuery && searchQuery.trim() !== '' && !$parent.isSearchMatch(node) }"
-                            >
-                                <div
-                                    class="w-56 rounded-xl border shadow-xs bg-white dark:bg-gray-800 p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing"
-                                    :class="{
-                                        'border-brand-500 ring-2 ring-brand-200 dark:ring-brand-800': $parent.isTracing(node.id),
-                                        'border-yellow-400 ring-2 ring-yellow-200 dark:ring-yellow-800': searchQuery && searchQuery.trim() !== '' && $parent.isSearchMatch(node),
-                                        'border-gray-200 dark:border-gray-700': !$parent.isTracing(node.id) && (!searchQuery || searchQuery.trim() === '' || !$parent.isSearchMatch(node)),
-                                    }"
-                                    :draggable="true"
-                                    @dragstart="$parent.dragStart($event, node.id)"
-                                    @dragover.prevent="$parent.dragOver($event)"
-                                    @drop="$parent.drop($event, node.id)"
-                                >
-                                    <div class="flex items-start gap-3">
-                                        <!-- Avatar / Initials -->
-                                        <div
-                                            class="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                                            :class="node.status === 'active' ? 'bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'"
-                                            x-text="node.initials"
-                                        ></div>
-                                        <!-- Info -->
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-semibold text-gray-800 dark:text-white truncate" x-text="node.name"></p>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="node.job_title"></p>
-                                            <div class="flex items-center gap-2 mt-1.5">
-                                                <span
-                                                    class="inline-flex h-1.5 w-1.5 rounded-full"
-                                                    :class="node.status === 'active' ? 'bg-green-500' : (node.status === 'on_leave' ? 'bg-amber-500' : 'bg-gray-400')"
-                                                ></span>
-                                                <span class="text-[11px] text-gray-400" x-text="node.status === 'active' ? 'Active' : (node.status === 'on_leave' ? 'On Leave' : 'Inactive')"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Action Buttons -->
-                                    <div class="flex items-center gap-1.5 mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
-                                        <button
-                                            @click.stop="node.collapsed = !node.collapsed"
-                                            class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                            x-show="node.children && node.children.length > 0"
-                                        >
-                                            <svg class="fill-current transition-transform duration-200" :class="node.collapsed ? '' : 'rotate-90'" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8.47 4.47a.75.75 0 011.06 0l7 7a.75.75 0 010 1.06l-7 7a.75.75 0 01-1.06-1.06L14.94 12 8.47 5.53a.75.75 0 010-1.06z"/>
-                                            </svg>
-                                            <span x-text="node.children.length"></span>
-                                        </button>
-                                        <button
-                                            @click.stop="$parent.triggerTrace(node.id)"
-                                            class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
-                                        >
-                                            <svg class="fill-current" width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                                            </svg>
-                                            Trace
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Tree Connector Line (down from node to children) -->
-                                <div x-show="node.children && node.children.length > 0 && !node.collapsed" class="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
-
-                                <!-- Children Container -->
-                                <div x-show="node.children && node.children.length > 0 && !node.collapsed" class="relative">
-                                    <!-- Horizontal connector bar -->
-                                    <div class="absolute top-0 left-1/2 -translate-x-1/2 h-px bg-gray-300 dark:bg-gray-600" :style="'width: ' + ((node.children.length - 1) * 16) + 'rem; max-width: calc(100% - 8rem);'"></div>
-                                    <!-- Children Row -->
-                                    <div class="flex items-start gap-4 pt-6">
-                                        <template x-for="child in node.children" :key="child.id">
-                                            <div>
-                                                <!-- Recursive Child Node (simplified - same structure) -->
-                                                <div class="flex flex-col items-center">
-                                                    <div
-                                                        class="w-56 rounded-xl border shadow-xs bg-white dark:bg-gray-800 p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing"
-                                                        :class="{
-                                                            'border-brand-500 ring-2 ring-brand-200 dark:ring-brand-800': $data.isTracing(child.id),
-                                                            'border-yellow-400 ring-2 ring-yellow-200 dark:ring-yellow-800': searchQuery && searchQuery.trim() !== '' && $data.isSearchMatch(child),
-                                                            'border-gray-200 dark:border-gray-700': !$data.isTracing(child.id) && (!searchQuery || searchQuery.trim() === '' || !$data.isSearchMatch(child)),
-                                                            'opacity-30': searchQuery && searchQuery.trim() !== '' && !$data.isSearchMatch(child),
-                                                        }"
-                                                        :draggable="true"
-                                                        @dragstart.stop="$data.dragStart($event, child.id)"
-                                                        @dragover.prevent="$data.dragOver($event)"
-                                                        @drop.stop="$data.drop($event, child.id)"
-                                                    >
-                                                        <div class="flex items-start gap-3">
-                                                            <div
-                                                                class="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                                                                :class="child.status === 'active' ? 'bg-brand-100 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'"
-                                                                x-text="child.initials"
-                                                            ></div>
-                                                            <div class="flex-1 min-w-0">
-                                                                <p class="text-sm font-semibold text-gray-800 dark:text-white truncate" x-text="child.name"></p>
-                                                                <p class="text-xs text-gray-500 dark:text-gray-400 truncate" x-text="child.job_title"></p>
-                                                                <div class="flex items-center gap-2 mt-1.5">
-                                                                    <span
-                                                                        class="inline-flex h-1.5 w-1.5 rounded-full"
-                                                                        :class="child.status === 'active' ? 'bg-green-500' : (child.status === 'on_leave' ? 'bg-amber-500' : 'bg-gray-400')"
-                                                                    ></span>
-                                                                    <span class="text-[11px] text-gray-400" x-text="child.status === 'active' ? 'Active' : (child.status === 'on_leave' ? 'On Leave' : 'Inactive')"></span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="flex items-center gap-1.5 mt-3 pt-2 border-t border-gray-100 dark:border-gray-700" x-show="child.children && child.children.length > 0">
-                                                            <button
-                                                                @click.stop="child.collapsed = !child.collapsed"
-                                                                class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                                            >
-                                                                <svg class="fill-current transition-transform duration-200" :class="child.collapsed ? '' : 'rotate-90'" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.47 4.47a.75.75 0 011.06 0l7 7a.75.75 0 010 1.06l-7 7a.75.75 0 01-1.06-1.06L14.94 12 8.47 5.53a.75.75 0 010-1.06z"/>
-                                                                </svg>
-                                                                <span x-text="child.children.length"></span>
-                                                            </button>
-                                                            <button
-                                                                @click.stop="$data.triggerTrace(child.id)"
-                                                                class="flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
-                                                            >
-                                                                <svg class="fill-current" width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                                                                </svg>
-                                                                Trace
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
+        <!-- D3 Org Chart Container -->
+        <div x-show="!loading && !isEmpty" x-cloak id="org-chart-container" class="org-chart-container overflow-auto"></div>
     </div>
 
-    <!-- Trace Panel (Slide-in info about selected trace) -->
-    <div x-show="traceIds.length > 0" x-cloak class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
-        <div class="flex items-center justify-between">
-            <h4 class="text-sm font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                </svg>
-                Reporting Chain: <span x-text="traceChain.map(u => u.name).join(' → ')"></span>
-            </h4>
-            <button @click="clearTrace()" class="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200">
-                <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
+    <!-- Reassign Parent Modal (proper centered dialog) -->
+    <div x-show="showEditParent" x-transition.opacity
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+         @click.self="closeEditParent()">
+        <div x-transition class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto text-gray-800 dark:text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Edit Employee Details</h3>
+                <button @click="closeEditParent()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                Editing: <strong x-text="editParentUserName"></strong>
+            </p>
+            <!-- Job Title -->
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
+            <input type="text" x-model="editParentJobTitle" placeholder="Enter job title..."
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm outline-hidden focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white mb-3" />
+            <!-- Status -->
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+            <select x-model="editParentStatus"
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm outline-hidden focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white mb-4">
+                <option value="active">Active</option>
+                <option value="on_leave">On Leave</option>
+                <option value="inactive">Inactive</option>
+            </select>
+            <!-- Change Manager Section -->
+            <template x-if="editParentCurrentManager">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    Current manager: <strong x-text="editParentCurrentManager"></strong>
+                </p>
+            </template>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Change manager:</p>
+            <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                <template x-for="candidate in parentCandidates" :key="candidate.id">
+                    <div @click="selectManager(candidate.id)"
+                        class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 flex items-center justify-between"
+                        :class="{ 'bg-brand-50 dark:bg-brand-900/20': editParentNewManager === candidate.id }">
+                        <div class="flex items-center gap-2">
+                            <span x-text="candidate.name"></span>
+                            <span x-show="candidate.isDescendant" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full font-medium">will be promoted</span>
+                        </div>
+                        <span class="text-xs text-gray-400" x-text="candidate.title || ''"></span>
+                    </div>
+                </template>
+                <template x-if="parentCandidates.length === 0">
+                    <div class="px-3 py-4 text-sm text-gray-400 text-center">No candidates available</div>
+                </template>
+                <!-- Remove Manager option -->
+                <div @click="selectManager(null)"
+                    :class="{ 'bg-red-50 dark:bg-red-900/20': editParentNewManager === null }"
+                    class="px-3 py-2 text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                    <svg class="fill-current" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    Remove Manager (make root-level)
+                </div>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button @click="saveEmployee()" class="flex-1 py-2 text-sm font-medium rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors">Save Changes</button>
+                <button @click="closeEditParent()" class="flex-1 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Org Chart Alpine.js Logic -->
+<!-- D3 & Org Chart CDN Scripts -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3"></script>
+
+<!-- Org Chart Initialization -->
 <script>
 function orgChart() {
     return {
-        allUsers: [],
-        rootNodes: [],
+        chart: null,
+        users: [],
+        companyName: 'Organization',
         searchQuery: '',
-        traceIds: [],
-        traceChain: [],
         loading: true,
+        isEmpty: false,
+        flatData: [],
+
+        // Edit Parent state
+        showEditParent: false,
+        editParentUserId: null,
+        editParentUserName: '',
+        editParentCurrentManager: '',
+        editParentJobTitle: '',
+        editParentStatus: 'active',
+        editParentNewManager: undefined,
+        parentCandidates: [],
 
         async init() {
+            window.__orgChart = this;
             try {
                 const resp = await fetch('{{ route("admin.org-chart.tree") }}');
                 const data = await resp.json();
-                this.allUsers = data.users || [];
-                this.rootNodes = this.buildTree(null);
+                this.users = data.users || [];
+                this.companyName = data.company?.name || 'Organization';
+                if (this.users.length === 0) {
+                    this.isEmpty = true;
+                    this.loading = false;
+                } else {
+                    this.isEmpty = false;
+                    this.flatData = this.users.map(u => ({
+                        id: u.id.toString(),
+                        parentId: u.manager_id ? u.manager_id.toString() : '',
+                        name: u.name,
+                        title: u.job_title || 'No Title',
+                        status: u.status || 'active',
+                        initials: u.initials,
+                        email: u.email,
+                    }));
+                    this.loading = false;
+                    await this.$nextTick();
+                    this.initChart();
+                }
             } catch (e) {
                 console.error('Failed to load org chart:', e);
-            } finally {
+                this.isEmpty = true;
                 this.loading = false;
             }
         },
 
-        buildTree(managerId) {
-            return this.allUsers
-                .filter(u => u.manager_id === managerId)
-                .map(u => ({
-                    ...u,
-                    collapsed: false,
-                    children: this.buildTree(u.id),
-                }));
+        initChart() {
+            const self = this;
+
+            this.chart = new d3.OrgChart()
+                .container('#org-chart-container')
+                .data(this.prepareChartData())
+                .nodeWidth(() => 230)
+                .nodeHeight(() => 120)
+                .svgHeight(() => 500)
+                .childrenMargin(() => 50)
+                .compactMarginBetween(() => 30)
+                .compactMarginPair(() => 80)
+                .neighbourMargin(() => 20)
+                .siblingsMargin(() => 20)
+                .nodeContent((d) => self.renderNodeHtml(d))
+                .nodeButtonWidth(() => 0)
+                .nodeButtonHeight(() => 0)
+                .buttonContent(() => '')
+                .linkUpdate(function(d) {
+                    d3.select(this).attr('stroke', '#000');
+                })
+                .render();
+            this.chart.expandAll();
         },
 
-        getChildren(userId) {
-            return this.allUsers
-                .filter(u => u.manager_id === userId)
-                .map(u => ({
-                    ...u,
-                    collapsed: false,
-                    children: this.getChildren(u.id),
-                }));
+        renderNodeHtml(d) {
+            const data = d.data || d;
+
+            // Company node (synthetic root)
+            if (data.isCompany) {
+                return `
+                <div data-user-id="${data.id}" data-search-dimmable style="
+                    width:100%;height:100%;
+                    display:flex;align-items:center;justify-content:center;
+                    background:linear-gradient(135deg,#1e40af,#3b82f6);
+                    border:none;
+                    border-radius:12px;
+                    padding:14px 16px;
+                    box-shadow:0 4px 12px rgba(59,130,246,0.3);
+                    font-family:system-ui,-apple-system,sans-serif;
+                    box-sizing:border-box;
+                    color:#fff;
+                ">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.9;">
+                            <path d="M3 21h18M3 10h18M7 3v4M17 3v4M5 3v4M19 3v4M5 10v11M19 10v11M9 10v11M15 10v11M3 21V10l9-7 9 7v11H3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                        <div style="flex:1;min-width:0;">
+                            <div data-search-name style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escHtml(data.name)}</div>
+                            <div data-search-title style="font-size:11px;opacity:0.8;margin-top:2px;">Company Overview</div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            // Person node
+            const statusDotColor = data.status === 'active' ? '#22c55e' : (data.status === 'on_leave' ? '#f59e0b' : '#9ca3af');
+            const statusLabel = data.status === 'active' ? 'Active' : (data.status === 'on_leave' ? 'On Leave' : 'Inactive');
+            const avatarBg = data.status === 'active'
+                ? 'background:#ede9fe;color:#7c3aed;'
+                : 'background:#f3f4f6;color:#6b7280;';
+
+            return `
+            <div data-user-id="${data.id}" data-search-dimmable style="
+                width:100%;height:100%;
+                background:#fff;
+                border:1px solid #e5e7eb;
+                border-radius:12px;
+                padding:12px;
+                box-shadow:0 1px 2px rgba(0,0,0,0.05);
+                font-family:system-ui,-apple-system,sans-serif;
+                box-sizing:border-box;
+            ">
+                <div style="display:flex;align-items:flex-start;gap:10px;">
+                    <div style="
+                        width:36px;height:36px;
+                        border-radius:50%;
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:13px;font-weight:700;
+                        flex-shrink:0;
+                        ${avatarBg}
+                    ">${this.escHtml(data.initials)}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div data-search-name style="font-size:13px;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escHtml(data.name)}</div>
+                        <div data-search-title style="font-size:11px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escHtml(data.title)}</div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${statusDotColor};"></span>
+                            <span style="font-size:10px;color:#9ca3af;">${statusLabel}</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">
+                    <button onclick="event.stopPropagation();event.preventDefault();window.__orgChart.openEditParent('${data.id}');return false;"
+                        style="width:100%;padding:4px 6px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#e0e7ff;color:#4338ca;cursor:pointer;">
+                        Edit
+                    </button>
+                </div>
+            </div>`;
         },
 
-        expandAll() {
-            this.setAllNodesCollapsed(this.rootNodes, false);
+        escHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
         },
 
-        collapseAll() {
-            this.setAllNodesCollapsed(this.rootNodes, true);
-        },
-
-        setAllNodesCollapsed(nodes, collapsed) {
-            nodes.forEach(n => {
-                n.collapsed = collapsed;
-                if (n.children) {
-                    this.setAllNodesCollapsed(n.children, collapsed);
-                }
+        // ---- Search ----
+        doSearch() {
+            const container = document.getElementById('org-chart-container');
+            if (!container) return;
+            const q = (this.searchQuery || '').toLowerCase().trim();
+            const cards = container.querySelectorAll('[data-search-dimmable]');
+            cards.forEach(card => {
+                const nameEl = card.querySelector('[data-search-name]');
+                const titleEl = card.querySelector('[data-search-title]');
+                const name = (nameEl?.textContent || '').toLowerCase();
+                const title = (titleEl?.textContent || '').toLowerCase();
+                const matches = !q || name.includes(q) || title.includes(q);
+                card.style.opacity = matches ? '1' : '0.2';
             });
         },
 
-        async triggerTrace(userId) {
+        // ---- Prepare Chart Data (wraps multiple roots under synthetic company node) ----
+        prepareChartData() {
+            const data = this.flatData.map(d => ({ ...d }));
+            const rootNodes = data.filter(d => !d.parentId || d.parentId === '');
+            if (rootNodes.length > 1) {
+                const syntheticRootId = '__org-root__';
+                data.forEach(d => {
+                    if (!d.parentId || d.parentId === '') {
+                        d.parentId = syntheticRootId;
+                    }
+                });
+                const companyName = this.companyName || 'Organization';
+                data.push({
+                    id: syntheticRootId,
+                    parentId: '',
+                    name: companyName,
+                    title: 'Company',
+                    status: 'active',
+                    initials: '',
+                    isCompany: true,
+                });
+            }
+            return data;
+        },
+
+        // ---- Reset View ----
+        resetView() {
+            if (!this.chart) return;
+            const container = document.getElementById('org-chart-container');
+            container.innerHTML = '';
+            this.initChart();
+        },
+
+        // ---- Select Manager (no save) ----
+        selectManager(id) {
+            this.editParentNewManager = id;
+        },
+
+        // ---- Save Employee ----
+        async saveEmployee() {
+            const userId = this.editParentUserId;
+            if (!userId) return;
             try {
-                const resp = await fetch(`{{ url('/admin/org-chart/trace') }}/${userId}`);
+                // Use selected manager if explicitly chosen, otherwise keep current
+                let managerToSave;
+                if (this.editParentNewManager !== undefined) {
+                    managerToSave = this.editParentNewManager;
+                } else {
+                    const user = (this.users || []).find(u => u.id == userId);
+                    managerToSave = user ? (user.manager_id || null) : null;
+                }
+                const resp = await fetch('{{ route("admin.org-chart.reassign") }}', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ user_id: userId, new_manager_id: managerToSave, job_title: this.editParentJobTitle, status: this.editParentStatus }),
+                });
                 const data = await resp.json();
-                this.traceChain = data.chain || [];
-                this.traceIds = this.traceChain.map(u => u.id);
+                if (data.success) {
+                    this.closeEditParent();
+                    const treeResp = await fetch('{{ route("admin.org-chart.tree") }}');
+                    const treeData = await treeResp.json();
+                    this.users = treeData.users || [];
+                    this.flatData = this.users.map(u => ({
+                        id: u.id.toString(),
+                        parentId: u.manager_id ? u.manager_id.toString() : '',
+                        name: u.name,
+                        title: u.job_title || 'No Title',
+                        status: u.status || 'active',
+                        initials: u.initials,
+                        email: u.email,
+                    }));
+                    this.chart.data(this.prepareChartData()).render();
+                    this.chart.expandAll();
+                }
             } catch (e) {
-                console.error('Failed to trace:', e);
+                console.error('Failed to save employee:', e);
             }
         },
 
-        clearTrace() {
-            this.traceIds = [];
-            this.traceChain = [];
-        },
-
-        isTracing(userId) {
-            return this.traceIds.includes(userId);
-        },
-
-        isSearchMatch(user) {
-            if (!this.searchQuery || this.searchQuery.trim() === '') return true;
-            const q = this.searchQuery.toLowerCase();
-            return user.name.toLowerCase().includes(q) ||
-                   (user.job_title && user.job_title.toLowerCase().includes(q));
-        },
-
-        hasSearchMatches(node) {
-            if (this.isSearchMatch(node)) return true;
-            if (node.children && node.children.length > 0) {
-                return node.children.some(c => this.hasSearchMatches(c));
+        // ---- Edit Parent (Reassign Manager) ----
+        openEditParent(userId) {
+            console.log('openEditParent called with userId:', userId);
+            // Show the modal FIRST, before any data operations that might fail
+            this.showEditParent = true;
+            this.editParentUserId = userId;
+            const users = this.users || [];
+            const user = users.find(u => u.id == userId);
+            this.editParentUserName = user ? user.name : 'Unknown';
+            this.editParentJobTitle = user ? (user.job_title || '') : '';
+            this.editParentStatus = user ? (user.status || 'active') : 'active';
+            // Find current manager
+            if (user && user.manager_id) {
+                const mgr = users.find(u => u.id == user.manager_id);
+                this.editParentCurrentManager = mgr ? mgr.name : 'Unknown';
+            } else {
+                this.editParentCurrentManager = '';
             }
-            return false;
+            this.editParentNewManager = undefined;
+            this.filterParentCandidates();
         },
 
-        dragStart(event, userId) {
-            event.dataTransfer.setData('text/plain', userId.toString());
-            event.dataTransfer.effectAllowed = 'move';
+        closeEditParent() {
+            this.showEditParent = false;
+            this.editParentUserId = null;
+            this.editParentJobTitle = '';
+            this.editParentStatus = 'active';
+            this.editParentNewManager = undefined;
+            this.parentCandidates = [];
         },
 
-        dragOver(event) {
-            event.dataTransfer.dropEffect = 'move';
-        },
+        filterParentCandidates() {
+            const selfId = this.editParentUserId;
 
-        async drop(event, targetUserId) {
-            const draggedUserId = parseInt(event.dataTransfer.getData('text/plain'));
-            if (draggedUserId && draggedUserId !== targetUserId) {
-                await this.reassignManager(draggedUserId, targetUserId);
+            // Collect all descendant IDs of selfId
+            const descendantIds = new Set();
+            const queue = [selfId];
+            while (queue.length > 0) {
+                const current = queue.shift();
+                this.users.forEach(u => {
+                    if (u.manager_id == current && !descendantIds.has(u.id)) {
+                        descendantIds.add(u.id);
+                        queue.push(u.id);
+                    }
+                });
             }
+
+            this.parentCandidates = this.users
+                .filter(u => u.id != selfId)
+                .map(u => ({
+                    id: u.id,
+                    name: u.name,
+                    title: u.job_title || '',
+                    isDescendant: descendantIds.has(u.id),
+                }));
         },
 
-        async reassignManager(userId, newManagerId) {
+        async reassignParent(newManagerId) {
+            const userId = this.editParentUserId;
+            if (!userId) return;
             try {
                 const resp = await fetch('{{ route("admin.org-chart.reassign") }}', {
                     method: 'PATCH',
@@ -349,20 +481,32 @@ function orgChart() {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
-                    body: JSON.stringify({ user_id: userId, new_manager_id: newManagerId }),
+                    body: JSON.stringify({ user_id: userId, new_manager_id: newManagerId, job_title: this.editParentJobTitle, status: this.editParentStatus }),
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    // Reload the tree
+                    this.closeEditParent();
+                    // Reload tree
                     const treeResp = await fetch('{{ route("admin.org-chart.tree") }}');
                     const treeData = await treeResp.json();
-                    this.allUsers = treeData.users || [];
-                    this.rootNodes = this.buildTree(null);
+                    this.users = treeData.users || [];
+                    this.flatData = this.users.map(u => ({
+                        id: u.id.toString(),
+                        parentId: u.manager_id ? u.manager_id.toString() : '',
+                        name: u.name,
+                        title: u.job_title || 'No Title',
+                        status: u.status || 'active',
+                        initials: u.initials,
+                        email: u.email,
+                    }));
+                    // Re-render chart (always expanded)
+                    this.chart.data(this.prepareChartData()).render();
+                    this.chart.expandAll();
                 }
             } catch (e) {
-                console.error('Failed to reassign:', e);
+                console.error('Failed to reassign manager:', e);
             }
-        }
+        },
     };
 }
 </script>

@@ -40,7 +40,6 @@ class OrgChartController extends Controller
         }
 
         $allUsers = $activeCompany->users()
-            ->wherePivot('status', 'active')
             ->get()
             ->map(function (User $u): array {
                 return [
@@ -77,6 +76,8 @@ class OrgChartController extends Controller
         $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'new_manager_id' => ['nullable', 'integer', 'exists:users,id'],
+            'job_title' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'in:active,on_leave,inactive'],
         ]);
 
         $userId = (int) $request->input('user_id');
@@ -87,11 +88,50 @@ class OrgChartController extends Controller
             return response()->json(['error' => 'A user cannot be their own manager.'], 422);
         }
 
-        // Update the pivot entry
+        // Cycle detection: if newManagerId is a descendant of userId, auto-promote
+        if ($newManagerId !== null) {
+            $currentId = $newManagerId;
+            $visited = [];
+            $isDescendant = false;
+
+            while ($currentId !== null) {
+                if ($currentId === $userId) {
+                    $isDescendant = true;
+                    break;
+                }
+                if (in_array($currentId, $visited, true)) {
+                    break; // safety: circular reference already exists
+                }
+                $visited[] = $currentId;
+                $pivot = DB::table('company_user')
+                    ->where('company_id', $activeCompany->id)
+                    ->where('user_id', $currentId)
+                    ->first();
+                $currentId = $pivot?->manager_id ?? null;
+            }
+
+            // If new manager is a descendant, promote them to root first
+            if ($isDescendant) {
+                DB::table('company_user')
+                    ->where('company_id', $activeCompany->id)
+                    ->where('user_id', $newManagerId)
+                    ->update(['manager_id' => null]);
+            }
+        }
+
+        // Build update data (manager_id always present, others optional)
+        $updateData = ['manager_id' => $newManagerId];
+        if ($request->has('job_title')) {
+            $updateData['job_title'] = $request->input('job_title');
+        }
+        if ($request->has('status')) {
+            $updateData['status'] = $request->input('status');
+        }
+
         DB::table('company_user')
             ->where('company_id', $activeCompany->id)
             ->where('user_id', $userId)
-            ->update(['manager_id' => $newManagerId]);
+            ->update($updateData);
 
         return response()->json(['success' => true]);
     }
