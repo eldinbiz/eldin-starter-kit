@@ -23,7 +23,7 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-    pdo pdo_mysql mbstring exif pcntl bcmath gd intl xml opcache
+    pdo pdo_mysql mbstring exif pcntl bcmath gd intl xml opcache sockets
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -40,8 +40,8 @@ COPY . .
 # Frontend build
 RUN npm ci --ignore-scripts && npm run build && rm -rf node_modules
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache
+# Entrypoint for runtime permissions fix
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-CMD ["php-fpm"]
+ENTRYPOINT ["entrypoint.sh"]

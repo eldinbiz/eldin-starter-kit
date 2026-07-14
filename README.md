@@ -23,7 +23,7 @@ docker compose up -d --build
 # Wait for containers to be ready, then:
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan storage:link
-docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate:fresh --seed
 ```
 
 The Docker setup auto-loads `.env.docker` which points to the MariaDB container — no manual `.env` edits needed.
@@ -104,7 +104,48 @@ docker compose logs -f queue                   # watch worker logs
 docker compose exec app php artisan queue:failed   # see failed jobs
 docker compose exec app php artisan queue:retry all  # retry all
 docker compose up -d --scale queue=3           # run 3 workers
+
 ```
+
+### Rebuilding Docker Images
+
+**Full rebuild (wipe database, start fresh):**
+
+```bash
+# Step by step
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+```bash
+# Inline (one-liner)
+docker compose down -v && docker compose build --no-cache && docker compose up -d && docker compose exec app php artisan key:generate && docker compose exec app php artisan migrate:fresh --seed
+```
+
+**Rebuild images, keep database:**
+
+```bash
+# Step by step
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
+
+```bash
+# Inline (one-liner)
+docker compose down && docker compose build --no-cache && docker compose up -d
+```
+
+**Normal restart (no rebuild, keep everything):**
+
+```bash
+docker compose up -d --build
+```
+
+---
 
 ### Local Mode
 
