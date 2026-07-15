@@ -19,17 +19,23 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
+        $perPage = $request->integer('per_page', 5);
         $activeCompany = auth()->user()?->getActiveCompany();
 
         if ($activeCompany) {
-            $users = $activeCompany->users()->with(['companyRoles', 'companies'])->get();
+            $users = $activeCompany->users()
+                ->with(['companyRoles', 'companies'])
+                ->paginate($perPage)
+                ->appends($request->query());
         } else {
-            $users = User::with(['companyRoles', 'companies'])->get();
+            $users = User::with(['companyRoles', 'companies'])
+                ->paginate($perPage)
+                ->appends($request->query());
         }
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'activeCompany'));
     }
 
     /**
@@ -64,7 +70,7 @@ class UserController extends Controller
         // Enforce default 'user' role is always assigned
         $userRoleId = Role::where('name', 'user')->value('id');
         $roleIds = $request->input('roles', []);
-        if ($userRoleId && !in_array($userRoleId, $roleIds)) {
+        if ($userRoleId && ! in_array($userRoleId, $roleIds)) {
             $roleIds[] = $userRoleId;
         }
 
@@ -130,7 +136,7 @@ class UserController extends Controller
         // Enforce default 'user' role is always assigned
         $userRoleId = Role::where('name', 'user')->value('id');
         $roleIds = $request->input('roles', []);
-        if ($userRoleId && !in_array($userRoleId, $roleIds)) {
+        if ($userRoleId && ! in_array($userRoleId, $roleIds)) {
             $roleIds[] = $userRoleId;
         }
 

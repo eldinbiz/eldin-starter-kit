@@ -10,7 +10,12 @@
 <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
     <div class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">All Users</h3>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                All Users
+                @if(!empty($activeCompany))
+                    <span class="font-normal text-gray-500"> &mdash; {{ $activeCompany->name }}</span>
+                @endif
+            </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">Manage administrators, managers, and regular users.</p>
         </div>
         <div>
@@ -46,10 +51,7 @@
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">User</p>
                     </th>
                     <th class="py-3 text-left">
-                        <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Roles</p>
-                    </th>
-                    <th class="py-3 text-left">
-                        <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Companies</p>
+                        <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Company & Role</p>
                     </th>
                     <th class="py-3 text-left">
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Joined Date</p>
@@ -74,8 +76,12 @@
                             </div>
                         </td>
                         <td class="py-3.5">
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach($user->companyRoles as $role)
+                            @php
+                                $rolesByCompany = $user->companyRoles->groupBy('id');
+                            @endphp
+                            @forelse($rolesByCompany as $roleId => $roleGroup)
+                                @php $role = $roleGroup->first(); @endphp
+                                <div class="{{ !$loop->first ? 'mt-2' : '' }}">
                                     @if($role->name === 'admin')
                                         <span class="inline-flex items-center gap-1 rounded-full bg-[#f2f7ff] px-2 py-0.5 text-xs font-medium text-[#465fff] dark:bg-[#465fff]/10 dark:text-[#7592ff]">
                                             Admin
@@ -89,19 +95,20 @@
                                             User
                                         </span>
                                     @endif
-                                @endforeach
-                            </div>
-                        </td>
-                        <td class="py-3.5">
-                            <div class="flex flex-wrap gap-1.5">
-                                @forelse($user->companies as $company)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
-                                        {{ $company->name }}
-                                    </span>
-                                @empty
-                                    <span class="text-gray-400 text-theme-sm dark:text-gray-500">&mdash;</span>
-                                @endforelse
-                            </div>
+                                    <div class="flex flex-wrap gap-1 mt-1 ml-1">
+                                        @foreach($roleGroup as $rolePivot)
+                                            @php $company = $user->companies->firstWhere('id', $rolePivot->pivot->company_id); @endphp
+                                            @if($company)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
+                                                    {{ $company->name }}
+                                                </span>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @empty
+                                <span class="text-gray-400 text-theme-sm dark:text-gray-500">&mdash;</span>
+                            @endforelse
                         </td>
                         <td class="py-3.5">
                             <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ $user->created_at->format('M d, Y') }}</p>
@@ -139,6 +146,28 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span>Show</span>
+            <select
+                onchange="window.location.href = this.value"
+                class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            >
+                @foreach([5, 10, 20, 50, 100] as $option)
+                    <option
+                        value="{{ request()->fullUrlWithQuery(['per_page' => $option, 'page' => null]) }}"
+                        {{ (int) request('per_page', 5) === $option ? 'selected' : '' }}
+                    >{{ $option }}</option>
+                @endforeach
+            </select>
+            <span>entries</span>
+        </div>
+        <div>
+            {{ $users->links() }}
+        </div>
     </div>
 </div>
 @endsection
