@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\SetActiveCompany;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,12 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'active.company' => \App\Http\Middleware\SetActiveCompany::class,
+            'admin' => AdminMiddleware::class,
+            'active.company' => SetActiveCompany::class,
         ]);
 
         $middleware->web(append: [
-            \App\Http\Middleware\SetActiveCompany::class,
+            SetActiveCompany::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

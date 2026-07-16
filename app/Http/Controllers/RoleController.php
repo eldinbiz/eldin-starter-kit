@@ -22,25 +22,25 @@ class RoleController extends Controller
         $roleName = $request->string('role')->toString();
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             abort(403, 'Unauthorized.');
         }
 
         $company = $user->getActiveCompany();
 
-        if (!$company) {
+        if (! $company) {
             abort(403, 'No active company selected.');
         }
 
         // Validate that the user actually has this role in the active company
-        if (!$user->hasRole($roleName, $company)) {
-            abort(403, 'You do not possess the ' . $roleName . ' role in this company.');
+        if (! $user->hasRole($roleName, $company)) {
+            abort(403, 'You do not possess the '.$roleName.' role in this company.');
         }
 
         // Update active role in session (scoped to active company)
         $request->session()->put("active_role.{$company->id}", $roleName);
 
         // Redirect back with success message
-        return redirect()->back()->with('success', 'Switched to ' . ucfirst($roleName) . ' role.');
+        return redirect()->back()->with('success', 'Switched to '.ucfirst($roleName).' role.');
     }
 }

@@ -125,7 +125,9 @@
                         </td>
                         <td class="px-3 py-2 text-gray-500 dark:text-gray-400">{{ $user->pivot->job_title ?? '—' }}</td>
                         <td class="px-3 py-2 text-right">
-                            <form action="{{ route('admin.companies.remove-user', [$company, $user->id]) }}" method="POST" onsubmit="return confirm('Remove this user from the company?');" class="inline">
+                            <form action="{{ route('admin.companies.remove-user', [$company, $user->id]) }}" method="POST"
+                                onsubmit="return confirmRemoveUser('{{ addslashes($user->name) }}', {{ $user->direct_reports_count }})"
+                                class="inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-xs text-error-500 hover:text-error-700 font-medium">Remove</button>
@@ -183,3 +185,18 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function confirmRemoveUser(userName, directReportsCount) {
+    if (directReportsCount > 0) {
+        return confirm(
+            'Removing ' + userName + ' will affect ' + directReportsCount +
+            ' team member(s) who currently report to them. ' +
+            'Their reporting line will be moved to the company level. Continue?'
+        );
+    }
+    return confirm('Remove ' + userName + ' from this company?');
+}
+</script>
+@endpush

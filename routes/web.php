@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\OrgChartController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 // Guest Authentication Routes
@@ -21,36 +25,36 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Role Switch Route
-    Route::post('/switch-role', [\App\Http\Controllers\RoleController::class, 'switch'])->name('switch-role');
+    Route::post('/switch-role', [RoleController::class, 'switch'])->name('switch-role');
 
     // Company Switch Route
-    Route::post('/switch-company', [\App\Http\Controllers\CompanyController::class, 'switch'])->name('switch-company');
+    Route::post('/switch-company', [CompanyController::class, 'switch'])->name('switch-company');
 });
 
 // Administration Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-    Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
+    Route::resource('users', UserController::class);
+    Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
 
     // Company Hierarchy Management (Tree View)
-    Route::get('/companies', [\App\Http\Controllers\Admin\CompanyController::class, 'hierarchy'])->name('companies.index');
-    Route::get('/companies/tree', [\App\Http\Controllers\Admin\CompanyController::class, 'tree'])->name('companies.tree');
-    Route::patch('/companies/reparent', [\App\Http\Controllers\Admin\CompanyController::class, 'reparent'])->name('companies.reparent');
+    Route::get('/companies', [App\Http\Controllers\Admin\CompanyController::class, 'hierarchy'])->name('companies.index');
+    Route::get('/companies/tree', [App\Http\Controllers\Admin\CompanyController::class, 'tree'])->name('companies.tree');
+    Route::patch('/companies/reparent', [App\Http\Controllers\Admin\CompanyController::class, 'reparent'])->name('companies.reparent');
 
     // Company CRUD
-    Route::get('/companies/create', [\App\Http\Controllers\Admin\CompanyController::class, 'create'])->name('companies.create');
-    Route::post('/companies', [\App\Http\Controllers\Admin\CompanyController::class, 'store'])->name('companies.store');
-    Route::get('/companies/{company}/edit', [\App\Http\Controllers\Admin\CompanyController::class, 'edit'])->name('companies.edit');
-    Route::put('/companies/{company}', [\App\Http\Controllers\Admin\CompanyController::class, 'update'])->name('companies.update');
-    Route::patch('/companies/{company}/toggle', [\App\Http\Controllers\Admin\CompanyController::class, 'toggleActive'])->name('companies.toggle');
+    Route::get('/companies/create', [App\Http\Controllers\Admin\CompanyController::class, 'create'])->name('companies.create');
+    Route::post('/companies', [App\Http\Controllers\Admin\CompanyController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{company}/edit', [App\Http\Controllers\Admin\CompanyController::class, 'edit'])->name('companies.edit');
+    Route::put('/companies/{company}', [App\Http\Controllers\Admin\CompanyController::class, 'update'])->name('companies.update');
+    Route::patch('/companies/{company}/toggle', [App\Http\Controllers\Admin\CompanyController::class, 'toggleActive'])->name('companies.toggle');
 
     // User Assignment within a Company
-    Route::post('/companies/{company}/assign-user', [\App\Http\Controllers\Admin\CompanyController::class, 'assignUser'])->name('companies.assign-user');
-    Route::delete('/companies/{company}/remove-user/{user}', [\App\Http\Controllers\Admin\CompanyController::class, 'removeUser'])->name('companies.remove-user');
+    Route::post('/companies/{company}/assign-user', [App\Http\Controllers\Admin\CompanyController::class, 'assignUser'])->name('companies.assign-user');
+    Route::delete('/companies/{company}/remove-user/{user}', [App\Http\Controllers\Admin\CompanyController::class, 'removeUser'])->name('companies.remove-user');
 
     // Organization Chart Routes
-    Route::get('/org-chart', [\App\Http\Controllers\Admin\OrgChartController::class, 'index'])->name('org-chart.index');
-    Route::get('/org-chart/tree', [\App\Http\Controllers\Admin\OrgChartController::class, 'tree'])->name('org-chart.tree');
-    Route::patch('/org-chart/reassign', [\App\Http\Controllers\Admin\OrgChartController::class, 'updateManager'])->name('org-chart.reassign');
-    Route::get('/org-chart/trace/{user}', [\App\Http\Controllers\Admin\OrgChartController::class, 'trace'])->name('org-chart.trace');
+    Route::get('/org-chart', [OrgChartController::class, 'index'])->name('org-chart.index');
+    Route::get('/org-chart/tree', [OrgChartController::class, 'tree'])->name('org-chart.tree');
+    Route::patch('/org-chart/reassign', [OrgChartController::class, 'updateManager'])->name('org-chart.reassign');
+    Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
 });

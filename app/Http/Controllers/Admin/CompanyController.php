@@ -8,10 +8,14 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CompanyController extends Controller
@@ -118,7 +122,7 @@ class CompanyController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:companies,slug'],
-            'type' => ['required', 'string', 'in:' . implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
+            'type' => ['required', 'string', 'in:'.implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
             'parent_id' => ['nullable', 'integer', 'exists:companies,id'],
             'logo' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg', 'max:2048'],
             'is_active' => ['boolean'],
@@ -128,7 +132,7 @@ class CompanyController extends Controller
 
         if ($request->hasFile('logo')) {
             $file = $request->file('logo');
-            $filename = \Illuminate\Support\Str::slug($request->string('name')->toString()) . '.' . $file->getClientOriginalExtension();
+            $filename = Str::slug($request->string('name')->toString()).'.'.$file->getClientOriginalExtension();
             $logoPath = $file->storeAs('logos', $filename, 'public');
         }
 
@@ -162,6 +166,18 @@ class CompanyController extends Controller
             $query->wherePivot('company_id', $company->id);
         }]);
 
+        // Pre-compute how many team members report to each user in this company
+        $managerCounts = DB::table('company_user')
+            ->where('company_id', $company->id)
+            ->whereNotNull('manager_id')
+            ->select('manager_id', DB::raw('count(*) as cnt'))
+            ->groupBy('manager_id')
+            ->pluck('cnt', 'manager_id');
+
+        foreach ($companyUsers as $user) {
+            $user->direct_reports_count = (int) ($managerCounts->get($user->id, 0));
+        }
+
         $availableUsers = User::whereDoesntHave('companies', function ($query) use ($company): void {
             $query->where('company_id', $company->id);
         })->get();
@@ -178,8 +194,8 @@ class CompanyController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::unique('companies', 'slug')->ignore($company->id)],
-            'type' => ['required', 'string', 'in:' . implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('companies', 'slug')->ignore($company->id)],
+            'type' => ['required', 'string', 'in:'.implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
             'parent_id' => ['nullable', 'integer', 'exists:companies,id'],
             'logo' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg', 'max:2048'],
             'is_active' => ['boolean'],
@@ -209,7 +225,7 @@ class CompanyController extends Controller
                 Storage::disk('public')->delete($company->logo);
             }
             $file = $request->file('logo');
-            $filename = \Illuminate\Support\Str::slug($request->string('name')->toString()) . '.' . $file->getClientOriginalExtension();
+            $filename = Str::slug($request->string('name')->toString()).'.'.$file->getClientOriginalExtension();
             $logoPath = $file->storeAs('logos', $filename, 'public');
         }
 
@@ -260,18 +276,29 @@ class CompanyController extends Controller
      */
     public function removeUser(Company $company, int $userId): RedirectResponse
     {
+        // Reassign direct reports to the company level before removing the user
+        $affectedCount = DB::table('company_user')
+            ->where('company_id', $company->id)
+            ->where('manager_id', $userId)
+            ->update(['manager_id' => null]);
+
         $company->users()->detach($userId);
 
-        return redirect()->route('admin.companies.edit', $company)->with('success', 'User removed from company.');
+        $message = 'User removed from company.';
+        if ($affectedCount > 0) {
+            $message .= ' '.$affectedCount.' team member(s) have been reassigned to report at the company level.';
+        }
+
+        return redirect()->route('admin.companies.edit', $company)->with('success', $message);
     }
 
     /**
      * Recursively flatten a nested tree into a flat array of nodes with parent references.
      *
-     * @param  \Illuminate\Database\Eloquent\Collection<int, Company>  $nodes
+     * @param  Collection<int, Company>  $nodes
      * @return array<int, array<string, mixed>>
      */
-    private function flattenTree(\Illuminate\Database\Eloquent\Collection $nodes, ?int $parentId = null): array
+    private function flattenTree(Collection $nodes, ?int $parentId = null): array
     {
         $flat = [];
 
@@ -285,7 +312,7 @@ class CompanyController extends Controller
                 'parent_id' => $parentId,
                 'is_active' => $node->is_active,
                 'users_count' => $node->users_count ?? $node->users()->count(),
-                'logo_url' => $node->logo ? asset('storage/' . $node->logo) : null,
+                'logo_url' => $node->logo ? asset('storage/'.$node->logo) : null,
             ];
 
             if ($node->relationLoaded('children') && $node->children->isNotEmpty()) {

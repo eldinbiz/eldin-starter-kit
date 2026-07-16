@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,7 +19,7 @@ use Tests\TestCase;
 */
 
 $app = require __DIR__.'/../bootstrap/app.php';
-$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
 /*
 |--------------------------------------------------------------------------

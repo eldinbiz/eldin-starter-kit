@@ -20,7 +20,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasCompanyContext;
+    use HasCompanyContext, HasFactory, Notifiable;
 
     /**
      * The roles that belong to the user within specific companies.
@@ -79,7 +79,7 @@ class User extends Authenticatable
      * Check if user has any of the given roles, optionally scoped to a company.
      * If no company is provided, uses the active company from session.
      *
-     * @param array<int, string> $roles
+     * @param  array<int, string>  $roles
      */
     public function hasAnyRole(array $roles, ?Company $company = null): bool
     {

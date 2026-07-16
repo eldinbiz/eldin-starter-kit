@@ -193,11 +193,11 @@ test('assign user to company with multiple role checkboxes', function (): void {
         ->assertSee('Acme Corporation');
 
     // Navigate to company edit page
-    visit('/admin/companies/' . $company->id . '/edit');
+    visit('/admin/companies/'.$company->id.'/edit');
 
     // The page should show the assign user form with role checkboxes
     // and the unassigned user should be in the available users dropdown
-    $pageText = visit('/admin/companies/' . $company->id . '/edit')
+    $pageText = visit('/admin/companies/'.$company->id.'/edit')
         ->text('body');
 
     // Verify role checkbox labels are present

@@ -8,9 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class OrgChartController extends Controller
@@ -52,6 +52,21 @@ class OrgChartController extends Controller
                     'manager_id' => $u->pivot->manager_id,
                 ];
             });
+
+        // Defensive: strip manager_id references to users not in this company
+        $userIds = $allUsers->pluck('id');
+        $allUsers = $allUsers->map(function (array $u) use ($userIds, $activeCompany): array {
+            if ($u['manager_id'] !== null && ! $userIds->contains($u['manager_id'])) {
+                Log::warning('Org chart: dangling manager reference detected', [
+                    'company_id' => $activeCompany->id,
+                    'user_id' => $u['id'],
+                    'missing_manager_id' => $u['manager_id'],
+                ]);
+                $u['manager_id'] = null;
+            }
+
+            return $u;
+        });
 
         return response()->json([
             'company' => [

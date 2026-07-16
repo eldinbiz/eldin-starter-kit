@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\Company;
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

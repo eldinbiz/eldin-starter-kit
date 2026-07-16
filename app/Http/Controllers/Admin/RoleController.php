@@ -98,7 +98,7 @@ class RoleController extends Controller
         if ($role->users()->count() > 0) {
             return redirect()->route('admin.roles.index')->with(
                 'error',
-                'Cannot delete role "' . $role->name . '" because it has ' . $role->users()->count() . ' user(s) assigned.'
+                'Cannot delete role "'.$role->name.'" because it has '.$role->users()->count().' user(s) assigned.'
             );
         }
 
@@ -116,7 +116,7 @@ class RoleController extends Controller
     private function mergeAlwaysEnabledPermissions(array $permissions): array
     {
         foreach (config('permissions.list', []) as $key => $definition) {
-            if (($definition['always_enabled'] ?? false) && !in_array($key, $permissions, true)) {
+            if (($definition['always_enabled'] ?? false) && ! in_array($key, $permissions, true)) {
                 $permissions[] = $key;
             }
         }
