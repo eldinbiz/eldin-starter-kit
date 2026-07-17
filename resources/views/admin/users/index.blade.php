@@ -48,13 +48,37 @@
             <thead>
                 <tr class="border-gray-100 border-y dark:border-gray-800">
                     <th class="py-3 text-left">
-                        <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">User</p>
+                        <a
+                            href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'direction' => $sort === 'name' && $direction === 'asc' ? 'desc' : 'asc', 'page' => null]) }}"
+                            class="inline-flex items-center gap-1 font-medium text-gray-500 text-theme-xs dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                        >
+                            User
+                            @if($sort === 'name')
+                                @if($direction === 'asc')
+                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 24 24"><path d="M12 8l-6 6h12z"/></svg>
+                                @else
+                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 24 24"><path d="M12 16l-6-6h12z"/></svg>
+                                @endif
+                            @endif
+                        </a>
                     </th>
                     <th class="py-3 text-left">
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Company & Role</p>
                     </th>
                     <th class="py-3 text-left">
-                        <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Joined Date</p>
+                        <a
+                            href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => $sort === 'created_at' && $direction === 'asc' ? 'desc' : 'asc', 'page' => null]) }}"
+                            class="inline-flex items-center gap-1 font-medium text-gray-500 text-theme-xs dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                        >
+                            Joined Date
+                            @if($sort === 'created_at')
+                                @if($direction === 'asc')
+                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 24 24"><path d="M12 8l-6 6h12z"/></svg>
+                                @else
+                                    <svg class="fill-current" width="12" height="12" viewBox="0 0 24 24"><path d="M12 16l-6-6h12z"/></svg>
+                                @endif
+                            @endif
+                        </a>
                     </th>
                     <th class="py-3 text-right">
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Actions</p>
@@ -62,7 +86,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                @foreach($users as $user)
+                @forelse($users as $user)
                     <tr>
                         <td class="py-3.5">
                             <div class="flex items-center gap-3">
@@ -143,7 +167,16 @@
                             </div>
                         </td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="4" class="py-10 text-center">
+                            <p class="text-gray-500 dark:text-gray-400">No users found.</p>
+                            <a href="{{ route('admin.users.create') }}" class="text-brand-500 hover:text-brand-600 text-sm font-medium mt-1 inline-block">
+                                Create your first user
+                            </a>
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

@@ -24,18 +24,29 @@ class UserController extends Controller
         $perPage = $request->integer('per_page', 5);
         $activeCompany = auth()->user()?->getActiveCompany();
 
+        $allowedSort = ['name', 'email', 'created_at'];
+        $sort = $request->string('sort')->toString();
+        $direction = $request->string('direction', 'asc')->toString();
+
+        if (! in_array($sort, $allowedSort, true)) {
+            $sort = 'created_at';
+            $direction = 'desc';
+        }
+
         if ($activeCompany) {
             $users = $activeCompany->users()
                 ->with(['companyRoles', 'companies'])
+                ->orderBy($sort, $direction)
                 ->paginate($perPage)
                 ->appends($request->query());
         } else {
             $users = User::with(['companyRoles', 'companies'])
+                ->orderBy($sort, $direction)
                 ->paginate($perPage)
                 ->appends($request->query());
         }
 
-        return view('admin.users.index', compact('users', 'activeCompany'));
+        return view('admin.users.index', compact('users', 'activeCompany', 'sort', 'direction'));
     }
 
     /**
