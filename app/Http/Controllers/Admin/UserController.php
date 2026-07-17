@@ -46,7 +46,22 @@ class UserController extends Controller
                 ->appends($request->query());
         }
 
-        return view('admin.users.index', compact('users', 'activeCompany', 'sort', 'direction'));
+        $userCompanyRoleMap = $users->mapWithKeys(function (User $user) {
+            $grouped = $user->companyRoles->groupBy('pivot.company_id');
+
+            $mapped = $grouped->map(function ($roles) use ($user) {
+                $company = $user->companies->firstWhere('id', $roles->first()->pivot->company_id);
+
+                return [
+                    'company_name' => $company?->name,
+                    'roles' => $roles,
+                ];
+            });
+
+            return [$user->id => $mapped];
+        });
+
+        return view('admin.users.index', compact('users', 'activeCompany', 'sort', 'direction', 'userCompanyRoleMap'));
     }
 
     /**
