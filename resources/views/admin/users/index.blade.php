@@ -43,11 +43,161 @@
         </div>
     @endif
 
+    <!-- Advanced Filters -->
+    <div x-data="{ filtersOpen: {{ $search || ! empty($filterRoles) || $filterCompanyId || $filterDateFrom || $filterDateTo ? 'true' : 'false' }} }" class="mb-6">
+        <button
+            @click="filtersOpen = ! filtersOpen"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        >
+            <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M2.29004 5.90393H17.7067" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17.7075 14.0961H2.29085" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12.0826 3.33331C13.5024 3.33331 14.6534 4.48431 14.6534 5.90414C14.6534 7.32398 13.5024 8.47498 12.0826 8.47498C10.6627 8.47498 9.51172 7.32398 9.51172 5.90415C9.51172 4.48432 10.6627 3.33331 12.0826 3.33331Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M7.91745 11.525C6.49762 11.525 5.34662 12.676 5.34662 14.0959C5.34661 15.5157 6.49762 16.6667 7.91745 16.6667C9.33728 16.6667 10.4883 15.5157 10.4883 14.0959C10.4883 12.676 9.33728 11.525 7.91745 11.525Z" fill="currentColor" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            Advanced Filters
+            <svg class="fill-current transition-transform" :class="filtersOpen ? 'rotate-180' : ''" width="16" height="16" viewBox="0 0 24 24"><path d="M12 16l-6-6h12z"/></svg>
+        </button>
+
+        <div x-show="filtersOpen" x-transition class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+            <form method="GET" action="{{ route('admin.users.index') }}">
+                {{-- Preserve sort/direction so filters don't reset sorting --}}
+                <input type="hidden" name="sort" value="{{ $sort }}">
+                <input type="hidden" name="direction" value="{{ $direction }}">
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {{-- Search --}}
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Name or Email</label>
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ $search }}"
+                            placeholder="Search users..."
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                        >
+                    </div>
+
+                    {{-- Role Filter --}}
+                    <div x-data="{ open: false }" class="relative">
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Role</label>
+                        <button
+                            type="button"
+                            @click="open = ! open"
+                            class="dark:bg-dark-900 shadow-theme-xs h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-left text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                        >
+                            <span x-text="open ? 'Select roles...' : '{{ !empty($filterRoles) ? count($filterRoles).' selected' : 'All roles' }}'"></span>
+                        </button>
+                        <div x-show="open" @click.outside="open = false" class="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                            @foreach($allRoles as $role)
+                                <label class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                                    <input type="checkbox" name="filter_roles[]" value="{{ $role->name }}" {{ in_array($role->name, $filterRoles) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500">
+                                    <span class="text-gray-700 dark:text-gray-300">{{ ucfirst($role->name) }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Company Filter (only when not scoped to active company) --}}
+                    @if($allCompanies->isNotEmpty())
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Company</label>
+                            <select
+                                name="filter_company_id"
+                                class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                            >
+                                <option value="">All companies</option>
+                                @foreach($allCompanies as $company)
+                                    <option value="{{ $company->id }}" {{ $filterCompanyId === $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    {{-- Date From --}}
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Joined From</label>
+                        <input
+                            type="date"
+                            name="filter_date_from"
+                            value="{{ $filterDateFrom }}"
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                        >
+                    </div>
+
+                    {{-- Date To --}}
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Joined To</label>
+                        <input
+                            type="date"
+                            name="filter_date_to"
+                            value="{{ $filterDateTo }}"
+                            class="dark:bg-dark-900 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-800 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:ring-3 focus:outline-hidden dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                        >
+                    </div>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 focus:outline-hidden"
+                    >
+                        Apply Filters
+                    </button>
+                    <a
+                        href="{{ route('admin.users.index', ['sort' => $sort, 'direction' => $direction]) }}"
+                        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+                    >
+                        Clear All
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {{-- Active Filter Chips --}}
+        @php
+            $hasActiveFilters = $search || ! empty($filterRoles) || $filterCompanyId || $filterDateFrom || $filterDateTo;
+        @endphp
+        @if($hasActiveFilters)
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+                <span class="text-xs text-gray-500 dark:text-gray-400">Active filters:</span>
+                @if($search)
+                    <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-brand-100 dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                        "{{ $search }}" ✕
+                    </a>
+                @endif
+                @foreach($filterRoles as $fr)
+                    @php
+                        $remainingRoles = array_values(array_diff($filterRoles, [$fr]));
+                        $url = request()->fullUrlWithQuery(['filter_roles' => $remainingRoles ?: null, 'page' => null]);
+                    @endphp
+                    <a href="{{ $url }}" class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-brand-100 dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                        {{ ucfirst($fr) }} ✕
+                    </a>
+                @endforeach
+                @if($filterCompanyId)
+                    @php $filterCompany = $allCompanies->firstWhere('id', $filterCompanyId); @endphp
+                    <a href="{{ request()->fullUrlWithQuery(['filter_company_id' => null, 'page' => null]) }}" class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-brand-100 dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                        {{ $filterCompany?->name ?? 'Company #'.$filterCompanyId }} ✕
+                    </a>
+                @endif
+                @if($filterDateFrom || $filterDateTo)
+                    <a href="{{ request()->fullUrlWithQuery(['filter_date_from' => null, 'filter_date_to' => null, 'page' => null]) }}" class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-600 hover:bg-brand-100 dark:bg-brand-500/15 dark:text-brand-400 dark:hover:bg-brand-500/25">
+                        {{ $filterDateFrom ?: '...' }} → {{ $filterDateTo ?: '...' }} ✕
+                    </a>
+                @endif
+                <a href="{{ route('admin.users.index', ['sort' => $sort, 'direction' => $direction]) }}" class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 underline">
+                    Clear all filters
+                </a>
+            </div>
+        @endif
+    </div>
+
     @if($users->isEmpty())
         <div class="py-10 text-center">
-            <p class="text-gray-500 dark:text-gray-400">No users found.</p>
-            <a href="{{ route('admin.users.create') }}" class="text-brand-500 hover:text-brand-600 text-sm font-medium mt-1 inline-block">
-                Create your first user
+            <p class="text-gray-500 dark:text-gray-400">No users match your filters.</p>
+            <a href="{{ route('admin.users.index') }}" class="text-brand-500 hover:text-brand-600 text-sm font-medium mt-1 inline-block">
+                Clear filters
             </a>
         </div>
     @else

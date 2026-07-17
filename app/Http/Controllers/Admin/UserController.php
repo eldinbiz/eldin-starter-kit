@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -33,18 +34,43 @@ class UserController extends Controller
             $direction = 'desc';
         }
 
+        $search = $request->string('search')->toString();
+        $filterRoles = $request->input('filter_roles', []);
+        $filterCompanyId = $request->integer('filter_company_id') ?: null;
+        $filterDateFrom = $request->string('filter_date_from')->toString();
+        $filterDateTo = $request->string('filter_date_to')->toString();
+
         if ($activeCompany) {
-            $users = $activeCompany->users()
-                ->with(['companyRoles', 'companies'])
-                ->orderBy($sort, $direction)
-                ->paginate($perPage)
-                ->appends($request->query());
+            $query = $activeCompany->users()->with(['companyRoles', 'companies']);
         } else {
-            $users = User::with(['companyRoles', 'companies'])
-                ->orderBy($sort, $direction)
-                ->paginate($perPage)
-                ->appends($request->query());
+            $query = User::query()->with(['companyRoles', 'companies']);
         }
+
+        $query
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->when(! empty($filterRoles), function ($q) use ($filterRoles) {
+                $q->whereHas('companyRoles', function ($sub) use ($filterRoles) {
+                    $sub->whereIn('name', $filterRoles);
+                });
+            })
+            ->when($filterCompanyId, function ($q) use ($filterCompanyId) {
+                $q->whereHas('companies', function ($sub) use ($filterCompanyId) {
+                    $sub->where('id', $filterCompanyId);
+                });
+            })
+            ->when($filterDateFrom, function ($q) use ($filterDateFrom) {
+                $q->whereDate('users.created_at', '>=', $filterDateFrom);
+            })
+            ->when($filterDateTo, function ($q) use ($filterDateTo) {
+                $q->whereDate('users.created_at', '<=', $filterDateTo);
+            });
+
+        $users = $query->orderBy($sort, $direction)->paginate($perPage)->appends($request->query());
 
         $userCompanyRoleMap = $users->mapWithKeys(function (User $user) {
             $grouped = $user->companyRoles->groupBy('pivot.company_id');
@@ -61,7 +87,14 @@ class UserController extends Controller
             return [$user->id => $mapped];
         });
 
-        return view('admin.users.index', compact('users', 'activeCompany', 'sort', 'direction', 'userCompanyRoleMap'));
+        $allRoles = Role::all();
+        $allCompanies = $activeCompany ? collect() : Company::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.users.index', compact(
+            'users', 'activeCompany', 'sort', 'direction', 'userCompanyRoleMap',
+            'allRoles', 'allCompanies',
+            'search', 'filterRoles', 'filterCompanyId', 'filterDateFrom', 'filterDateTo'
+        ));
     }
 
     /**
