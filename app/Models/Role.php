@@ -7,12 +7,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Role extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'permissions'];
+    protected $fillable = ['name', 'permissions', 'is_active'];
 
     /**
      * The users that have this role within specific companies.
@@ -33,6 +34,8 @@ class Role extends Model
     {
         return [
             'permissions' => 'array',
+            'is_active' => 'boolean',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -71,5 +74,21 @@ class Role extends Model
     public function getUsersCountAttribute(): int
     {
         return $this->companyUsers()->count();
+    }
+
+    /**
+     * Scope to only include active roles.
+     */
+    public function scopeActive($query): void
+    {
+        $query->where('is_active', true);
+    }
+
+    /**
+     * Scope to only include disabled roles.
+     */
+    public function scopeDisabled($query): void
+    {
+        $query->where('is_active', false);
     }
 }

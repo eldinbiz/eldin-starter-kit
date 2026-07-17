@@ -16,12 +16,18 @@ class RoleController extends Controller
     /**
      * Display a listing of the roles.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $roles = Role::withCount('companyUsers')->get();
+        $showTrashed = $request->boolean('trashed');
+
+        $roles = Role::query()
+            ->when($showTrashed, fn ($q) => $q->onlyTrashed())
+            ->withCount('companyUsers')
+            ->get();
+
         $permissionLabels = $this->getPermissionLabels();
 
-        return view('admin.roles.index', compact('roles', 'permissionLabels'));
+        return view('admin.roles.index', compact('roles', 'permissionLabels', 'showTrashed'));
     }
 
     /**
@@ -90,21 +96,63 @@ class RoleController extends Controller
     }
 
     /**
-     * Remove the specified role from storage.
+     * Disable the specified role (set is_active = false).
+     * This is the first step before a role can be soft-deleted.
      */
     public function destroy(Role $role): RedirectResponse
     {
-        // Prevent deletion of roles with assigned users
-        if ($role->companyUsers()->count() > 0) {
+        if ($role->name === 'user') {
             return redirect()->route('admin.roles.index')->with(
                 'error',
-                'Cannot delete role "'.$role->name.'" because it has '.$role->companyUsers()->count().' user(s) assigned.'
+                'The "user" role cannot be disabled.',
+            );
+        }
+
+        $role->update(['is_active' => false]);
+
+        return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been disabled.');
+    }
+
+    /**
+     * Enable a previously disabled role (set is_active = true).
+     */
+    public function restore(Role $role): RedirectResponse
+    {
+        if ($role->trashed()) {
+            // Restore from soft-delete
+            $role->restore();
+            $role->update(['is_active' => true]);
+
+            return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been restored.');
+        }
+
+        $role->update(['is_active' => true]);
+
+        return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been enabled.');
+    }
+
+    /**
+     * Soft-delete a disabled role. The role must already be disabled first.
+     */
+    public function softDelete(Role $role): RedirectResponse
+    {
+        if ($role->name === 'user') {
+            return redirect()->route('admin.roles.index')->with(
+                'error',
+                'The "user" role cannot be deleted.',
+            );
+        }
+
+        if ($role->is_active) {
+            return redirect()->route('admin.roles.index')->with(
+                'error',
+                'Role "'.$role->name.'" must be disabled before it can be deleted.',
             );
         }
 
         $role->delete();
 
-        return redirect()->route('admin.roles.index')->with('success', 'Role deleted successfully.');
+        return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been deleted.');
     }
 
     /**

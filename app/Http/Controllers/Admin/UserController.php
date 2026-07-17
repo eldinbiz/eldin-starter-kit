@@ -110,7 +110,7 @@ class UserController extends Controller
      */
     public function create(): View
     {
-        $roles = Role::all();
+        $roles = Role::where('is_active', true)->get();
         $activeCompany = auth()->user()?->getActiveCompany();
 
         return view('admin.users.create', compact('roles', 'activeCompany'));
@@ -126,7 +126,7 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
             'roles' => ['required', 'array'],
-            'roles.*' => ['exists:roles,id'],
+            'roles.*' => [Rule::exists('roles', 'id')->where('is_active', true)->whereNull('deleted_at')],
         ]);
 
         $activeCompany = auth()->user()?->getActiveCompany();
@@ -167,7 +167,7 @@ class UserController extends Controller
      */
     public function edit(User $user): View
     {
-        $roles = Role::all();
+        $roles = Role::where('is_active', true)->get();
         $activeCompany = auth()->user()?->getActiveCompany();
 
         if ($activeCompany) {
@@ -192,7 +192,7 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
             'roles' => ['required', 'array'],
-            'roles.*' => ['exists:roles,id'],
+            'roles.*' => [Rule::exists('roles', 'id')->where('is_active', true)->whereNull('deleted_at')],
         ]);
 
         $activeCompany = auth()->user()?->getActiveCompany();
