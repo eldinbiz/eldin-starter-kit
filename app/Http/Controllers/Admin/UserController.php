@@ -103,8 +103,9 @@ class UserController extends Controller
     public function create(): View
     {
         $roles = Role::all();
+        $activeCompany = auth()->user()?->getActiveCompany();
 
-        return view('admin.users.create', compact('roles'));
+        return view('admin.users.create', compact('roles', 'activeCompany'));
     }
 
     /**
@@ -120,6 +121,14 @@ class UserController extends Controller
             'roles.*' => ['exists:roles,id'],
         ]);
 
+        $activeCompany = auth()->user()?->getActiveCompany();
+
+        if (! $activeCompany) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'No active company selected. Please select a company context before assigning roles.');
+        }
+
         $user = User::create([
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
@@ -133,17 +142,14 @@ class UserController extends Controller
             $roleIds[] = $userRoleId;
         }
 
-        // Assign the user to the active company if one is selected
-        $activeCompany = auth()->user()?->getActiveCompany();
-        if ($activeCompany) {
-            $user->companies()->attach($activeCompany->id, [
-                'job_title' => $request->input('job_title'),
-                'manager_id' => $request->input('manager_id'),
-            ]);
+        // Attach the user to the active company
+        $user->companies()->attach($activeCompany->id, [
+            'job_title' => $request->input('job_title'),
+            'manager_id' => $request->input('manager_id'),
+        ]);
 
-            // Attach company-scoped roles
-            $user->companyRoles()->attach($roleIds, ['company_id' => $activeCompany->id]);
-        }
+        // Attach company-scoped roles
+        $user->companyRoles()->attach($roleIds, ['company_id' => $activeCompany->id]);
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -165,7 +171,7 @@ class UserController extends Controller
             $userRoleIds = [];
         }
 
-        return view('admin.users.edit', compact('user', 'roles', 'userRoleIds'));
+        return view('admin.users.edit', compact('user', 'roles', 'userRoleIds', 'activeCompany'));
     }
 
     /**
@@ -180,6 +186,14 @@ class UserController extends Controller
             'roles' => ['required', 'array'],
             'roles.*' => ['exists:roles,id'],
         ]);
+
+        $activeCompany = auth()->user()?->getActiveCompany();
+
+        if (! $activeCompany) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'No active company selected. Please select a company context before updating roles.');
+        }
 
         $userData = [
             'name' => $request->string('name')->toString(),
@@ -200,13 +214,10 @@ class UserController extends Controller
         }
 
         // Sync company-scoped roles for the active company
-        $activeCompany = auth()->user()?->getActiveCompany();
-        if ($activeCompany) {
-            $pivotData = array_fill(0, count($roleIds), ['company_id' => $activeCompany->id]);
-            $user->companyRoles()
-                ->wherePivot('company_id', $activeCompany->id)
-                ->sync(array_combine($roleIds, $pivotData));
-        }
+        $pivotData = array_fill(0, count($roleIds), ['company_id' => $activeCompany->id]);
+        $user->companyRoles()
+            ->wherePivot('company_id', $activeCompany->id)
+            ->sync(array_combine($roleIds, $pivotData));
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }

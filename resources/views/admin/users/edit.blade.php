@@ -84,7 +84,13 @@
             <!-- Assign Roles -->
             <div>
                 <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Assign Roles <span class="text-error-500">*</span>
+                    Assign Roles
+                    @if($activeCompany)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
+                            {{ $activeCompany->name }}
+                        </span>
+                    @endif
+                    <span class="text-error-500">*</span>
                 </label>
                 <div class="flex flex-col gap-3">
                     <!-- Default User Role (Checked & Disabled) -->
