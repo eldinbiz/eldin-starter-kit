@@ -34,3 +34,6 @@ When Alpine components need to sync with backend data via Laravel Livewire or tr
 ## 4. Forbidden Anti-Patterns for AI Generation
 - **No Vanilla QuerySelectors:** Do not generate scripts using `document.getElementById` or `querySelector` inside an Alpine context. Use native Alpine magic utilities like `$refs`, `$el`, `$dispatch`, or `$root`.
 - **Avoid Over-nesting States:** Ensure inner structures understand outer `x-data` scoping rules without duplicating variables unnecessarily.
+
+## 5. Confirmation Modals & Type-to-Confirm
+When building confirmation modals with type-to-confirm for destructive actions, consult the on-demand skill: read `.cline/skills/alpine-modal/SKILL.md`.
