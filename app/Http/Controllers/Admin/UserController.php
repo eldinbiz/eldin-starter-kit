@@ -23,7 +23,9 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $perPage = $request->integer('per_page', 5);
-        $activeCompany = auth()->user()?->getActiveCompany();
+        $user = auth()->user();
+        $activeCompany = $user?->getActiveCompany();
+        $isPlatformAdmin = $user?->hasPlatformAccess() ?? false;
 
         $allowedSort = ['name', 'email', 'created_at'];
         $sort = $request->string('sort')->toString();
@@ -40,7 +42,11 @@ class UserController extends Controller
         $filterDateFrom = $request->string('filter_date_from')->toString();
         $filterDateTo = $request->string('filter_date_to')->toString();
 
-        if ($activeCompany) {
+        // Platform admins see ALL users across all companies.
+        // Regular admins see only users in their active company.
+        if ($isPlatformAdmin) {
+            $query = User::query()->with(['companyRoles', 'companies']);
+        } elseif ($activeCompany) {
             $query = $activeCompany->users()->with(['companyRoles', 'companies']);
         } else {
             $query = User::query()->with(['companyRoles', 'companies']);
@@ -88,11 +94,13 @@ class UserController extends Controller
         });
 
         $allRoles = Role::all();
-        $allCompanies = $activeCompany ? collect() : Company::where('is_active', true)->orderBy('name')->get();
+        $allCompanies = $isPlatformAdmin
+            ? Company::where('is_active', true)->orderBy('name')->get()
+            : ($activeCompany ? collect() : Company::where('is_active', true)->orderBy('name')->get());
 
         return view('admin.users.index', compact(
             'users', 'activeCompany', 'sort', 'direction', 'userCompanyRoleMap',
-            'allRoles', 'allCompanies',
+            'allRoles', 'allCompanies', 'isPlatformAdmin',
             'search', 'filterRoles', 'filterCompanyId', 'filterDateFrom', 'filterDateTo'
         ));
     }

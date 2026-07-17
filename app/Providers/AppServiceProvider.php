@@ -30,6 +30,11 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
+        // Platform-level gate: checks ALL roles across ALL companies
+        Gate::define('manage-platform', function (User $user): bool {
+            return $user->hasPlatformAccess();
+        });
+
         // Share the active company with all views
         view()->composer('*', function ($view): void {
             if (auth()->check()) {

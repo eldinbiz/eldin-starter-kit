@@ -55,6 +55,13 @@ class DatabaseSeeder extends Seeder
             'name' => 'user',
             'permissions' => $alwaysEnabledPermissions,
         ]);
+        $platformAdminRole = Role::create([
+            'name' => 'platform-admin',
+            'permissions' => array_values(array_unique(array_merge(
+                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform'],
+                $alwaysEnabledPermissions,
+            ))),
+        ]);
 
         // ─────────────────────────────────────────────
         // 2. Create Companies
@@ -129,6 +136,9 @@ class DatabaseSeeder extends Seeder
             $superAdmin->companyRoles()->attach($managerRole->id, ['company_id' => $company->id]);
             $superAdmin->companyRoles()->attach($userRole->id, ['company_id' => $company->id]);
         }
+
+        // Assign platform-admin role to the super admin (in first company)
+        $superAdmin->companyRoles()->attach($platformAdminRole->id, ['company_id' => $mmsgi->id]);
 
         // ─────────────────────────────────────────────
         // 4. Define company config: min/max users, job titles pool

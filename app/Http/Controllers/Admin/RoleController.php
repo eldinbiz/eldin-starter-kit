@@ -18,7 +18,7 @@ class RoleController extends Controller
      */
     public function index(): View
     {
-        $roles = Role::withCount('users')->get();
+        $roles = Role::withCount('companyUsers')->get();
         $permissionLabels = $this->getPermissionLabels();
 
         return view('admin.roles.index', compact('roles', 'permissionLabels'));
@@ -95,10 +95,10 @@ class RoleController extends Controller
     public function destroy(Role $role): RedirectResponse
     {
         // Prevent deletion of roles with assigned users
-        if ($role->users()->count() > 0) {
+        if ($role->companyUsers()->count() > 0) {
             return redirect()->route('admin.roles.index')->with(
                 'error',
-                'Cannot delete role "'.$role->name.'" because it has '.$role->users()->count().' user(s) assigned.'
+                'Cannot delete role "'.$role->name.'" because it has '.$role->companyUsers()->count().' user(s) assigned.'
             );
         }
 

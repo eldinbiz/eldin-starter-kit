@@ -36,6 +36,10 @@ return [
             'label' => 'Manage Organization Chart',
             'group' => 'System Administration',
         ],
+        'manage-platform' => [
+            'label' => 'Manage Platform',
+            'group' => 'System Administration',
+        ],
     ],
 
     /*

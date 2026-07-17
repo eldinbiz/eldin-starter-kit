@@ -28,10 +28,11 @@ class AdminMiddleware
             abort(403, 'No active company selected.');
         }
 
-        // Get active role from session (company-scoped), fallback to user's first role
-        $activeRole = $user->getActiveRole($company);
+        // Accept: admin role in active company OR platform-admin role in any company
+        $hasAdminInCompany = $user->hasRole('admin', $company);
+        $hasPlatformAccess = $user->hasPlatformAccess();
 
-        if (! $activeRole || $activeRole->name !== 'admin') {
+        if (! $hasAdminInCompany && ! $hasPlatformAccess) {
             abort(403, 'Unauthorized access.');
         }
 

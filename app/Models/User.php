@@ -58,6 +58,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user has platform-level access (platform-admin role
+     * in any company). Platform admins bypass company scoping entirely.
+     */
+    public function hasPlatformAccess(): bool
+    {
+        return $this->companyRoles()->where('name', 'platform-admin')->exists();
+    }
+
+    /**
      * Check if user has a specific role, optionally scoped to a company.
      * If no company is provided, uses the active company from session.
      */

@@ -12,11 +12,15 @@
         <div>
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
                 All Users
-                @if(!empty($activeCompany))
+                @if($isPlatformAdmin)
+                    <span class="font-normal text-gray-500"> &mdash; Platform View</span>
+                @elseif(!empty($activeCompany))
                     <span class="font-normal text-gray-500"> &mdash; {{ $activeCompany->name }}</span>
                 @endif
             </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Manage administrators, managers, and regular users.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ $isPlatformAdmin ? 'Manage users across all companies.' : 'Manage administrators, managers, and regular users.' }}
+            </p>
         </div>
         <div>
             <a
