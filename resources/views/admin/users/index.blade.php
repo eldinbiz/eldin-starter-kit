@@ -429,7 +429,7 @@
                 <span>entries</span>
             </div>
             <div>
-                {{ $users->links() }}
+                {{ $users->onEachSide(1)->links() }}
             </div>
         </div>
     @endif
