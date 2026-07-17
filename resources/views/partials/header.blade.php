@@ -152,7 +152,7 @@
                                 {{ Auth::user()->name }}
                             </span>
                             <span class="block text-xs font-normal text-gray-500 dark:text-gray-400">
-                                {{ ucfirst(Auth::user()->getActiveRole()?->name ?? 'User') }}
+                                {{ Auth::user()->email }}
                             </span>
                         </span>
 
