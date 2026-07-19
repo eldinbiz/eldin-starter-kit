@@ -13,18 +13,42 @@ use Illuminate\Support\Facades\DB;
 class DatabaseSeeder extends Seeder
 {
     /**
+     * Disable foreign key checks for the current database driver.
+     */
+    private function disableForeignKeyChecks(): void
+    {
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+        }
+    }
+
+    /**
+     * Re-enable foreign key checks for the current database driver.
+     */
+    private function enableForeignKeyChecks(): void
+    {
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = ON;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS = 1;');
+        }
+    }
+
+    /**
      * Seed the application's database.
      */
     public function run(): void
     {
         // Truncate in FK-safe order
-        DB::statement('PRAGMA foreign_keys = OFF;');
+        $this->disableForeignKeyChecks();
         DB::table('company_user_role')->truncate();
         DB::table('company_user')->truncate();
         DB::table('users')->truncate();
         DB::table('companies')->truncate();
         DB::table('roles')->truncate();
-        DB::statement('PRAGMA foreign_keys = ON;');
+        $this->enableForeignKeyChecks();
 
         // ─────────────────────────────────────────────
         // 1. Gather always-enabled permissions from config
