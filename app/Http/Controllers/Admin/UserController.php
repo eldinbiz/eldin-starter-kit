@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Company;
+use App\DataTables\UsersDataTable;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -20,89 +20,11 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request): View
+    public function index(Request $request, UsersDataTable $dataTable): View
     {
-        $perPage = $request->integer('per_page', 5);
-        $user = auth()->user();
-        $activeCompany = $user?->getActiveCompany();
-        $isPlatformAdmin = $user?->hasPlatformAccess() ?? false;
-
-        $allowedSort = ['name', 'email', 'created_at'];
-        $sort = $request->string('sort')->toString();
-        $direction = $request->string('direction', 'asc')->toString();
-
-        if (! in_array($sort, $allowedSort, true)) {
-            $sort = 'created_at';
-            $direction = 'desc';
-        }
-
-        $search = $request->string('search')->toString();
-        $filterRoles = $request->input('filter_roles', []);
-        $filterCompanyId = $request->integer('filter_company_id') ?: null;
-        $filterDateFrom = $request->string('filter_date_from')->toString();
-        $filterDateTo = $request->string('filter_date_to')->toString();
-
-        // Platform admins see ALL users across all companies.
-        // Regular admins see only users in their active company.
-        if ($isPlatformAdmin) {
-            $query = User::query()->with(['companyRoles', 'companies']);
-        } elseif ($activeCompany) {
-            $query = $activeCompany->users()->with(['companyRoles', 'companies']);
-        } else {
-            $query = User::query()->with(['companyRoles', 'companies']);
-        }
-
-        $query
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($sub) use ($search) {
-                    $sub->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->when(! empty($filterRoles), function ($q) use ($filterRoles) {
-                $q->whereHas('companyRoles', function ($sub) use ($filterRoles) {
-                    $sub->whereIn('name', $filterRoles);
-                });
-            })
-            ->when($filterCompanyId, function ($q) use ($filterCompanyId) {
-                $q->whereHas('companies', function ($sub) use ($filterCompanyId) {
-                    $sub->where('id', $filterCompanyId);
-                });
-            })
-            ->when($filterDateFrom, function ($q) use ($filterDateFrom) {
-                $q->whereDate('users.created_at', '>=', $filterDateFrom);
-            })
-            ->when($filterDateTo, function ($q) use ($filterDateTo) {
-                $q->whereDate('users.created_at', '<=', $filterDateTo);
-            });
-
-        $users = $query->orderBy($sort, $direction)->paginate($perPage)->appends($request->query());
-
-        $userCompanyRoleMap = $users->mapWithKeys(function (User $user) {
-            $grouped = $user->companyRoles->groupBy('pivot.company_id');
-
-            $mapped = $grouped->map(function ($roles) use ($user) {
-                $company = $user->companies->firstWhere('id', $roles->first()->pivot->company_id);
-
-                return [
-                    'company_name' => $company?->name,
-                    'roles' => $roles,
-                ];
-            });
-
-            return [$user->id => $mapped];
-        });
-
-        $allRoles = Role::all();
-        $allCompanies = $isPlatformAdmin
-            ? Company::where('is_active', true)->orderBy('name')->get()
-            : ($activeCompany ? collect() : Company::where('is_active', true)->orderBy('name')->get());
-
-        return view('admin.users.index', compact(
-            'users', 'activeCompany', 'sort', 'direction', 'userCompanyRoleMap',
-            'allRoles', 'allCompanies', 'isPlatformAdmin',
-            'search', 'filterRoles', 'filterCompanyId', 'filterDateFrom', 'filterDateTo'
-        ));
+        return view('admin.users.index', [
+            'dataTable' => $dataTable->handle($request),
+        ]);
     }
 
     /**
