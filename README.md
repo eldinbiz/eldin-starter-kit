@@ -72,6 +72,36 @@ No manual `.env` changes needed.
 
 ---
 
+## Switching Branches in Docker Mode
+
+When you `git checkout` a different branch, the files on disk update instantly (bind mount), but cached state inside the containers stays stale:
+**vendor**, **bootstrap/cache**, and compiled frontend assets still reference the old branch.
+
+```bash
+# Step by step
+docker compose exec app composer install --no-interaction
+docker compose exec app php artisan optimize:clear
+docker compose exec vite npm install
+docker compose exec vite npm run build
+docker compose restart queue
+
+# If migrations changed
+docker compose exec app php artisan migrate
+```
+
+```bash
+# One-liner (skip migrate — run it separately if needed)
+docker compose exec app composer install --no-interaction && docker compose exec app php artisan optimize:clear && docker compose exec vite npm install && docker compose exec vite npm run build && docker compose restart queue
+```
+
+> **What each command does:**
+> - `composer install` — syncs vendor to the new branch's `composer.lock`
+> - `optimize:clear` — flushes config, route, view, event, and compiled caches
+> - `npm install && npm run build` — rebuilds frontend assets
+> - `restart queue` — forces the queue worker to reload new code
+
+---
+
 ## Daily Commands
 
 ### Docker Mode

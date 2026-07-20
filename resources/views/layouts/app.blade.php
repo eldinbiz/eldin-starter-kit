@@ -22,30 +22,12 @@
 </head>
 <body
     x-data="{ page: 'dashboard', loaded: true, darkMode: false, stickyMenu: false, sidebarToggle: true, scrollTop: false }"
-    x-init="
-        darkMode = JSON.parse(localStorage.getItem('darkMode')) || false;
-        $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))
-    "
+    x-init="darkMode = JSON.parse(localStorage.getItem('darkMode')) || false"
+    x-effect="localStorage.setItem('darkMode', JSON.stringify(darkMode))"
     :class="{'dark bg-gray-900': darkMode === true}"
 >
     <!-- Preloader -->
-    @include('partials.preloader')Uncaught (in promise) TypeError: this.$watch is not a function
-    result https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js line 5 > AsyncFunction:34
-    anonymous https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js line 5 > AsyncFunction:39
-    Vn https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    ar https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:1
-    T https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    <anonymous> https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    v https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    r https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    n https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    br https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    S https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    Or https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    Or https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-    <anonymous> https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
-cdn.min.js line 5 > AsyncFunction:34:14
-
+    @include('partials.preloader')
 
     <!-- Page Wrapper -->
     <div class="flex h-screen overflow-hidden">
