@@ -54,6 +54,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/companies/{company}/assign-user', [App\Http\Controllers\Admin\CompanyController::class, 'assignUser'])->name('companies.assign-user');
     Route::delete('/companies/{company}/remove-user/{user}', [App\Http\Controllers\Admin\CompanyController::class, 'removeUser'])->name('companies.remove-user');
 
+    // Company Assignment from User Management
+    Route::post('/users/{user}/assign-company', [UserController::class, 'assignCompany'])->name('users.assign-company');
+    Route::delete('/users/{user}/remove-company/{company}', [UserController::class, 'removeCompany'])->name('users.remove-company');
+
     // Organization Chart Routes
     Route::get('/org-chart', [OrgChartController::class, 'index'])->name('org-chart.index');
     Route::get('/org-chart/tree', [OrgChartController::class, 'tree'])->name('org-chart.tree');

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\DataTables\UsersDataTable;
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -91,6 +92,7 @@ class UserController extends Controller
     {
         $roles = Role::where('is_active', true)->get();
         $activeCompany = auth()->user()?->getActiveCompany();
+        $allCompanies = Company::where('is_active', true)->orderBy('name')->get();
 
         if ($activeCompany) {
             $userRoleIds = $user->companyRoles()
@@ -101,7 +103,26 @@ class UserController extends Controller
             $userRoleIds = [];
         }
 
-        return view('admin.users.edit', compact('user', 'roles', 'userRoleIds', 'activeCompany'));
+        // Reload companies with pivot data (job_title)
+        $user->load('companies');
+
+        // Load the user's assigned companies with their roles
+        $assignedCompanies = $user->companies->map(function (Company $company) use ($user): Company {
+            $company->user_roles = $user->companyRoles()
+                ->wherePivot('company_id', $company->id)
+                ->get();
+
+            return $company;
+        });
+
+        // Companies not yet assigned to this user
+        $assignedIds = $assignedCompanies->pluck('id');
+        $availableCompanies = $allCompanies->whereNotIn('id', $assignedIds);
+
+        return view('admin.users.edit', compact(
+            'user', 'roles', 'userRoleIds', 'activeCompany',
+            'assignedCompanies', 'availableCompanies'
+        ));
     }
 
     /**
@@ -164,5 +185,68 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Assign the user to a company with roles and optional job title / manager.
+     */
+    public function assignCompany(Request $request, User $user): RedirectResponse
+    {
+        $request->validate([
+            'company_id' => ['required', 'integer', 'exists:companies,id'],
+            'roles' => ['required', 'array'],
+            'roles.*' => ['exists:roles,id'],
+            'job_title' => ['nullable', 'string', 'max:255'],
+            'manager_id' => ['nullable', 'integer', 'exists:users,id'],
+        ]);
+
+        $companyId = (int) $request->input('company_id');
+
+        // Prevent duplicate assignment
+        if ($user->companies()->where('company_id', $companyId)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'This user is already assigned to that company.');
+        }
+
+        $user->companies()->attach($companyId, [
+            'job_title' => $request->input('job_title'),
+            'manager_id' => $request->input('manager_id') ? (int) $request->input('manager_id') : null,
+            'status' => 'active',
+        ]);
+
+        // Attach company-scoped roles
+        $user->companyRoles()->attach($request->input('roles'), ['company_id' => $companyId]);
+
+        return redirect()->route('admin.users.edit', $user)->with('success', 'User assigned to company successfully.');
+    }
+
+    /**
+     * Remove the user from a specific company.
+     */
+    public function removeCompany(User $user, int $companyId): RedirectResponse
+    {
+        $company = Company::findOrFail($companyId);
+
+        // Reassign direct reports before removing the user
+        $affectedCount = $company->users()
+            ->wherePivot('manager_id', $user->id)
+            ->newPivotStatement()
+            ->where('company_id', $company->id)
+            ->update(['manager_id' => null]);
+
+        // Detach company-scoped roles
+        $user->companyRoles()
+            ->wherePivot('company_id', $company->id)
+            ->detach();
+
+        $user->companies()->detach($company->id);
+
+        $message = 'User removed from company.';
+        if ($affectedCount > 0) {
+            $message .= ' '.$affectedCount.' team member(s) have been reassigned to report at the company level.';
+        }
+
+        return redirect()->route('admin.users.edit', $user)->with('success', $message);
     }
 }
