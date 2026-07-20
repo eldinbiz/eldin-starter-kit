@@ -29,7 +29,23 @@
     :class="{'dark bg-gray-900': darkMode === true}"
 >
     <!-- Preloader -->
-    @include('partials.preloader')
+    @include('partials.preloader')Uncaught (in promise) TypeError: this.$watch is not a function
+    result https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js line 5 > AsyncFunction:34
+    anonymous https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js line 5 > AsyncFunction:39
+    Vn https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    ar https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:1
+    T https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    <anonymous> https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    v https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    r https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    n https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    br https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    S https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    Or https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    Or https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+    <anonymous> https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js:5
+cdn.min.js line 5 > AsyncFunction:34:14
+
 
     <!-- Page Wrapper -->
     <div class="flex h-screen overflow-hidden">
@@ -54,5 +70,8 @@
     </div>
 
     @stack('scripts')
+
+    <!-- Session Expiry Monitor & Modal -->
+    @include('partials.session-monitor')
 </body>
 </html>
