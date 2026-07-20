@@ -2,6 +2,20 @@
 
 This rule strictly governs all interactions requiring command line / terminal execution, ensuring destructive operations are never executed without user oversight.
 
+## 0. Windows Path Separators
+
+On Windows `cmd.exe`, backslash paths in PHP/Composer commands are subject to escape-sequence interpretation (e.g., `\b` becomes a backspace character, `\n` a newline). Always use **forward slashes** for vendor binary paths:
+
+```
+# Correct (forward slashes — PHP on Windows handles these natively)
+php vendor/bin/pint --dirty --format agent
+php vendor/bin/phpunit
+php vendor/bin/pest
+
+# Incorrect (backslashes — \b, \t, \n etc. get mangled by cmd.exe)
+php vendor\bin\pint --dirty --format agent
+```
+
 ## 1. Non-Destructive Commands (Agent May Execute)
 
 The agent is permitted to run **safe, read-only, or environment-scoped** commands directly, including:

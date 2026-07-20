@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -108,7 +107,7 @@ class CompanyController extends Controller
      */
     public function create(): View
     {
-        $parentCompanies = Company::orderBy('name')->get();
+        $parentCompanies = Company::select('id', 'name')->orderBy('name')->get();
         $types = config('company.types', []);
 
         return view('admin.companies.create', compact('parentCompanies', 'types'));
@@ -156,23 +155,20 @@ class CompanyController extends Controller
         // Exclude self and all descendants from parent options to prevent cycle creation
         $excludeIds = $company->allChildren()->pluck('id')->push($company->id);
 
-        $parentCompanies = Company::whereNotIn('id', $excludeIds)->orderBy('name')->get();
+        $parentCompanies = Company::select('id', 'name')->whereNotIn('id', $excludeIds)->orderBy('name')->get();
         $types = config('company.types', []);
 
-        $companyUsers = $company->users()->get();
+        // Eager-load users with their company-scoped roles in a single query
+        $companyUsers = $company->users()
+            ->with(['companyRoles' => fn ($query) => $query->wherePivot('company_id', $company->id)])
+            ->get();
 
-        // Eager load company-scoped roles for each user in this company
-        $companyUsers->load(['companyRoles' => function ($query) use ($company): void {
-            $query->wherePivot('company_id', $company->id);
-        }]);
-
-        // Pre-compute how many team members report to each user in this company
-        $managerCounts = DB::table('company_user')
-            ->where('company_id', $company->id)
-            ->whereNotNull('manager_id')
-            ->select('manager_id', DB::raw('count(*) as cnt'))
-            ->groupBy('manager_id')
-            ->pluck('cnt', 'manager_id');
+        // Pre-compute how many team members report to each user in this company (collection-based, pure Eloquent)
+        $managerCounts = $company->users()
+            ->wherePivotNotNull('manager_id')
+            ->get()
+            ->groupBy('pivot.manager_id')
+            ->map->count();
 
         foreach ($companyUsers as $user) {
             $user->direct_reports_count = (int) ($managerCounts->get($user->id, 0));
@@ -277,9 +273,10 @@ class CompanyController extends Controller
     public function removeUser(Company $company, int $userId): RedirectResponse
     {
         // Reassign direct reports to the company level before removing the user
-        $affectedCount = DB::table('company_user')
+        $affectedCount = $company->users()
+            ->wherePivot('manager_id', $userId)
+            ->newPivotStatement()
             ->where('company_id', $company->id)
-            ->where('manager_id', $userId)
             ->update(['manager_id' => null]);
 
         $company->users()->detach($userId);
@@ -311,7 +308,7 @@ class CompanyController extends Controller
                 'type_label' => $node->type_label,
                 'parent_id' => $parentId,
                 'is_active' => $node->is_active,
-                'users_count' => $node->users_count ?? $node->users()->count(),
+                'users_count' => $node->users_count ?? 0,
                 'logo_url' => $node->logo ? asset('storage/'.$node->logo) : null,
             ];
 

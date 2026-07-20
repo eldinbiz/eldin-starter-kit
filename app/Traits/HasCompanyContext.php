@@ -11,18 +11,29 @@ use Illuminate\Database\Eloquent\Collection;
 trait HasCompanyContext
 {
     /**
+     * Cached active company instance for the current request.
+     */
+    private ?Company $cachedActiveCompany = null;
+
+    /**
      * Get the currently active company from the session,
      * falling back to the user's first company.
+     *
+     * Memoized per request to prevent duplicate database queries.
      */
     public function getActiveCompany(): ?Company
     {
+        if ($this->cachedActiveCompany !== null) {
+            return $this->cachedActiveCompany;
+        }
+
         $activeCompanyId = session('active_company_id');
 
         if ($activeCompanyId) {
-            return $this->companies()->where('companies.id', $activeCompanyId)->first();
+            return $this->cachedActiveCompany = $this->companies()->where('companies.id', $activeCompanyId)->first();
         }
 
-        return $this->companies()->first();
+        return $this->cachedActiveCompany = $this->companies()->first();
     }
 
     /**

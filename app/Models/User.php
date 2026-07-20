@@ -23,6 +23,16 @@ class User extends Authenticatable
     use HasCompanyContext, HasFactory, Notifiable;
 
     /**
+     * Cached active role instance for the current request.
+     */
+    private ?Role $cachedActiveRole = null;
+
+    /**
+     * Company ID used for the cached active role, to detect context switches.
+     */
+    private ?int $cachedActiveRoleCompanyId = null;
+
+    /**
      * The roles that belong to the user within specific companies.
      * Returns a BelongsToMany scoped to the company_user_role pivot.
      *
@@ -108,6 +118,8 @@ class User extends Authenticatable
      * Get the currently active role within a specific company,
      * falling back to the user's first assigned role in that company.
      * If no company is provided, uses the active company from session.
+     *
+     * Memoized per request to prevent duplicate database queries.
      */
     public function getActiveRole(?Company $company = null): ?Role
     {
@@ -117,18 +129,27 @@ class User extends Authenticatable
             return null;
         }
 
+        // Return cached instance if same company context
+        if ($this->cachedActiveRole !== null && $this->cachedActiveRoleCompanyId === $company->id) {
+            return $this->cachedActiveRole;
+        }
+
         $activeRoleName = session("active_role.{$company->id}");
 
         if ($activeRoleName) {
-            return $this->companyRoles()
+            $this->cachedActiveRole = $this->companyRoles()
                 ->wherePivot('company_id', $company->id)
                 ->where('name', $activeRoleName)
                 ->first();
+        } else {
+            $this->cachedActiveRole = $this->companyRoles()
+                ->wherePivot('company_id', $company->id)
+                ->first();
         }
 
-        return $this->companyRoles()
-            ->wherePivot('company_id', $company->id)
-            ->first();
+        $this->cachedActiveRoleCompanyId = $company->id;
+
+        return $this->cachedActiveRole;
     }
 
     /**

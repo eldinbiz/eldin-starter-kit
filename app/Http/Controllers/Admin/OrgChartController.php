@@ -9,7 +9,6 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -118,19 +117,17 @@ class OrgChartController extends Controller
                     break; // safety: circular reference already exists
                 }
                 $visited[] = $currentId;
-                $pivot = DB::table('company_user')
-                    ->where('company_id', $activeCompany->id)
-                    ->where('user_id', $currentId)
+
+                $parentUser = $activeCompany->users()
+                    ->wherePivot('user_id', $currentId)
                     ->first();
-                $currentId = $pivot?->manager_id ?? null;
+
+                $currentId = $parentUser?->pivot?->manager_id;
             }
 
             // If new manager is a descendant, promote them to root first
             if ($isDescendant) {
-                DB::table('company_user')
-                    ->where('company_id', $activeCompany->id)
-                    ->where('user_id', $newManagerId)
-                    ->update(['manager_id' => null]);
+                $activeCompany->users()->updateExistingPivot($newManagerId, ['manager_id' => null]);
             }
         }
 
@@ -143,10 +140,7 @@ class OrgChartController extends Controller
             $updateData['status'] = $request->input('status');
         }
 
-        DB::table('company_user')
-            ->where('company_id', $activeCompany->id)
-            ->where('user_id', $userId)
-            ->update($updateData);
+        $activeCompany->users()->updateExistingPivot($userId, $updateData);
 
         return response()->json(['success' => true]);
     }
@@ -173,9 +167,8 @@ class OrgChartController extends Controller
 
             $visited[] = $currentUserId;
 
-            $pivot = DB::table('company_user')
-                ->where('company_id', $activeCompany->id)
-                ->where('user_id', $currentUserId)
+            $parentUser = $activeCompany->users()
+                ->wherePivot('user_id', $currentUserId)
                 ->first();
 
             $currentUser = User::find($currentUserId);
@@ -184,11 +177,11 @@ class OrgChartController extends Controller
                     'id' => $currentUser->id,
                     'name' => $currentUser->name,
                     'initials' => strtoupper(substr($currentUser->name, 0, 1)),
-                    'job_title' => $pivot?->job_title ?? 'No Title',
+                    'job_title' => $parentUser?->pivot?->job_title ?? 'No Title',
                 ];
             }
 
-            $currentUserId = $pivot?->manager_id ?? null;
+            $currentUserId = $parentUser?->pivot?->manager_id;
         }
 
         return response()->json(['chain' => $chain]);

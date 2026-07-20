@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class UsersDataTable extends DataTable
@@ -137,7 +138,7 @@ class UsersDataTable extends DataTable
         ])->render();
     }
 
-    public function handle(\Illuminate\Http\Request $request): static
+    public function handle(Request $request): static
     {
         parent::handle($request);
 
