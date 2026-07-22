@@ -7,7 +7,8 @@
     @include('partials.breadcrumb')
 </div>
 
-<div class="max-w-2xl mx-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-8">
     <div class="flex items-center justify-between mb-6">
         <div>
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Edit User Details</h3>
@@ -157,9 +158,10 @@
             </div>
         </div>
     </form>
+</div>
 
     <!-- Company Assignments Section -->
-    <div class="mt-8 border-t border-gray-200 pt-6 dark:border-gray-800">
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-8">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Company Assignments</h4>
