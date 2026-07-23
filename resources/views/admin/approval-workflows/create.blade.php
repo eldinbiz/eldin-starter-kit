@@ -114,6 +114,22 @@
                                             </div>
                                         </div>
 
+                                        {{-- N+1 of Previous Step --}}
+                                        <div x-data="{ tooltip: false }" class="relative">
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" :name="'groups[' + gi + '][steps][' + si + '][resolver_type]'" value="N+1_of_previous"
+                                                    x-model="step.resolver_type"
+                                                    class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                                                <span class="text-xs text-gray-700 dark:text-gray-300">N+1 of Previous Step</span>
+                                                <span @mouseenter="tooltip = true" @mouseleave="tooltip = false" @click="tooltip = !tooltip"
+                                                    class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-500 cursor-help dark:bg-gray-700 dark:text-gray-400">?</span>
+                                            </label>
+                                            <div x-show="tooltip" x-cloak
+                                                class="absolute left-0 top-full mt-1 z-10 w-48 rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700">
+                                                The direct manager of the previous step's approver.
+                                            </div>
+                                        </div>
+
                                         {{-- Specific User --}}
                                         <div x-data="{ tooltip: false }" class="relative">
                                             <label class="flex items-center gap-2 cursor-pointer">
@@ -129,22 +145,6 @@
                                                 Assign a specific named user from the company as approver.
                                             </div>
                                         </div>
-
-                                        {{-- N+1 of Previous --}}
-                                        <div x-data="{ tooltip: false }" class="relative">
-                                            <label class="flex items-center gap-2 cursor-pointer">
-                                                <input type="radio" :name="'groups[' + gi + '][steps][' + si + '][resolver_type]'" value="N+1_of_previous"
-                                                    x-model="step.resolver_type"
-                                                    class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
-                                                <span class="text-xs text-gray-700 dark:text-gray-300">N+1 of Previous</span>
-                                                <span @mouseenter="tooltip = true" @mouseleave="tooltip = false" @click="tooltip = !tooltip"
-                                                    class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-gray-200 text-[10px] font-bold text-gray-500 cursor-help dark:bg-gray-700 dark:text-gray-400">?</span>
-                                            </label>
-                                            <div x-show="tooltip" x-cloak
-                                                class="absolute left-0 top-full mt-1 z-10 w-48 rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700">
-                                                The direct manager of the previous step's approver.
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {{-- Specific user picker --}}
@@ -155,7 +155,19 @@
                                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
                                             <option value="">Select user...</option>
                                             @foreach ($users as $user)
-                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                @php
+                                                    $membership = $user->companies->first();
+                                                    $jobTitle = $membership?->pivot?->job_title;
+                                                    $companyName = $membership?->name;
+                                                    $label = $user->name;
+                                                    if ($jobTitle) {
+                                                        $label .= ' — ' . $jobTitle;
+                                                    }
+                                                    if ($companyName) {
+                                                        $label .= ' (' . $companyName . ')';
+                                                    }
+                                                @endphp
+                                                <option value="{{ $user->id }}">{{ $label }}</option>
                                             @endforeach
                                             </select>
                                         </div>

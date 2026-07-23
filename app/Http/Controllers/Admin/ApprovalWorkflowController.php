@@ -8,6 +8,8 @@ use App\DataTables\ApprovalWorkflowTemplatesDataTable;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Approval\StoreWorkflowTemplateRequest;
 use App\Models\Approval\WorkflowTemplate;
+use App\Models\Company;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -38,7 +40,7 @@ class ApprovalWorkflowController extends Controller
             abort(403);
         }
 
-        $users = $company->users()->orderBy('name')->get();
+        $users = $this->getCompanyAndAncestorUsers($company);
 
         return view('admin.approval-workflows.create', [
             'users' => $users,
@@ -97,7 +99,7 @@ class ApprovalWorkflowController extends Controller
         }
 
         $workflow->load('groups.steps');
-        $users = $company->users()->orderBy('name')->get();
+        $users = $this->getCompanyAndAncestorUsers($company);
 
         return view('admin.approval-workflows.edit', [
             'template' => $workflow,
@@ -211,6 +213,22 @@ class ApprovalWorkflowController extends Controller
 
         return redirect()->route('admin.approval-workflows.index')
             ->with('success', 'Workflow template deleted.');
+    }
+
+    /**
+     * Get users from the current company and all ancestor companies.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     */
+    private function getCompanyAndAncestorUsers(Company $company)
+    {
+        $companyIds = collect([$company->id])
+            ->merge($company->allAncestors()->pluck('id'));
+
+        return User::whereHas('companies', fn ($q) => $q->whereIn('companies.id', $companyIds))
+            ->with(['companies' => fn ($q) => $q->whereIn('companies.id', $companyIds)])
+            ->orderBy('name')
+            ->get();
     }
 
     /**
