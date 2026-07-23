@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\ApprovalWorkflowController;
 use App\Http\Controllers\Admin\OrgChartController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
@@ -63,4 +65,24 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/org-chart/tree', [OrgChartController::class, 'tree'])->name('org-chart.tree');
     Route::patch('/org-chart/reassign', [OrgChartController::class, 'updateManager'])->name('org-chart.reassign');
     Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
+
+    // Approval Workflow Templates
+    Route::resource('approval-workflows', ApprovalWorkflowController::class)->parameters([
+        'approval-workflows' => 'workflow',
+    ]);
+    Route::post('approval-workflows/{workflow}/restore', [ApprovalWorkflowController::class, 'restore'])->name('approval-workflows.restore');
+    Route::delete('approval-workflows/{workflow}/soft-delete', [ApprovalWorkflowController::class, 'softDelete'])->name('approval-workflows.soft-delete');
+    Route::delete('approval-workflows/{workflow}/trash', [ApprovalWorkflowController::class, 'trash'])->name('approval-workflows.trash');
+});
+
+// Approval Routes (authenticated users)
+Route::middleware('auth')->prefix('approvals')->name('approvals.')->group(function () {
+    Route::get('/inbox', [ApprovalController::class, 'inbox'])->name('inbox');
+    Route::get('/requests', [ApprovalController::class, 'requests'])->name('requests');
+    Route::get('/{request}', [ApprovalController::class, 'show'])->name('show');
+    Route::post('/{step}/approve', [ApprovalController::class, 'approve'])->name('approve');
+    Route::post('/{step}/reject', [ApprovalController::class, 'reject'])->name('reject');
+    Route::post('/{request}/cancel', [ApprovalController::class, 'cancel'])->name('cancel');
+    Route::post('/{step}/delegate', [ApprovalController::class, 'delegate'])->name('delegate');
+    Route::post('/{step}/resolve-previous-manager', [ApprovalController::class, 'resolvePreviousManager'])->name('resolve-previous-manager');
 });
