@@ -171,6 +171,74 @@ class ApprovalEngine
     }
 
     /**
+     * Preview a workflow — resolves all approvers without creating any database records.
+     * Returns the template structure with resolved approver names for each step.
+     *
+     * @return array{template_name: string, groups: array<int, array{name: string, type: string, steps: array<int, array{label: string, order: int, resolver_type: string, approver_name: string, approver_job_title: string|null}>}>}
+     */
+    public function preview(Approvable $approvable, WorkflowTemplate $template): array
+    {
+        $requestor = $approvable->getApprovalRequester();
+        $company = $approvable->getApprovalCompany();
+
+        $template->load('groups.steps');
+
+        $groups = $template->groups->map(function ($group) use ($requestor, $company): array {
+            return [
+                'name' => $group->name,
+                'type' => $group->type->value,
+                'steps' => $group->steps->map(function ($step) use ($requestor, $company): array {
+                    $resolverType = $step->resolver_type;
+
+                    // Skip N+1_of_previous — can't resolve without previous step context
+                    if ($resolverType === ResolverType::NPlus1OfPrevious) {
+                        return [
+                            'label' => $step->label,
+                            'order' => $step->order,
+                            'resolver_type' => $resolverType->value,
+                            'approver_name' => 'Will be determined at runtime',
+                            'approver_job_title' => null,
+                        ];
+                    }
+
+                    try {
+                        $approverId = $this->resolveApproverUserId(
+                            $resolverType,
+                            $step->resolver_payload ?? [],
+                            $requestor,
+                            $company,
+                        );
+                        $approver = User::find($approverId);
+
+                        $membership = $approver?->companies->firstWhere('id', $company->id);
+
+                        return [
+                            'label' => $step->label,
+                            'order' => $step->order,
+                            'resolver_type' => $resolverType->value,
+                            'approver_name' => $approver?->name ?? 'Unknown',
+                            'approver_job_title' => $membership?->pivot?->job_title,
+                        ];
+                    } catch (RuntimeException $e) {
+                        return [
+                            'label' => $step->label,
+                            'order' => $step->order,
+                            'resolver_type' => $resolverType->value,
+                            'approver_name' => 'Cannot resolve',
+                            'approver_job_title' => null,
+                        ];
+                    }
+                })->values()->toArray(),
+            ];
+        })->values()->toArray();
+
+        return [
+            'template_name' => $template->name,
+            'groups' => $groups,
+        ];
+    }
+
+    /**
      * Resolve an approver user ID from a resolver type at submission time.
      *
      * @param  array<string, mixed>  $payload

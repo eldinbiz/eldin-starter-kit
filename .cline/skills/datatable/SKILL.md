@@ -273,6 +273,44 @@ The `data-table/filters.blade.php` component automatically renders each filter b
 
 ---
 
+## Filter Design Guidelines
+
+When implementing a new DataTable, after defining `columns()`, review each column and determine whether a corresponding filter would improve the user experience. Present a suggested filter list to the user before implementing.
+
+### Suggested Filters by Column Type
+
+| Column data | Recommended filter type | Example |
+|---|---|---|
+| Free-text fields (name, title, description) | Combine into a single `search` text filter with explicit `apply()` | `Filter::make('search')->type('text')->apply(fn ($q, $v) => $q->where('name', 'like', "%$v%")->orWhere('description', 'like', "%$v%"))` |
+| Enumerated status column | `select` with all possible values as options | `Filter::make('status')->type('select')->options([...])->apply(fn ($q, $v) => $q->where('status', $v))` |
+| Date/timestamp column | `date` with a "From" label | `Filter::make('created_from')->type('date')->label('From')->apply(fn ($q, $v) => $q->where('created_at', '>=', $v))` |
+| Boolean/toggle column | `select` with Yes/No options | `Filter::make('active')->type('select')->options(['1' => 'Yes', '0' => 'No'])` |
+| Foreign key / belongs-to | `select` with options from a lookup table (use a Closure for lazy evaluation) | `Filter::make('category_id')->type('select')->options(fn () => Category::pluck('name', 'id')->toArray())` |
+| Multi-select tags | `checkbox` group | `Filter::make('tags')->type('checkbox')->options([...])` |
+
+### Filter Design Checklist
+
+1. **Start with search** — Does the resource need a global text search? If so, add a `search` text filter with explicit `apply()` covering all searchable text columns.
+2. **Review each column** — For each column in `columns()`, ask: "Would the user want to narrow results by this field?"
+3. **Use the right type** — Match the filter type to the data type (see table above).
+4. **Present suggestions** — Before writing filter code, present the proposed filter list to the user for approval.
+5. **Keep it focused** — Don't add filters for columns with very few distinct values unless they're meaningful (e.g., a 3-value status is useful; a 2-value gender column might not be).
+6. **Use Closures for dynamic options** — When options come from a database table (e.g., categories, users), use a Closure: `->options(fn () => User::pluck('name', 'id')->toArray())`. This defers the query until the filter panel is actually rendered.
+
+### Example: Presenting Filters to the User
+
+When implementing a new DataTable for, say, `Posts`, after defining columns:
+
+> I'll add these filters:
+> - **Search** (text) — searches across title and content
+> - **Status** (select) — Draft / Published / Archived  
+> - **Author** (select) — dropdown of all users
+> - **Created From** (date) — filters posts created on or after this date
+>
+> Any you'd like to add, remove, or adjust?
+
+---
+
 ## Reference: Available Blade Components
 
 | Component | Purpose |

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\DataTables\ApprovalHistoryDataTable;
+use App\DataTables\ApprovalInboxDataTable;
+use App\DataTables\ApprovalRequestsDataTable;
 use App\Models\Approval\ApprovalRequest;
 use App\Models\Approval\ApprovalRequestStep;
 use App\Models\User;
@@ -21,52 +24,30 @@ class ApprovalController extends Controller
     /**
      * Inbox — pending steps where the current user is the approver.
      */
-    public function inbox(Request $request): View
+    public function inbox(Request $request, ApprovalInboxDataTable $dataTable): View
     {
-        /** @var User $user */
-        $user = auth()->user();
-        $company = $user->getActiveCompany();
-
-        if (! $company) {
-            abort(403);
-        }
-
-        $steps = ApprovalRequestStep::with('request.requestor', 'request.approvable')
-            ->where('approver_id', $user->id)
-            ->whereHas('request', function ($query) use ($company): void {
-                $query->where('company_id', $company->id)
-                    ->where('status', 'pending');
-            })
-            ->pending()
-            ->orderBy('created_at', 'desc')
-            ->paginate(25);
-
         return view('approvals.inbox', [
-            'steps' => $steps,
+            'dataTable' => $dataTable->handle($request),
+        ]);
+    }
+
+    /**
+     * History — all requests where the user was an approver or delegate.
+     */
+    public function history(Request $request, ApprovalHistoryDataTable $dataTable): View
+    {
+        return view('approvals.history', [
+            'dataTable' => $dataTable->handle($request),
         ]);
     }
 
     /**
      * My requests — submitted by the current user.
      */
-    public function requests(Request $request): View
+    public function requests(Request $request, ApprovalRequestsDataTable $dataTable): View
     {
-        /** @var User $user */
-        $user = auth()->user();
-        $company = $user->getActiveCompany();
-
-        if (! $company) {
-            abort(403);
-        }
-
-        $requests = ApprovalRequest::with('steps.approver', 'approvable')
-            ->where('company_id', $company->id)
-            ->where('requestor_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(25);
-
         return view('approvals.requests', [
-            'approvalRequests' => $requests,
+            'dataTable' => $dataTable->handle($request),
         ]);
     }
 
@@ -83,7 +64,11 @@ class ApprovalController extends Controller
             abort(403);
         }
 
-        $request->load('steps.approver', 'approvable', 'requestor');
+        $request->load([
+            'steps' => fn ($q) => $q->with(['approver', 'delegatedFrom']),
+            'approvable',
+            'requestor',
+        ]);
 
         $companyUsers = $company->users()->orderBy('name')->get();
 

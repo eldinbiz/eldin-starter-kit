@@ -95,6 +95,21 @@
                         </a>
                     </li>
 
+                    <!-- Approval History -->
+                    <li>
+                        <a
+                            href="{{ route('approvals.history') }}"
+                            class="menu-item group {{ Request::is('approvals/history*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        >
+                            <span class="flex items-center gap-3">
+                                <svg class="fill-current {{ Request::is('approvals/history*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>History</span>
+                            </span>
+                        </a>
+                    </li>
+
                     <!-- My Requests -->
                     <li>
                         <a
@@ -129,7 +144,28 @@
                 </ul>
             </div>
 
-            <!-- Group 3: SYSTEM ADMINISTRATION -->
+            <!-- Group 3: PURCHASING -->
+            <div class="mb-6">
+                <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+                    <span x-show="!sidebarToggle || sidebarHover" x-cloak>PURCHASING</span>
+                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">PURC</span>
+                </h3>
+                <ul class="flex flex-col gap-1.5">
+                    <li>
+                        <a href="{{ route('purchase-requests.index') }}"
+                            class="menu-item group {{ Request::is('purchase-requests*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <span class="flex items-center gap-3">
+                                <svg class="fill-current {{ Request::is('purchase-requests*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h9a1.5 1.5 0 001.5-1.5V8.121a1.5 1.5 0 00-.44-1.06l-2.12-2.122a1.5 1.5 0 00-1.06-.439H7.5zM7.5 2.25A3 3 0 004.5 5.25v13.5a3 3 0 003 3h9a3 3 0 003-3V8.121a3 3 0 00-.879-2.121L16.5 3.879A3 3 0 0014.379 3H7.5zM8.25 9a.75.75 0 01.75-.75h6a.75.75 0 010 1.5H9A.75.75 0 018.25 9zm0 3a.75.75 0 01.75-.75h6a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zm0 3a.75.75 0 01.75-.75h3a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75z"/>
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Purchase Requests</span>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Group 4: SYSTEM ADMINISTRATION -->
             <div>
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>

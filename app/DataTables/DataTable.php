@@ -84,10 +84,10 @@ abstract class DataTable
      */
     public function sortableColumns(): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (Column $col) => $col->key,
             array_filter($this->columns(), fn (Column $col) => $col->sortable),
-        );
+        ));
     }
 
     /**
@@ -95,10 +95,10 @@ abstract class DataTable
      */
     public function searchableColumns(): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (Column $col) => $col->key,
             array_filter($this->columns(), fn (Column $col) => $col->searchable),
-        );
+        ));
     }
 
     public function results(): LengthAwarePaginator

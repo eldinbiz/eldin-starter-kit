@@ -68,81 +68,9 @@
     </div>
 @endif
 
-{{-- Workflow Progress Visualization --}}
-<div class="mb-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-    <h4 class="text-base font-semibold text-gray-800 dark:text-white/90 mb-4">Workflow Progress</h4>
-
-    @if ($approvalRequest->workflow_snapshot)
-        @foreach ($approvalRequest->workflow_snapshot['groups'] as $groupIndex => $group)
-            @php
-                $groupSteps = $approvalRequest->steps->where('group_name', $group['name']);
-                $allApproved = $groupSteps->every(fn($s) => $s->state === \App\Enums\StepState::Approved);
-                $anyRejected = $groupSteps->contains('state', \App\Enums\StepState::Rejected);
-                $isCurrent = !$allApproved && !$anyRejected && $groupSteps->contains('state', \App\Enums\StepState::Pending);
-            @endphp
-
-            <div class="mb-4 {{ $isCurrent ? '' : 'opacity-60' }}">
-                <div class="flex items-center gap-2 mb-2">
-                    @if ($allApproved)
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-success-100 text-success-600 dark:bg-success-500/10 dark:text-success-400">
-                            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                        </span>
-                    @elseif ($anyRejected)
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-error-100 text-error-600 dark:bg-error-500/10 dark:text-error-400">
-                            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-                        </span>
-                    @elseif ($isCurrent)
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
-                            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="3"/></svg>
-                        </span>
-                    @else
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500">
-                            <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="3"/></svg>
-                        </span>
-                    @endif
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Group {{ $groupIndex + 1 }}: {{ $group['name'] }}
-                    </span>
-                    <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                        {{ $group['type'] }}
-                    </span>
-                </div>
-
-                <div class="ml-7 space-y-1.5">
-                    @foreach ($groupSteps->sortBy('order') as $step)
-                        <div class="flex items-center gap-3 text-sm">
-                            @if ($step->state === \App\Enums\StepState::Approved)
-                                <span class="text-success-500 dark:text-success-400">&#10003;</span>
-                            @elseif ($step->state === \App\Enums\StepState::Rejected)
-                                <span class="text-error-500 dark:text-error-400">&#10007;</span>
-                            @else
-                                <span class="text-gray-400">&mdash;</span>
-                            @endif
-
-                            <span class="flex-1 text-gray-600 dark:text-gray-400">
-                                {{ $step->display_label }}
-                                @if ($step->approver)
-                                    <span class="text-xs text-gray-400">({{ $step->approver->name }})</span>
-                                @endif
-                            </span>
-
-                            @if ($step->delegatedFrom)
-                                <span class="text-xs text-gray-400 italic">delegated from {{ $step->delegatedFrom->name }}</span>
-                            @endif
-
-                            @if ($step->action_at)
-                                <span class="text-xs text-gray-400">{{ $step->action_at->format('M d, h:i A') }}</span>
-                            @endif
-
-                            @if ($step->notes)
-                                <span class="text-xs text-gray-500 dark:text-gray-400 italic">"{{ \Illuminate\Support\Str::limit($step->notes, 60) }}"</span>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endforeach
-    @endif
+{{-- Workflow Progress --}}
+<div class="mb-6">
+    @include('approvals._workflow-progress-table', ['approvalRequest' => $approvalRequest])
 </div>
 
 {{-- Action Buttons --}}

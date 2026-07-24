@@ -63,6 +63,30 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
                             ->orWhere('description', 'like', "%{$value}%");
                     });
                 }),
+
+            Filter::make('type')
+                ->type('select')
+                ->label('Applies To')
+                ->options(fn (): array => WorkflowTemplate::withoutGlobalScopes()
+                    ->select('approvable_type')
+                    ->distinct()
+                    ->pluck('approvable_type', 'approvable_type')
+                    ->toArray())
+                ->apply(fn (Builder $q, string $v) => $q->where('approvable_type', $v)),
+
+            Filter::make('status')
+                ->type('select')
+                ->label('Status')
+                ->options([
+                    '1' => 'Active',
+                    '0' => 'Disabled',
+                ])
+                ->apply(fn (Builder $q, string $v) => $q->where('is_active', $v)),
+
+            Filter::make('created_from')
+                ->type('date')
+                ->label('Created From')
+                ->apply(fn (Builder $q, string $v) => $q->where('created_at', '>=', $v)),
         ];
     }
 

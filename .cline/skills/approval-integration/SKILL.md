@@ -5,7 +5,6 @@ license: MIT
 metadata:
   author: eldinbiz
 ---
-
 # Approval Module Integration
 
 This skill documents how any new module integrates with the polymorphic approval engine. Follow this guide **exactly** when building a module that needs approval workflows.
@@ -14,14 +13,14 @@ This skill documents how any new module integrates with the polymorphic approval
 
 The approval module is an **engine + infrastructure**, not a standalone CRUD app. It provides:
 
-| Layer | Component | Location |
-|-------|-----------|----------|
-| Contract | `Approvable` interface | `app/Contracts/Approvable.php` |
-| Engine | `ApprovalEngine` service | `app/Services/ApprovalEngine.php` |
-| Templates | Admin-configured workflow definitions | `Admin > Workflow Templates` |
-| Inbox | Approvers act on pending steps | `/approvals/inbox` |
-| Tracking | Requestors monitor submissions | `/approvals/requests` |
-| Events | 6 lifecycle events | `app/Events/Approval/*` |
+| Layer     | Component                             | Location                            |
+| --------- | ------------------------------------- | ----------------------------------- |
+| Contract  | `Approvable` interface              | `app/Contracts/Approvable.php`    |
+| Engine    | `ApprovalEngine` service            | `app/Services/ApprovalEngine.php` |
+| Templates | Admin-configured workflow definitions | `Admin > Workflow Templates`      |
+| Inbox     | Approvers act on pending steps        | `/approvals/inbox`                |
+| Tracking  | Requestors monitor submissions        | `/approvals/requests`             |
+| Events    | 6 lifecycle events                    | `app/Events/Approval/*`           |
 
 Any model implementing `Approvable` becomes "approvable" — the approval pipeline handles the rest.
 
@@ -106,13 +105,13 @@ class PurchaseRequest extends Model implements Approvable
 
 ### Method reference
 
-| Method | Return | Required | Notes |
-|--------|--------|----------|-------|
-| `getApprovalTitle()` | `string` | Yes | Shown in inbox, requests list, and notification emails |
-| `getApprovalUrl()` | `string` | Yes | "View Full" link in the approval detail page |
-| `getApprovalRequester()` | `User` | Yes | Used to resolve N+1 approver |
-| `getApprovalCompany()` | `Company` | Yes | Scopes to the correct company context |
-| `getApprovalPreview()` | `?array` | No | Return `['view' => '...', 'data' => [...]]` or `null` |
+| Method                     | Return      | Required | Notes                                                    |
+| -------------------------- | ----------- | -------- | -------------------------------------------------------- |
+| `getApprovalTitle()`     | `string`  | Yes      | Shown in inbox, requests list, and notification emails   |
+| `getApprovalUrl()`       | `string`  | Yes      | "View Full" link in the approval detail page             |
+| `getApprovalRequester()` | `User`    | Yes      | Used to resolve N+1 approver                             |
+| `getApprovalCompany()`   | `Company` | Yes      | Scopes to the correct company context                    |
+| `getApprovalPreview()`   | `?array`  | No       | Return`['view' => '...', 'data' => [...]]` or `null` |
 
 ---
 
@@ -196,14 +195,14 @@ Register event listeners in your module's service provider or in a dedicated lis
 
 ### Events to listen for
 
-| Event | Fired When | What To Do |
-|-------|-----------|------------|
-| `ApprovalRequested` | Request created | Log it; display status badge (handled by notification module) |
-| `ApprovalStepCompleted` | One step approved | *(usually just notification — no action needed)* |
-| **`ApprovalCompleted`** | **All groups complete** | **Execute the pending transaction!** |
-| `ApprovalRejected` | Any step rejected | Update model status to "rejected"; notify requestor |
-| `ApprovalCanceled` | Requestor cancels | Update model status to "canceled" |
-| `ApprovalDelegated` | Approver reassigned | *(notification only)* |
+| Event                           | Fired When                    | What To Do                                                    |
+| ------------------------------- | ----------------------------- | ------------------------------------------------------------- |
+| `ApprovalRequested`           | Request created               | Log it; display status badge (handled by notification module) |
+| `ApprovalStepCompleted`       | One step approved             | *(usually just notification — no action needed)*           |
+| **`ApprovalCompleted`** | **All groups complete** | **Execute the pending transaction!**                    |
+| `ApprovalRejected`            | Any step rejected             | Update model status to "rejected"; notify requestor           |
+| `ApprovalCanceled`            | Requestor cancels             | Update model status to "canceled"                             |
+| `ApprovalDelegated`           | Approver reassigned           | *(notification only)*                                       |
 
 ### Listener example
 
@@ -317,27 +316,27 @@ Route::post('/purchase-requests/{purchaseRequest}/submit-for-approval',
 
 When configuring workflow templates in the admin UI, these are the available resolver types:
 
-| Type | Label in UI | Who Becomes the Approver |
-|------|-------------|--------------------------|
-| `N+1` | N+1 (Manager) | The requestor's direct manager within the company |
-| `specific_user` | Specific User | A named user selected from the company or any ancestor company |
+| Type                | Label in UI     | Who Becomes the Approver                                                 |
+| ------------------- | --------------- | ------------------------------------------------------------------------ |
+| `N+1`             | N+1 (Manager)   | The requestor's direct manager within the company                        |
+| `specific_user`   | Specific User   | A named user selected from the company or any ancestor company           |
 | `N+1_of_previous` | N+1 of Previous | The direct manager of the previous step's approver (resolved at runtime) |
 
 ---
 
 ## Key Files Reference
 
-| File | Purpose |
-|------|---------|
-| `app/Contracts/Approvable.php` | Contract your module's model implements |
-| `app/Services/ApprovalEngine.php` | Core engine: `submit()`, `approve()`, `reject()`, `cancel()`, `delegate()` |
-| `app/Enums/ApprovalStatus.php` | `Pending`, `Approved`, `Rejected`, `Canceled` |
-| `app/Enums/StepState.php` | `Pending`, `Approved`, `Rejected` (per-step) |
-| `app/Enums/ResolverType.php` | `NPlus1`, `SpecificUser`, `NPlus1OfPrevious` |
-| `app/Enums/GroupType.php` | `Sequential`, `Parallel` |
-| `app/Models/Approval/ApprovalRequest.php` | Polymorphic request model — uses `morphs('approvable')` |
-| `app/Models/Approval/ApprovalRequestStep.php` | Per-step runtime state; `display_label` accessor |
-| `app/Events/Approval/*` | 6 lifecycle events |
+| File                                            | Purpose                                                                             |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `app/Contracts/Approvable.php`                | Contract your module's model implements                                             |
+| `app/Services/ApprovalEngine.php`             | Core engine:`submit()`, `approve()`, `reject()`, `cancel()`, `delegate()` |
+| `app/Enums/ApprovalStatus.php`                | `Pending`, `Approved`, `Rejected`, `Canceled`                               |
+| `app/Enums/StepState.php`                     | `Pending`, `Approved`, `Rejected` (per-step)                                  |
+| `app/Enums/ResolverType.php`                  | `NPlus1`, `SpecificUser`, `NPlus1OfPrevious`                                  |
+| `app/Enums/GroupType.php`                     | `Sequential`, `Parallel`                                                        |
+| `app/Models/Approval/ApprovalRequest.php`     | Polymorphic request model — uses`morphs('approvable')`                           |
+| `app/Models/Approval/ApprovalRequestStep.php` | Per-step runtime state;`display_label` accessor                                   |
+| `app/Events/Approval/*`                       | 6 lifecycle events                                                                  |
 
 ---
 

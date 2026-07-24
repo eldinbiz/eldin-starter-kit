@@ -9,6 +9,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -75,9 +76,20 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('approval-workflows/{workflow}/trash', [ApprovalWorkflowController::class, 'trash'])->name('approval-workflows.trash');
 });
 
+// Purchase Requests
+Route::middleware('auth')->prefix('purchase-requests')->name('purchase-requests.')->group(function () {
+    Route::get('/', [PurchaseRequestController::class, 'index'])->name('index');
+    Route::get('/create', [PurchaseRequestController::class, 'create'])->name('create');
+    Route::post('/', [PurchaseRequestController::class, 'store'])->name('store');
+    Route::get('/{purchaseRequest}', [PurchaseRequestController::class, 'show'])->name('show');
+    Route::get('/{purchaseRequest}/preview-workflow', [PurchaseRequestController::class, 'previewWorkflow'])->name('preview-workflow');
+    Route::post('/{purchaseRequest}/submit-for-approval', [PurchaseRequestController::class, 'submitForApproval'])->name('submit-for-approval');
+});
+
 // Approval Routes (authenticated users)
 Route::middleware('auth')->prefix('approvals')->name('approvals.')->group(function () {
     Route::get('/inbox', [ApprovalController::class, 'inbox'])->name('inbox');
+    Route::get('/history', [ApprovalController::class, 'history'])->name('history');
     Route::get('/requests', [ApprovalController::class, 'requests'])->name('requests');
     Route::get('/{request}', [ApprovalController::class, 'show'])->name('show');
     Route::post('/{step}/approve', [ApprovalController::class, 'approve'])->name('approve');

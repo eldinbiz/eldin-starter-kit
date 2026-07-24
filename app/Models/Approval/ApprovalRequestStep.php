@@ -11,6 +11,7 @@ use Database\Factories\Approval\ApprovalRequestStepFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class ApprovalRequestStep extends Model
 {
@@ -91,6 +92,29 @@ class ApprovalRequestStep extends Model
     }
 
     /**
+     * Get the approver's job title from the company_user pivot.
+     * Uses a direct DB query to avoid lazy-loading violations.
+     */
+    public function getApproverJobTitleAttribute(): ?string
+    {
+        if (! $this->approver_id) {
+            return null;
+        }
+
+        $companyId = ApprovalRequest::where('id', $this->approval_request_id)
+            ->value('company_id');
+
+        if (! $companyId) {
+            return null;
+        }
+
+        return DB::table('company_user')
+            ->where('user_id', $this->approver_id)
+            ->where('company_id', $companyId)
+            ->value('job_title');
+    }
+
+    /**
      * Get the display label for this step.
      * Falls back to the approver's job title if step_label is empty.
      */
@@ -100,13 +124,24 @@ class ApprovalRequestStep extends Model
             return $this->step_label;
         }
 
-        $companyId = $this->request?->company_id;
         $approver = $this->approver;
 
-        if ($approver && $companyId) {
-            $membership = $approver->companies->firstWhere('id', $companyId);
+        if (! $approver) {
+            return 'Approver';
+        }
 
-            return $membership?->pivot?->job_title ?: 'Approver';
+        // Use a direct query instead of lazy-loading the `request` relationship,
+        // which would trigger LazyLoadingViolationException in development.
+        $companyId = ApprovalRequest::where('id', $this->approval_request_id)
+            ->value('company_id');
+
+        if ($companyId) {
+            $membership = DB::table('company_user')
+                ->where('user_id', $this->approver_id)
+                ->where('company_id', $companyId)
+                ->first();
+
+            return $membership?->job_title ?: 'Approver';
         }
 
         return 'Approver';
