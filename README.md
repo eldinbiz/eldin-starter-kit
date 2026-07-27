@@ -53,10 +53,35 @@ Open **http://localhost:8000** — you're done.
 
 ## Switching Between Modes
 
-- **Local → Docker:** just run `docker compose up -d --build` and it auto-uses `.env.docker` (mariadb)
-- **Docker → Local:** run `composer dev` — `.env` already defaults to SQLite
+### Local → Docker
 
-No manual `.env` changes needed.
+```bash
+docker compose up -d --build
+```
+
+Auto-loads `.env.docker` (MariaDB). No manual `.env` edits needed.
+
+**First time only** — run setup inside the container:
+
+```bash
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan storage:link
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+### Docker → Local
+
+**First time only** — if `vendor/`, `node_modules/`, or the SQLite database are missing/stale:
+
+```bash
+composer setup
+```
+
+**After initial setup** — start the dev server, queue, and Vite:
+
+```bash
+composer dev
+```
 
 ---
 
