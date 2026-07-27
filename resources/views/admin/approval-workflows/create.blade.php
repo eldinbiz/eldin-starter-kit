@@ -8,7 +8,7 @@
 </div>
 
 <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6"
-     x-data="workflowBuilder({{ Js::from(old('groups', [['name' => '', 'type' => 'sequential', 'steps' => [['label' => '', 'resolver_type' => 'N+1', 'resolver_payload' => []]]]])) }})">
+     x-data="workflowBuilder({{ Js::from(old('groups', [['name' => 'Group 1', 'type' => 'sequential', 'steps' => [['label' => '', 'resolver_type' => 'N+1', 'resolver_payload' => []]]]])) }})">
     <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Create Workflow Template</h3>
         <p class="text-sm text-gray-500 dark:text-gray-400">Define groups and approvers for the approval pipeline.</p>
@@ -242,7 +242,7 @@
         Alpine.data('workflowBuilder', (initialGroups) => ({
             groups: initialGroups,
             addGroup() {
-                this.groups.push({ name: '', type: 'sequential', steps: [{ label: '', resolver_type: 'N+1', resolver_payload: {} }] });
+                this.groups.push({ name: 'Group ' + (this.groups.length + 1), type: 'sequential', steps: [{ label: '', resolver_type: 'N+1', resolver_payload: {} }] });
             },
             removeGroup(index) {
                 if (this.groups.length > 1) this.groups.splice(index, 1);

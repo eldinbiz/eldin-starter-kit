@@ -254,7 +254,7 @@
         Alpine.data('workflowBuilder', (initialGroups) => ({
             groups: initialGroups,
             addGroup() {
-                this.groups.push({ name: '', type: 'sequential', steps: [{ label: '', resolver_type: 'N+1', resolver_payload: {} }] });
+                this.groups.push({ name: 'Group ' + (this.groups.length + 1), type: 'sequential', steps: [{ label: '', resolver_type: 'N+1', resolver_payload: {} }] });
             },
             removeGroup(index) {
                 if (this.groups.length > 1) this.groups.splice(index, 1);
