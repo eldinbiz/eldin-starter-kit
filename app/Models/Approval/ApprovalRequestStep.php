@@ -86,9 +86,19 @@ class ApprovalRequestStep extends Model
         return $query->where('state', StepState::Rejected);
     }
 
+    public function scopeAwaitingPrevious($query)
+    {
+        return $query->where('state', StepState::AwaitingPrevious);
+    }
+
     public function isPending(): bool
     {
         return $this->state === StepState::Pending;
+    }
+
+    public function isAwaitingPrevious(): bool
+    {
+        return $this->state === StepState::AwaitingPrevious;
     }
 
     /**

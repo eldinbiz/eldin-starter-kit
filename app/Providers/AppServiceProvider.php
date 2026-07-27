@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Events\Approval\ApprovalCanceled;
+use App\Events\Approval\ApprovalCompleted;
+use App\Events\Approval\ApprovalRejected;
+use App\Listeners\Approval\UpdateApprovableStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -33,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
                 return $user->getActiveRole()?->hasPermission($key) ?? false;
             });
         }
+
+        // Register approval event listeners
+        Event::listen(ApprovalCompleted::class, UpdateApprovableStatus::class);
+        Event::listen(ApprovalRejected::class, UpdateApprovableStatus::class);
+        Event::listen(ApprovalCanceled::class, UpdateApprovableStatus::class);
 
         // Platform-level gate: checks ALL roles across ALL companies
         Gate::define('manage-platform', function (User $user): bool {

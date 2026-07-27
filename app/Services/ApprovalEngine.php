@@ -56,6 +56,24 @@ class ApprovalEngine
             foreach ($snapshot['groups'] as $group) {
                 foreach ($group['steps'] as $stepData) {
                     $resolverType = ResolverType::from($stepData['resolver_type']);
+
+                    if ($resolverType === ResolverType::NPlus1OfPrevious) {
+                        // Cannot resolve at submission time — will be resolved when the
+                        // previous step in the same sequential group completes.
+                        ApprovalRequestStep::create([
+                            'approval_request_id' => $request->id,
+                            'group_name' => $group['name'],
+                            'step_label' => $stepData['label'],
+                            'order' => $stepData['order'],
+                            'resolver_type' => $resolverType,
+                            'resolver_payload' => $stepData['resolver_payload'] ?? [],
+                            'approver_id' => null,
+                            'state' => StepState::AwaitingPrevious,
+                        ]);
+
+                        continue;
+                    }
+
                     $approverId = $this->resolveApproverUserId($resolverType, $stepData['resolver_payload'] ?? [], $requestor, $company);
 
                     ApprovalRequestStep::create([
@@ -118,10 +136,12 @@ class ApprovalEngine
 
             $request = $step->request()->lockForUpdate()->firstOrFail();
 
-            // Reject all remaining pending steps
-            $request->steps()->pending()->update([
-                'state' => StepState::Rejected,
-            ]);
+            // Reject all remaining pending AND awaiting_previous steps
+            $request->steps()
+                ->whereIn('state', [StepState::Pending, StepState::AwaitingPrevious])
+                ->update([
+                    'state' => StepState::Rejected,
+                ]);
 
             $request->update([
                 'status' => ApprovalStatus::Rejected,
@@ -160,14 +180,33 @@ class ApprovalEngine
             throw new RuntimeException('This step is not in a pending state.');
         }
 
-        $previousApproverId = $step->approver_id;
-
         $step->update([
             'approver_id' => $newApprover->id,
             'delegated_from_id' => $delegatedBy->id,
         ]);
 
         ApprovalDelegated::dispatch($step, $delegatedBy, $newApprover);
+    }
+
+    /**
+     * Manually resolve an N+1_of_previous step that could not be auto-resolved
+     * (e.g., previous approver had no manager). Assigns a specific user.
+     */
+    public function resolvePreviousManager(ApprovalRequestStep $step, User $resolvedBy, User $newApprover): void
+    {
+        if (! $step->isAwaitingPrevious()) {
+            throw new RuntimeException('This step is not awaiting previous approver resolution.');
+        }
+
+        DB::transaction(function () use ($step, $resolvedBy, $newApprover): void {
+            $step->update([
+                'approver_id' => $newApprover->id,
+                'state' => StepState::Pending,
+                'delegated_from_id' => $resolvedBy->id,
+            ]);
+
+            ApprovalDelegated::dispatch($step, $resolvedBy, $newApprover);
+        });
     }
 
     /**
@@ -264,6 +303,39 @@ class ApprovalEngine
     }
 
     /**
+     * Resolve the N+1_of_previous approver at runtime.
+     * Looks up the actual approver of the previous step (respects delegation),
+     * then finds their direct manager.
+     * Returns the company that owns the request for manager lookup.
+     * If no manager exists, skips the step by auto-approving it.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function resolveNPlus1OfPrevious(Approvable $approvable, int $previousStepId, Company $company, array $payload = []): ?int
+    {
+        $previousStep = ApprovalRequestStep::findOrFail($previousStepId);
+
+        // The actual approver who acted — respects delegation (use approver_id, not delegated_from_id,
+        // since approver_id holds whoever actually needs to act)
+        $previousApproverId = $previousStep->approver_id;
+
+        if (! $previousApproverId) {
+            // Auto-skip — no previous approver to resolve from
+            return null;
+        }
+
+        $previousApprover = User::findOrFail($previousApproverId);
+        $manager = $previousApprover->getManager($company);
+
+        if (! $manager) {
+            // Auto-skip — previous approver has no manager
+            return null;
+        }
+
+        return $manager->id;
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      */
     private function resolveSpecificUser(array $payload, Company $company): int
@@ -299,6 +371,7 @@ class ApprovalEngine
     /**
      * Check if a group is complete and advance to the next group if needed.
      * If all groups are complete, mark the request as approved.
+     * Also resolves any N+1_of_previous steps when their predecessor completes.
      */
     private function advanceStateMachine(ApprovalRequest $request): void
     {
@@ -309,6 +382,13 @@ class ApprovalEngine
         }
 
         // Reload steps
+        $request->load('steps');
+        $allSteps = $request->steps;
+
+        // First pass: resolve any N+1_of_previous steps whose predecessor just completed
+        $this->resolveAwaitingSteps($request, $snapshot);
+
+        // Reload after potential resolution
         $request->load('steps');
         $allSteps = $request->steps;
 
@@ -323,21 +403,8 @@ class ApprovalEngine
                 return;
             }
 
-            // Check if this group is complete
-            $isGroupComplete = false;
-
-            if ($groupType === GroupType::Sequential) {
-                // Sequential: all steps must be approved
-                $allApproved = $groupSteps->every(fn ($s) => $s->state === StepState::Approved);
-                $isGroupComplete = $allApproved;
-            } else {
-                // Parallel: ALL steps must be approved (concurrent approval, but all required)
-                $allApproved = $groupSteps->every(fn ($s) => $s->state === StepState::Approved);
-                $isGroupComplete = $allApproved;
-            }
-
-            if (! $isGroupComplete) {
-                // This is the current active group — stop
+            // If any step is still awaiting or pending, the group is not complete
+            if ($groupSteps->contains(fn ($s) => in_array($s->state, [StepState::Pending, StepState::AwaitingPrevious], true))) {
                 return;
             }
 
@@ -353,6 +420,85 @@ class ApprovalEngine
                 return;
             }
             // Otherwise continue to next group (the loop will handle it)
+        }
+    }
+
+    /**
+     * Walk through the snapshot and resolve any N+1_of_previous steps
+     * whose predecessor step has just been approved.
+     */
+    private function resolveAwaitingSteps(ApprovalRequest $request, array $snapshot): void
+    {
+        $allSteps = $request->steps;
+
+        foreach ($snapshot['groups'] as $group) {
+            $groupName = $group['name'];
+            $groupType = GroupType::from($group['type']);
+
+            // Only sequential groups support N+1_of_previous (there's a defined "previous")
+            if ($groupType !== GroupType::Sequential) {
+                continue;
+            }
+
+            $groupSteps = $allSteps
+                ->where('group_name', $groupName)
+                ->sortBy('order')
+                ->values();
+
+            for ($i = 1; $i < count($groupSteps); $i++) {
+                $currentStep = $groupSteps[$i];
+                $previousStep = $groupSteps[$i - 1];
+
+                // Only resolve if the current step is awaiting and the previous is approved
+                if (
+                    $currentStep->state !== StepState::AwaitingPrevious
+                    || $previousStep->state !== StepState::Approved
+                ) {
+                    continue;
+                }
+
+                // Attempt resolution
+                $approvable = $request->getApprovable();
+                $company = $approvable?->getApprovalCompany();
+
+                if (! $company) {
+                    continue;
+                }
+
+                $resolverPayload = $currentStep->resolver_payload ?? [];
+
+                try {
+                    $managerId = $this->resolveNPlus1OfPrevious(
+                        $approvable,
+                        $previousStep->id,
+                        $company,
+                        $resolverPayload,
+                    );
+
+                    if ($managerId === null) {
+                        // Auto-skip: no manager — approve the step automatically
+                        $currentStep->update([
+                            'state' => StepState::Approved,
+                            'action_at' => now(),
+                            'notes' => 'Auto-skipped (no manager found for previous approver)',
+                        ]);
+
+                        ApprovalStepCompleted::dispatch($currentStep);
+                    } else {
+                        // Assign the resolved manager as the approver
+                        $currentStep->update([
+                            'approver_id' => $managerId,
+                            'state' => StepState::Pending,
+                        ]);
+
+                        // Re-dispatch ApprovalRequested-like notification for this step
+                        // (the notification module will pick this up)
+                    }
+                } catch (RuntimeException $e) {
+                    // Resolution failed — leave as AwaitingPrevious for manual intervention
+                    // The step stays unresolved until an admin uses resolvePreviousManager()
+                }
+            }
         }
     }
 

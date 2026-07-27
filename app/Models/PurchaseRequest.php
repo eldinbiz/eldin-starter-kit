@@ -78,4 +78,19 @@ class PurchaseRequest extends Model implements Approvable
             ->where('status', ApprovalStatus::Pending)
             ->exists();
     }
+
+    public function onApprovalCompleted(ApprovalRequest $request): void
+    {
+        $this->update(['status' => 'approved']);
+    }
+
+    public function onApprovalRejected(ApprovalRequest $request): void
+    {
+        $this->update(['status' => 'rejected']);
+    }
+
+    public function onApprovalCanceled(ApprovalRequest $request): void
+    {
+        $this->update(['status' => 'canceled']);
+    }
 }

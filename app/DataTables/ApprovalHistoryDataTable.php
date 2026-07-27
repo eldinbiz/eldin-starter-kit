@@ -14,11 +14,13 @@ class ApprovalHistoryDataTable extends DataTable
         $user = auth()->user();
         $company = $user?->getActiveCompany();
 
-        return ApprovalRequest::with(['requestor', 'approvable', 'steps' => fn ($q) => $q->where('approver_id', $user?->id)->orWhere('delegated_from_id', $user?->id)])
+        return ApprovalRequest::with(['requestor', 'approvable', 'steps' => fn ($q) => $q->where(fn ($inner) => $inner->where('approver_id', $user?->id)->orWhere('delegated_from_id', $user?->id))->where('state', '!=', 'pending')])
             ->where('company_id', $company?->id)
             ->whereHas('steps', function ($q) use ($user): void {
-                $q->where('approver_id', $user?->id)
-                    ->orWhere('delegated_from_id', $user?->id);
+                $q->where(fn ($inner) => $inner
+                    ->where('approver_id', $user?->id)
+                    ->orWhere('delegated_from_id', $user?->id)
+                )->where('state', '!=', 'pending');
             });
     }
 

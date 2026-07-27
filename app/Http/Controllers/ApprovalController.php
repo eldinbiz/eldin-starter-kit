@@ -162,18 +162,31 @@ class ApprovalController extends Controller
 
     /**
      * Resolve the N+1_of_previous approver at runtime and redirect back.
+     * Only the requestor or a platform admin can manually resolve stuck steps.
      */
-    public function resolvePreviousManager(ApprovalRequestStep $step): RedirectResponse
+    public function resolvePreviousManager(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
     {
         /** @var User $user */
         $user = auth()->user();
 
-        if ($step->approver_id !== $user->id) {
+        if (! $step->isAwaitingPrevious()) {
+            abort(403, 'This step is not awaiting resolution.');
+        }
+
+        // Only admins or the requestor can manually resolve stuck steps
+        $request = $step->request;
+        if ($request->requestor_id !== $user->id && ! $user->hasPlatformAccess()) {
             abort(403);
         }
 
-        // This is a placeholder — full N+1_of_previous logic can be implemented
-        // when the engine supports runtime resolution
-        return redirect()->back()->with('info', 'Runtime resolution will be implemented in the next iteration.');
+        $httpRequest->validate([
+            'approver_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $newApprover = User::findOrFail((int) $httpRequest->input('approver_id'));
+
+        $this->engine->resolvePreviousManager($step, $user, $newApprover);
+
+        return redirect()->back()->with('success', 'Approver resolved successfully.');
     }
 }

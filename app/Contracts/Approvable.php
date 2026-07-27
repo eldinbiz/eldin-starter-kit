@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Contracts;
 
+use App\Models\Approval\ApprovalRequest;
 use App\Models\Company;
 use App\Models\User;
 
@@ -38,4 +39,19 @@ interface Approvable
      * @return array{view: string, data: array}|null
      */
     public function getApprovalPreview(): ?array;
+
+    /**
+     * Called when an approval request for this model is fully approved.
+     */
+    public function onApprovalCompleted(ApprovalRequest $request): void;
+
+    /**
+     * Called when an approval request for this model is rejected.
+     */
+    public function onApprovalRejected(ApprovalRequest $request): void;
+
+    /**
+     * Called when an approval request for this model is canceled.
+     */
+    public function onApprovalCanceled(ApprovalRequest $request): void;
 }
