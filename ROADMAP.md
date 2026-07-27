@@ -162,7 +162,7 @@ User enters email → system looks up user → reads `auth_method` → routes to
 | 3 | Roles & Permissions (per-company) | Built | ✅ Done |
 | 4 | Admin Panel (Companies, Roles, Users, Org Chart) | Built | ✅ Done |
 | 5 | DataTable component | Built | ✅ Done |
-| 6 | Approval Module | P0 | ☐ To Do |
+| 6 | Approval Module | P0 | :hourglass: In Progress |
 | 7 | Notification Module | P0 | ☐ To Do |
 | 8 | Audit Trail | P1 | ☐ To Do |
 | 9 | API Layer | P1 | ☐ To Do |
