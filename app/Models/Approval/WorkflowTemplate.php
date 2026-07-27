@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Approval;
 
+use App\Enums\TemplateScope;
 use App\Models\Company;
 use Database\Factories\Approval\WorkflowTemplateFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,6 +27,7 @@ class WorkflowTemplate extends Model
         'description',
         'approvable_type',
         'is_active',
+        'scope',
     ];
 
     /**
@@ -35,6 +37,7 @@ class WorkflowTemplate extends Model
     {
         return [
             'is_active' => 'boolean',
+            'scope' => TemplateScope::class,
         ];
     }
 
@@ -60,12 +63,41 @@ class WorkflowTemplate extends Model
 
     /**
      * Scope to only active templates.
-     *
-     * @param  Builder  $query
-     * @return Builder
      */
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope templates available to a given company based on scope rules.
+     *
+     * - this_company: only templates owned by this exact company
+     * - subsidiaries: templates owned by this company or any ancestor
+     * - global: all templates regardless of company
+     */
+    public function scopeAvailableFor(Builder $query, Company $company): Builder
+    {
+        return $query->where(function (Builder $q) use ($company): void {
+            // This Company
+            $q->where(function (Builder $inner) use ($company): void {
+                $inner->where('scope', TemplateScope::ThisCompany)
+                    ->where('company_id', $company->id);
+            });
+
+            // This Company & Subsidiaries — owned by this company or any ancestor
+            $q->orWhere(function (Builder $inner) use ($company): void {
+                $ancestorIds = $company->allAncestors()->pluck('id')
+                    ->push($company->id)
+                    ->unique()
+                    ->toArray();
+
+                $inner->where('scope', TemplateScope::ThisCompanyAndSubsidiaries)
+                    ->whereIn('company_id', $ancestorIds);
+            });
+
+            // Global
+            $q->orWhere('scope', TemplateScope::Global);
+        });
     }
 }

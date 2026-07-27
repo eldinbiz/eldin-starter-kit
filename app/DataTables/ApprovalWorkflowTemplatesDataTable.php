@@ -16,8 +16,14 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
         $company = auth()->user()?->getActiveCompany();
 
         $query = WorkflowTemplate::withCount('groups')
-            ->with('groups.steps')
-            ->where('company_id', $company?->id);
+            ->with('groups.steps');
+
+        // Non-trashed queries are scoped to the active company + its available templates
+        if ($company && ! $this->showTrashed) {
+            $query->availableFor($company);
+        } elseif ($company) {
+            $query->where('company_id', $company->id);
+        }
 
         if ($this->showTrashed) {
             $query->onlyTrashed();
@@ -82,6 +88,16 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
                     '0' => 'Disabled',
                 ])
                 ->apply(fn (Builder $q, string $v) => $q->where('is_active', $v)),
+
+            Filter::make('scope')
+                ->type('select')
+                ->label('Scope')
+                ->options([
+                    'this_company' => 'This Company',
+                    'subsidiaries' => 'This Company & Subsidiaries',
+                    'global' => 'Global',
+                ])
+                ->apply(fn (Builder $q, string $v) => $q->where('scope', $v)),
 
             Filter::make('created_from')
                 ->type('date')

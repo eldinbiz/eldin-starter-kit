@@ -58,6 +58,26 @@
                     class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:placeholder-gray-500">{{ old('description', $template->description) }}</textarea>
             </div>
             <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Scope</label>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="scope" value="this_company" {{ old('scope', $template->scope->value) === 'this_company' ? 'checked' : '' }}
+                            class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">This Company</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="scope" value="subsidiaries" {{ old('scope', $template->scope->value) === 'subsidiaries' ? 'checked' : '' }}
+                            class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">This Company & Subsidiaries</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="scope" value="global" {{ old('scope', $template->scope->value) === 'global' ? 'checked' : '' }}
+                            class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Global (All Companies)</span>
+                    </label>
+                </div>
+            </div>
+            <div>
                 <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                     <input type="hidden" name="is_active" value="0">
                     <input type="checkbox" name="is_active" value="1" {{ old('is_active', $template->is_active) ? 'checked' : '' }}

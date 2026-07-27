@@ -10,6 +10,7 @@ use App\Http\Requests\Approval\StoreWorkflowTemplateRequest;
 use App\Models\Approval\WorkflowTemplate;
 use App\Models\Company;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -64,6 +65,7 @@ class ApprovalWorkflowController extends Controller
             'description' => $request->input('description'),
             'approvable_type' => $request->input('approvable_type'),
             'is_active' => $request->boolean('is_active', true),
+            'scope' => $request->input('scope', 'this_company'),
         ]);
 
         foreach ($request->input('groups', []) as $groupIndex => $groupData) {
@@ -123,6 +125,7 @@ class ApprovalWorkflowController extends Controller
             'description' => $request->input('description'),
             'approvable_type' => $request->input('approvable_type'),
             'is_active' => $request->boolean('is_active', true),
+            'scope' => $request->input('scope', 'this_company'),
         ]);
 
         // Remove old groups (and their steps via cascade)
@@ -218,7 +221,7 @@ class ApprovalWorkflowController extends Controller
     /**
      * Get users from the current company and all ancestor companies.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, User>
+     * @return Collection<int, User>
      */
     private function getCompanyAndAncestorUsers(Company $company)
     {

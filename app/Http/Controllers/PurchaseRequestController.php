@@ -92,7 +92,7 @@ class PurchaseRequestController extends Controller
             'approvalRequests.steps' => fn ($q) => $q->with(['approver', 'delegatedFrom']),
         ]);
 
-        $templates = WorkflowTemplate::where('company_id', $company->id)
+        $templates = WorkflowTemplate::availableFor($company)
             ->where('is_active', true)
             ->get();
 
