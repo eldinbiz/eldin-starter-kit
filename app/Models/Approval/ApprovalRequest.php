@@ -157,7 +157,7 @@ class ApprovalRequest extends Model
         $firstPendingOrder = $pendingSteps->min('order');
 
         // All steps in the same group share a group_name; find the group boundary
-        $firstPendingStep = $this->steps->firstWhere('order', $firstPendingOrder);
+        $firstPendingStep = $pendingSteps->firstWhere('order', $firstPendingOrder);
         $groupName = $firstPendingStep?->group_name;
 
         return $pendingSteps->where('group_name', $groupName);

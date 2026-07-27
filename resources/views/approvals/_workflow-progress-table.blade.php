@@ -42,6 +42,7 @@
                             <tr class="border-b border-gray-200 dark:border-gray-700">
                                 <th class="py-2 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">#</th>
                                 <th class="py-2 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Approver</th>
+                                <th class="py-2 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Email</th>
                                 <th class="py-2 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Job Title</th>
                                 <th class="py-2 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">Status</th>
                                 <th class="py-2 pr-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400">At</th>
@@ -58,6 +59,7 @@
                                             <span class="text-xs text-gray-400 italic">(delegated from {{ $step->delegatedFrom->name }})</span>
                                         @endif
                                     </td>
+                                    <td class="py-2 pr-3 text-gray-500 dark:text-gray-400 text-xs">{{ $step->approver?->email ?? '—' }}</td>
                                     <td class="py-2 pr-3 text-gray-500 dark:text-gray-400">{{ $step->approver_job_title ?: '—' }}</td>
                                     <td class="py-2 pr-3">
                                         @if ($step->state === \App\Enums\StepState::Approved)

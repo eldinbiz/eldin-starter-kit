@@ -90,6 +90,10 @@ class ApprovalController extends Controller
             abort(403);
         }
 
+        if (! $step->isPending()) {
+            return redirect()->back()->with('error', 'This step has already been processed. The approval request status may have changed.');
+        }
+
         $httpRequest->validate([
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -109,6 +113,10 @@ class ApprovalController extends Controller
 
         if ($step->approver_id !== $user->id) {
             abort(403);
+        }
+
+        if (! $step->isPending()) {
+            return redirect()->back()->with('error', 'This step has already been processed. The approval request status may have changed.');
         }
 
         $httpRequest->validate([
