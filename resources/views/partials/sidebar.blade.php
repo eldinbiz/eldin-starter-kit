@@ -144,39 +144,7 @@
                 </ul>
             </div>
 
-            <!-- Group 3: PURCHASING -->
-            <div class="mb-6">
-                <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
-                    <span x-show="!sidebarToggle || sidebarHover" x-cloak>PURCHASING</span>
-                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">PURC</span>
-                </h3>
-                <ul class="flex flex-col gap-1.5">
-                    <li>
-                        <a href="{{ route('purchase-requests.index') }}"
-                            class="menu-item group {{ Request::is('purchase-requests*') ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <span class="flex items-center gap-3">
-                                <svg class="fill-current {{ Request::is('purchase-requests*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h9a1.5 1.5 0 001.5-1.5V8.121a1.5 1.5 0 00-.44-1.06l-2.12-2.122a1.5 1.5 0 00-1.06-.439H7.5zM7.5 2.25A3 3 0 004.5 5.25v13.5a3 3 0 003 3h9a3 3 0 003-3V8.121a3 3 0 00-.879-2.121L16.5 3.879A3 3 0 0014.379 3H7.5zM8.25 9a.75.75 0 01.75-.75h6a.75.75 0 010 1.5H9A.75.75 0 018.25 9zm0 3a.75.75 0 01.75-.75h6a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75zm0 3a.75.75 0 01.75-.75h3a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75z"/>
-                                </svg>
-                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Purchase Requests</span>
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('purchase-orders.index') }}"
-                            class="menu-item group {{ Request::is('purchase-orders*') ? 'menu-item-active' : 'menu-item-inactive' }}">
-                            <span class="flex items-center gap-3">
-                                <svg class="fill-current {{ Request::is('purchase-orders*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 4.25C2.2574 4.25 1.25 5.2574 1.25 6.5V17.5C1.25 18.7426 2.2574 19.75 3.5 19.75H20.5C21.7426 19.75 22.75 18.7426 22.75 17.5V6.5C22.75 5.2574 21.7426 4.25 20.5 4.25H3.5ZM2.75 6.5C2.75 6.0858 3.0858 5.75 3.5 5.75H20.5C20.9142 5.75 21.25 6.0858 21.25 6.5V17.5C21.25 17.9142 20.9142 18.25 20.5 18.25H3.5C3.0858 18.25 2.75 17.9142 2.75 17.5V6.5ZM5.25 9C5.25 8.5858 5.5858 8.25 6 8.25H8C8.4142 8.25 8.75 8.5858 8.75 9V9.5C8.75 9.9142 8.4142 10.25 8 10.25H6C5.5858 10.25 5.25 9.9142 5.25 9.5V9ZM10 8.25C9.5858 8.25 9.25 8.5858 9.25 9V9.5C9.25 9.9142 9.5858 10.25 10 10.25H18C18.4142 10.25 18.75 9.9142 18.75 9.5V9C18.75 8.5858 18.4142 8.25 18 8.25H10ZM5.25 12C5.25 11.5858 5.5858 11.25 6 11.25H8C8.4142 11.25 8.75 11.5858 8.75 12V12.5C8.75 12.9142 8.4142 13.25 8 13.25H6C5.5858 13.25 5.25 12.9142 5.25 12.5V12ZM10 11.25C9.5858 11.25 9.25 11.5858 9.25 12V12.5C9.25 12.9142 9.5858 13.25 10 13.25H18C18.4142 13.25 18.75 12.9142 18.75 12.5V12C18.75 11.5858 18.4142 11.25 18 11.25H10Z"/>
-                                </svg>
-                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Purchase Orders</span>
-                            </span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Group 4: SYSTEM ADMINISTRATION -->
+            <!-- Group 3: SYSTEM ADMINISTRATION -->
             <div>
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
