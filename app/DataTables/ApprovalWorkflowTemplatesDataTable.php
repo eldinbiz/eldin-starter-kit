@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DataTables;
 
+use App\Enums\TemplateScope;
+use App\Helpers\ApprovableTypes;
 use App\Models\Approval\WorkflowTemplate;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -73,12 +75,14 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
             Filter::make('type')
                 ->type('select')
                 ->label('Applies To')
-                ->options(fn (): array => WorkflowTemplate::withoutGlobalScopes()
-                    ->select('approvable_type')
-                    ->distinct()
-                    ->pluck('approvable_type', 'approvable_type')
-                    ->toArray())
-                ->apply(fn (Builder $q, string $v) => $q->where('approvable_type', $v)),
+                ->options(fn (): array => ApprovableTypes::options())
+                ->apply(function (Builder $q, string $v): void {
+                    if ($v === '') {
+                        $q->whereNull('approvable_type');
+                    } else {
+                        $q->where('approvable_type', $v);
+                    }
+                }),
 
             Filter::make('status')
                 ->type('select')
@@ -92,11 +96,15 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
             Filter::make('scope')
                 ->type('select')
                 ->label('Scope')
-                ->options([
-                    'this_company' => 'This Company',
-                    'subsidiaries' => 'This Company & Subsidiaries',
-                    'global' => 'Global',
-                ])
+                ->options(function (): array {
+                    $company = auth()->user()?->getActiveCompany();
+
+                    return [
+                        TemplateScope::ThisCompany->value => TemplateScope::ThisCompany->label($company),
+                        TemplateScope::ThisCompanyAndSubsidiaries->value => TemplateScope::ThisCompanyAndSubsidiaries->label($company),
+                        TemplateScope::Global->value => TemplateScope::Global->label(),
+                    ];
+                })
                 ->apply(fn (Builder $q, string $v) => $q->where('scope', $v)),
 
             Filter::make('created_from')

@@ -162,6 +162,17 @@
                             </span>
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('purchase-orders.index') }}"
+                            class="menu-item group {{ Request::is('purchase-orders*') ? 'menu-item-active' : 'menu-item-inactive' }}">
+                            <span class="flex items-center gap-3">
+                                <svg class="fill-current {{ Request::is('purchase-orders*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 4.25C2.2574 4.25 1.25 5.2574 1.25 6.5V17.5C1.25 18.7426 2.2574 19.75 3.5 19.75H20.5C21.7426 19.75 22.75 18.7426 22.75 17.5V6.5C22.75 5.2574 21.7426 4.25 20.5 4.25H3.5ZM2.75 6.5C2.75 6.0858 3.0858 5.75 3.5 5.75H20.5C20.9142 5.75 21.25 6.0858 21.25 6.5V17.5C21.25 17.9142 20.9142 18.25 20.5 18.25H3.5C3.0858 18.25 2.75 17.9142 2.75 17.5V6.5ZM5.25 9C5.25 8.5858 5.5858 8.25 6 8.25H8C8.4142 8.25 8.75 8.5858 8.75 9V9.5C8.75 9.9142 8.4142 10.25 8 10.25H6C5.5858 10.25 5.25 9.9142 5.25 9.5V9ZM10 8.25C9.5858 8.25 9.25 8.5858 9.25 9V9.5C9.25 9.9142 9.5858 10.25 10 10.25H18C18.4142 10.25 18.75 9.9142 18.75 9.5V9C18.75 8.5858 18.4142 8.25 18 8.25H10ZM5.25 12C5.25 11.5858 5.5858 11.25 6 11.25H8C8.4142 11.25 8.75 11.5858 8.75 12V12.5C8.75 12.9142 8.4142 13.25 8 13.25H6C5.5858 13.25 5.25 12.9142 5.25 12.5V12ZM10 11.25C9.5858 11.25 9.25 11.5858 9.25 12V12.5C9.25 12.9142 9.5858 13.25 10 13.25H18C18.4142 13.25 18.75 12.9142 18.75 12.5V12C18.75 11.5858 18.4142 11.25 18 11.25H10Z"/>
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Purchase Orders</span>
+                            </span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 

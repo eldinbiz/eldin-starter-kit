@@ -54,4 +54,10 @@ interface Approvable
      * Called when an approval request for this model is canceled.
      */
     public function onApprovalCanceled(ApprovalRequest $request): void;
+
+    /**
+     * Human-readable label for this approvable type (e.g., "Purchase Request").
+     * Used in the workflow template admin UI's "Applies To" dropdown.
+     */
+    public static function getApprovalTypeLabel(): string;
 }

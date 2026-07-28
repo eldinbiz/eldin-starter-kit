@@ -35,10 +35,14 @@
                     class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:placeholder-gray-500">
             </div>
             <div>
-                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Applies To (Model Class)</label>
-                <input type="text" name="approvable_type" value="{{ old('approvable_type') }}" placeholder="e.g. App\\Models\\PurchaseOrder"
-                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:placeholder-gray-500">
-                <p class="mt-1 text-xs text-gray-400">Leave blank to apply to any approvable type.</p>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Applies To</label>
+                <select name="approvable_type"
+                    class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
+                    @foreach ($approvableTypes as $class => $label)
+                        <option value="{{ $class }}" {{ old('approvable_type') === $class ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-gray-400">Restrict this template to a specific module, or choose "Any Module" for universal use.</p>
             </div>
             <div class="md:col-span-2">
                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
@@ -48,20 +52,25 @@
             <div>
                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Scope</label>
                 <div class="space-y-2">
+                    @php
+                        $thisCompanyValue = \App\Enums\TemplateScope::ThisCompany;
+                        $subsidiariesValue = \App\Enums\TemplateScope::ThisCompanyAndSubsidiaries;
+                        $globalValue = \App\Enums\TemplateScope::Global;
+                    @endphp
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="scope" value="this_company" {{ old('scope', 'this_company') === 'this_company' ? 'checked' : '' }}
+                        <input type="radio" name="scope" value="{{ $thisCompanyValue->value }}" {{ old('scope', 'this_company') === $thisCompanyValue->value ? 'checked' : '' }}
                             class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">This Company</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $thisCompanyValue->label($company) }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="scope" value="subsidiaries" {{ old('scope') === 'subsidiaries' ? 'checked' : '' }}
+                        <input type="radio" name="scope" value="{{ $subsidiariesValue->value }}" {{ old('scope') === $subsidiariesValue->value ? 'checked' : '' }}
                             class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">This Company & Subsidiaries</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $subsidiariesValue->label($company) }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="scope" value="global" {{ old('scope') === 'global' ? 'checked' : '' }}
+                        <input type="radio" name="scope" value="{{ $globalValue->value }}" {{ old('scope') === $globalValue->value ? 'checked' : '' }}
                             class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">Global (All Companies)</span>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">{{ $globalValue->label() }}</span>
                     </label>
                 </div>
             </div>

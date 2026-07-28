@@ -93,4 +93,9 @@ class PurchaseRequest extends Model implements Approvable
     {
         $this->update(['status' => 'canceled']);
     }
+
+    public static function getApprovalTypeLabel(): string
+    {
+        return 'Purchase Request';
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\DataTables\ApprovalWorkflowTemplatesDataTable;
+use App\Helpers\ApprovableTypes;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Approval\StoreWorkflowTemplateRequest;
 use App\Models\Approval\WorkflowTemplate;
@@ -43,8 +44,12 @@ class ApprovalWorkflowController extends Controller
 
         $users = $this->getCompanyAndAncestorUsers($company);
 
+        $company->loadMissing('children');
+
         return view('admin.approval-workflows.create', [
+            'company' => $company,
             'users' => $users,
+            'approvableTypes' => ApprovableTypes::options(),
         ]);
     }
 
@@ -63,7 +68,7 @@ class ApprovalWorkflowController extends Controller
             'company_id' => $company->id,
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'approvable_type' => $request->input('approvable_type'),
+            'approvable_type' => $request->input('approvable_type') ?: null,
             'is_active' => $request->boolean('is_active', true),
             'scope' => $request->input('scope', 'this_company'),
         ]);
@@ -101,11 +106,14 @@ class ApprovalWorkflowController extends Controller
         }
 
         $workflow->load('groups.steps');
+        $workflow->load('company.children');
         $users = $this->getCompanyAndAncestorUsers($company);
 
         return view('admin.approval-workflows.edit', [
             'template' => $workflow,
+            'company' => $workflow->company,
             'users' => $users,
+            'approvableTypes' => ApprovableTypes::options(),
         ]);
     }
 
@@ -123,7 +131,7 @@ class ApprovalWorkflowController extends Controller
         $workflow->update([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'approvable_type' => $request->input('approvable_type'),
+            'approvable_type' => $request->input('approvable_type') ?: null,
             'is_active' => $request->boolean('is_active', true),
             'scope' => $request->input('scope', 'this_company'),
         ]);

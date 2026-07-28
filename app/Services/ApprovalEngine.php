@@ -296,7 +296,7 @@ class ApprovalEngine
         $manager = $user->getManager($company);
 
         if (! $manager) {
-            throw new RuntimeException("Cannot resolve N+1 approver — user {$user->id} has no manager in company {$company->id}.");
+            throw new RuntimeException("Cannot resolve N+1 approver — {$user->name} has no manager assigned in {$company->name}.");
         }
 
         return $manager->id;
@@ -361,7 +361,7 @@ class ApprovalEngine
             // Simple check: does user belong to this company or any ancestor?
             $companyIds = collect([$company->id])->merge($company->allAncestors()->pluck('id'));
             if (! $targetCompanies->intersect($companyIds)->isNotEmpty()) {
-                throw new RuntimeException("User {$target->id} does not belong to company {$company->id} or any ancestor.");
+                throw new RuntimeException("{$target->name} does not belong to {$company->name} or any ancestor company.");
             }
         }
 

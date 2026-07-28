@@ -10,6 +10,7 @@ use App\Services\ApprovalEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use RuntimeException;
 
 class PurchaseRequestController extends Controller
 {
@@ -94,6 +95,7 @@ class PurchaseRequestController extends Controller
 
         $templates = WorkflowTemplate::availableFor($company)
             ->where('is_active', true)
+            ->where(fn ($q) => $q->where('approvable_type', PurchaseRequest::class)->orWhereNull('approvable_type'))
             ->get();
 
         $latestRequest = $purchaseRequest->approvalRequests->last();
@@ -136,7 +138,11 @@ class PurchaseRequestController extends Controller
         $templateId = $request->integer('template_id');
         $template = WorkflowTemplate::findOrFail($templateId);
 
-        $this->engine->submit($purchaseRequest, $template);
+        try {
+            $this->engine->submit($purchaseRequest, $template);
+        } catch (RuntimeException $e) {
+            return back()->with('error', 'Cannot submit for approval: '.$e->getMessage());
+        }
 
         $purchaseRequest->update(['status' => 'pending_approval']);
 

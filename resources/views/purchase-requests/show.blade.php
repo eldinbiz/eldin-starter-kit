@@ -7,6 +7,19 @@
     @include('partials.breadcrumb')
 </div>
 
+{{-- Flash Messages --}}
+@if (session('success'))
+    <div class="mb-4 rounded-lg bg-success-50 p-4 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-500">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="mb-4 rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+        {{ session('error') }}
+    </div>
+@endif
+
 <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
     {{-- Header --}}
     <div class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
