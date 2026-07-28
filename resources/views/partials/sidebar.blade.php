@@ -70,7 +70,34 @@
                 </ul>
             </div>
 
-            <!-- Group 2: APPROVALS -->
+            <!-- Group 2: MODULES -->
+            <div class="mb-6">
+                <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+                    <span x-show="!sidebarToggle || sidebarHover" x-cloak>
+                        MODULES
+                    </span>
+                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">MOD</span>
+                </h3>
+
+                <ul class="flex flex-col gap-1.5">
+                    <!-- Purchase Requests -->
+                    <li>
+                        <a
+                            href="{{ route('purchase-requests.index') }}"
+                            class="menu-item group {{ Request::is('purchase-requests*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        >
+                            <span class="flex items-center gap-3">
+                                <svg class="fill-current {{ Request::is('purchase-requests*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.75 3C2.7835 3 2 3.7835 2 4.75V19.25C2 20.2165 2.7835 21 3.75 21H20.25C21.2165 21 22 20.2165 22 19.25V4.75C22 3.7835 21.2165 3 20.25 3H3.75ZM3.5 4.75C3.5 4.61193 3.61193 4.5 3.75 4.5H20.25C20.3881 4.5 20.5 4.61193 20.5 4.75V19.25C20.5 19.3881 20.3881 19.5 20.25 19.5H3.75C3.61193 19.5 3.5 19.3881 3.5 19.25V4.75ZM6.25 7C6.25 6.58579 6.58579 6.25 7 6.25H7.01C7.42421 6.25 7.76 6.58579 7.76 7C7.76 7.41421 7.42421 7.75 7.01 7.75H7C6.58579 7.75 6.25 7.41421 6.25 7ZM9.25 7C9.25 6.58579 9.58579 6.25 10 6.25H17C17.4142 6.25 17.75 6.58579 17.75 7C17.75 7.41421 17.4142 7.75 17 7.75H10C9.58579 7.75 9.25 7.41421 9.25 7ZM9.25 10C9.25 9.58579 9.58579 9.25 10 9.25H17C17.4142 9.25 17.75 9.58579 17.75 10C17.75 10.4142 17.4142 10.75 17 10.75H10C9.58579 10.75 9.25 10.4142 9.25 10ZM9.25 13C9.25 12.5858 9.58579 12.25 10 12.25H17C17.4142 12.25 17.75 12.5858 17.75 13C17.75 13.4142 17.4142 13.75 17 13.75H10C9.58579 13.75 9.25 13.4142 9.25 13ZM6.25 10C6.25 9.58579 6.58579 9.25 7 9.25H7.01C7.42421 9.25 7.76 9.58579 7.76 10C7.76 10.4142 7.42421 10.75 7.01 10.75H7C6.58579 10.75 6.25 10.4142 6.25 10ZM6.25 13C6.25 12.5858 6.58579 12.25 7 12.25H7.01C7.42421 12.25 7.76 12.5858 7.76 13C7.76 13.4142 7.42421 13.75 7.01 13.75H7C6.58579 13.75 6.25 13.4142 6.25 13Z" />
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Purchase Requests</span>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Group 3: APPROVALS -->
             <div class="mb-6">
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
@@ -144,7 +171,7 @@
                 </ul>
             </div>
 
-            <!-- Group 3: SYSTEM ADMINISTRATION -->
+            <!-- Group 4: SYSTEM ADMINISTRATION -->
             <div>
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
