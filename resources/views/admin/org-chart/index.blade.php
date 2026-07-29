@@ -99,6 +99,7 @@
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
                 Editing: <strong x-text="editParentUserName"></strong>
+                <span x-show="editParentUserEmail" class="text-gray-400" x-text="' — ' + editParentUserEmail"></span>
             </p>
             <!-- Job Title -->
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
@@ -171,6 +172,7 @@ function orgChart() {
         showEditParent: false,
         editParentUserId: null,
         editParentUserName: '',
+        editParentUserEmail: '',
         editParentCurrentManager: '',
         editParentJobTitle: '',
         editParentStatus: 'active',
@@ -216,7 +218,7 @@ function orgChart() {
                 .container('#org-chart-container')
                 .data(this.prepareChartData())
                 .nodeWidth(() => 230)
-                .nodeHeight(() => 120)
+                .nodeHeight(() => 140)
                 .svgHeight(() => 500)
                 .childrenMargin(() => 50)
                 .compactMarginBetween(() => 30)
@@ -294,6 +296,7 @@ function orgChart() {
                     <div style="flex:1;min-width:0;">
                         <div data-search-name style="font-size:13px;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escHtml(data.name)}</div>
                         <div data-search-title style="font-size:11px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escHtml(data.title)}</div>
+                        <div data-search-email style="font-size:10px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${this.escHtml(data.email || '')}</div>
                         <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
                             <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${statusDotColor};"></span>
                             <span style="font-size:10px;color:#9ca3af;">${statusLabel}</span>
@@ -325,9 +328,11 @@ function orgChart() {
             cards.forEach(card => {
                 const nameEl = card.querySelector('[data-search-name]');
                 const titleEl = card.querySelector('[data-search-title]');
+                const emailEl = card.querySelector('[data-search-email]');
                 const name = (nameEl?.textContent || '').toLowerCase();
                 const title = (titleEl?.textContent || '').toLowerCase();
-                const matches = !q || name.includes(q) || title.includes(q);
+                const email = (emailEl?.textContent || '').toLowerCase();
+                const matches = !q || name.includes(q) || title.includes(q) || email.includes(q);
                 card.style.opacity = matches ? '1' : '0.2';
             });
         },
@@ -423,6 +428,7 @@ function orgChart() {
             const users = this.users || [];
             const user = users.find(u => u.id == userId);
             this.editParentUserName = user ? user.name : 'Unknown';
+            this.editParentUserEmail = user ? (user.email || '') : '';
             this.editParentJobTitle = user ? (user.job_title || '') : '';
             this.editParentStatus = user ? (user.status || 'active') : 'active';
             // Find current manager
