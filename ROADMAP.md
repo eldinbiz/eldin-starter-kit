@@ -17,7 +17,7 @@ Covers authentication, company hierarchy, role-based access, and reusable module
 
 ## P0 — Foundation (v1.0)
 
-### 1. Approval Module
+### 1. Approval Module ✅ Done
 
 Polymorphic approval engine. Any model implements an `Approvable` interface/contract and the approval pipeline handles the rest. When fully approved, the module dispatches `ApprovalCompleted` so the requesting module executes its pending transaction.
 
@@ -162,7 +162,7 @@ User enters email → system looks up user → reads `auth_method` → routes to
 | 3 | Roles & Permissions (per-company) | Built | ✅ Done |
 | 4 | Admin Panel (Companies, Roles, Users, Org Chart) | Built | ✅ Done |
 | 5 | DataTable component | Built | ✅ Done |
-| 6 | Approval Module | P0 | :hourglass: In Progress |
+| 6 | Approval Module | P0 | ✅ Done |
 | 7 | Notification Module | P0 | ☐ To Do |
 | 8 | Audit Trail | P1 | ☐ To Do |
 | 9 | API Layer | P1 | ☐ To Do |
