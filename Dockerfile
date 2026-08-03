@@ -11,6 +11,7 @@ RUN apk add --no-cache \
     libxml2-dev \
     zip unzip curl git \
     mariadb-client \
+    sqlite-dev \
     icu-dev \
     nodejs npm \
     && rm -rf /var/cache/apk/*
@@ -23,7 +24,7 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-    pdo pdo_mysql mbstring exif pcntl bcmath gd intl xml opcache sockets
+    pdo pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd intl xml opcache sockets
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

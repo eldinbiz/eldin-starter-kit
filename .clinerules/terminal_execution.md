@@ -90,7 +90,7 @@ The agent is permitted to run **safe, read-only, or environment-scoped** command
 
 ## 2. Destructive Commands (MUST Delegate to User)
 
-Commands that **mutate the database, delete data, alter schema, or change system state** must NEVER be executed by the agent. These include:
+Commands that **mutate the database, delete data, alter schema, or change system state** must NEVER be executed by the agent (unless explicitly ordered by the users, but you must confirm this with the user twice). These include:
 
 | Category | Examples |
 |---|---|

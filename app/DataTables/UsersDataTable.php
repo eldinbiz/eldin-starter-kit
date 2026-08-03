@@ -26,7 +26,11 @@ class UsersDataTable extends DataTable
         }
 
         if ($activeCompany) {
-            return $activeCompany->users()->with(['companyRoles', 'companies']);
+            return User::query()
+                ->whereHas('companies', function (Builder $q) use ($activeCompany): void {
+                    $q->where('companies.id', $activeCompany->id);
+                })
+                ->with(['companyRoles', 'companies']);
         }
 
         return User::query()->with(['companyRoles', 'companies']);

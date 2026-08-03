@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Bootstrap\LoadConfiguration;
+use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,8 +19,18 @@ use Tests\TestCase;
 |
 */
 
+foreach (['APP_ENV' => 'testing', 'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => ':memory:', 'CACHE_STORE' => 'array', 'SESSION_DRIVER' => 'array', 'QUEUE_CONNECTION' => 'sync', 'MAIL_MAILER' => 'array'] as $key => $value) {
+    putenv("{$key}={$value}");
+    $_ENV[$key] = $value;
+    $_SERVER[$key] = $value;
+}
+
 $app = require __DIR__.'/../bootstrap/app.php';
-$app->make(Kernel::class)->bootstrap();
+
+$app->bootstrapWith([
+    LoadEnvironmentVariables::class,
+    LoadConfiguration::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
