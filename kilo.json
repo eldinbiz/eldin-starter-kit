@@ -1,15 +1,19 @@
 {
-  "$schema": "https://app.kilo.ai/config.json",
-  "instructions": [
-    ".kilo/instructions/*.md"
-  ],
-  "skills": {
-    "paths": [
-      ".kilo/skills"
-    ]
-  },
-  "permission": {
-    "bash": "allow",
-    "edit": "allow"
-  }
+    "$schema": "https://app.kilo.ai/config.json",
+    "instructions": [
+        ".kilo/instructions/*.md"
+    ],
+    "skills": {
+        "paths": [
+            ".kilo/skills"
+        ]
+    },
+    "permission": {
+        "bash": "allow",
+        "edit": "allow",
+        "read": "allow",
+        "glob": "allow",
+        "task": "allow",
+        "skill": "allow"
+    }
 }
