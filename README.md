@@ -150,6 +150,25 @@ composer ...                            # run composer
 
 ---
 
+## Running Tests
+
+Tests run against an in-memory SQLite database — they never touch your development
+database (MariaDB or SQLite), so no separate test database setup is needed.
+
+### Docker Mode
+
+```bash
+docker compose exec app composer test
+```
+
+### Local Mode
+
+```bash
+composer test
+```
+
+---
+
 ## Queue Worker
 
 ### Docker Mode
