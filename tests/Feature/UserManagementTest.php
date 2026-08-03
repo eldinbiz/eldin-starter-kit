@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -30,7 +31,7 @@ function createAdminUser(): array
     return [$user, $company];
 }
 
-function actAsAdmin(\Tests\TestCase $test): array
+function actAsAdmin(TestCase $test): array
 {
     [$user, $company] = createAdminUser();
 
@@ -40,7 +41,7 @@ function actAsAdmin(\Tests\TestCase $test): array
     return [$user, $company];
 }
 
-function actAsRegularUser(\Tests\TestCase $test): User
+function actAsRegularUser(TestCase $test): User
 {
     $company = Company::factory()->create(['is_active' => true]);
     Role::factory()->user()->create();

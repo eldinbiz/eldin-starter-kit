@@ -105,6 +105,12 @@ class ApprovalEngine
         }
 
         DB::transaction(function () use ($step, $notes): void {
+            $request = $step->request()->lockForUpdate()->firstOrFail();
+
+            if (! $request->isPending()) {
+                throw new RuntimeException('This approval request is no longer pending.');
+            }
+
             $step->update([
                 'state' => StepState::Approved,
                 'action_at' => now(),
@@ -113,7 +119,6 @@ class ApprovalEngine
 
             ApprovalStepCompleted::dispatch($step);
 
-            $request = $step->request()->lockForUpdate()->firstOrFail();
             $this->advanceStateMachine($request);
         });
     }
@@ -136,11 +141,11 @@ class ApprovalEngine
 
             $request = $step->request()->lockForUpdate()->firstOrFail();
 
-            // Reject all remaining pending AND awaiting_previous steps
+            // Mark all remaining pending AND awaiting_previous steps as skipped
             $request->steps()
                 ->whereIn('state', [StepState::Pending, StepState::AwaitingPrevious])
                 ->update([
-                    'state' => StepState::Rejected,
+                    'state' => StepState::Skipped,
                 ]);
 
             $request->update([
@@ -178,6 +183,12 @@ class ApprovalEngine
     {
         if (! $step->isPending()) {
             throw new RuntimeException('This step is not in a pending state.');
+        }
+
+        $request = $step->request()->firstOrFail();
+
+        if (! $request->isPending()) {
+            throw new RuntimeException('This approval request is no longer pending.');
         }
 
         $step->update([
