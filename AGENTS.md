@@ -127,3 +127,13 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+
+=== supplementary coding guardrails ===
+
+# Supplementary Guardrails
+
+Additional coding guardrails are loaded from `.kilo/instructions/*.md`. These cover:
+Alpine.js reactivity, CDN-only third-party libraries, Tailwind CSS v4 CDN usage,
+PHP 8.4 strict standards, TDD requirements, ASCII UI wireframing, SQLite read-only policy,
+terminal command destructiveness classification, and MCP-first web research.
