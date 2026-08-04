@@ -49,7 +49,9 @@ class Role extends Model
             return true;
         }
 
-        return in_array($permission, $this->permissions ?? [], true);
+        $rolePermissions = $this->permissions ?? [];
+
+        return in_array('*', $rolePermissions, true) || in_array($permission, $rolePermissions, true);
     }
 
     /**
@@ -58,6 +60,10 @@ class Role extends Model
     public function hasAnyPermission(array $permissions): bool
     {
         $rolePermissions = $this->permissions ?? [];
+
+        if (in_array('*', $rolePermissions, true)) {
+            return true;
+        }
 
         foreach ($permissions as $permission) {
             if (in_array($permission, $rolePermissions, true)) {

@@ -71,6 +71,7 @@
             </div>
 
             <!-- Group 2: APPROVALS -->
+            @canany(['view-approval-inbox', 'view-approval-history', 'view-approval-requests', 'manage-approvals', 'manage-approval-workflows'])
             <div class="mb-6">
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
@@ -81,6 +82,7 @@
 
                 <ul class="flex flex-col gap-1.5">
                     <!-- Approval Inbox -->
+                    @can('view-approval-inbox')
                     <li>
                         <a
                             href="{{ route('approvals.inbox') }}"
@@ -94,8 +96,10 @@
                             </span>
                         </a>
                     </li>
+                    @endcan
 
                     <!-- Approval History -->
+                    @can('view-approval-history')
                     <li>
                         <a
                             href="{{ route('approvals.history') }}"
@@ -109,8 +113,10 @@
                             </span>
                         </a>
                     </li>
+                    @endcan
 
                     <!-- My Requests -->
+                    @can('view-approval-requests')
                     <li>
                         <a
                             href="{{ route('approvals.requests') }}"
@@ -124,10 +130,10 @@
                             </span>
                         </a>
                     </li>
+                    @endcan
 
-                    <!-- Admin Approval Items -->
-                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <!-- Manage Approvals -->
+                    @can('manage-approvals')
                     <li>
                         <a
                             href="{{ route('admin.approval-management.index') }}"
@@ -141,8 +147,10 @@
                             </span>
                         </a>
                     </li>
+                    @endcan
 
                     <!-- Workflow Templates -->
+                    @can('manage-approval-workflows')
                     <li>
                         <a
                             href="{{ route('admin.approval-workflows.index') }}"
@@ -150,15 +158,16 @@
                         >
                             <span class="flex items-center gap-3">
                                 <svg class="fill-current {{ Request::is('admin/approval-workflows*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 1.75C3.25736 1.75 2.25 2.75736 2.25 4V8C2.25 9.24264 3.25736 10.25 4.5 10.25H8C9.24264 10.25 10.25 9.24264 10.25 8V4C10.25 2.75736 9.24264 1.75 8 1.75H4.5ZM3.75 4C3.75 3.58579 4.08579 3.25 4.5 3.25H8C8.41421 3.25 8.75 3.58579 8.75 4V8C8.75 8.41421 8.41421 8.75 8 8.75H4.5C4.08579 8.75 3.75 8.41421 3.75 8V4ZM4.5 13.75C3.25736 13.75 2.25 14.7574 2.25 16V20C2.25 21.2426 3.25736 22.25 4.5 22.25H8C9.24264 22.25 10.25 21.2426 10.25 20V16C10.25 14.7574 9.24264 13.75 8 13.75H4.5ZM3.75 16C3.75 15.5858 4.08579 15.25 4.5 15.25H8C8.41421 15.25 8.75 15.5858 8.75 16V20C8.75 20.4142 8.41421 20.75 8 20.75H4.5C4.08579 20.75 3.75 20.4142 3.75 20V16ZM13.75 4C13.75 2.75736 14.7574 1.75 16 1.75H19.5C20.7426 1.75 21.75 2.75736 21.75 4V8C21.75 9.24264 20.7426 10.25 19.5 10.25H16C14.7574 10.25 13.75 9.24264 13.75 8V4ZM16 3.25C15.5858 3.25 15.25 3.58579 15.25 4V8C15.25 8.41421 15.5858 8.75 16 8.75H19.5C19.9142 8.75 20.25 8.41421 20.25 8V4C20.25 3.58579 19.9142 3.25 19.5 3.25H16ZM16 13.75C14.7574 13.75 13.75 14.7574 13.75 16V20C13.75 21.2426 14.7574 22.25 16 22.25H19.5C20.7426 22.25 21.75 21.2426 21.75 20V16C21.75 14.7574 20.7426 13.75 19.5 13.75H16ZM15.25 16C15.25 15.5858 15.5858 15.25 16 15.25H19.5C19.9142 15.25 20.25 15.5858 20.25 16V20C20.25 20.4142 19.9142 20.75 19.5 20.75H16C15.5858 20.75 15.25 20.4142 15.25 20V16Z" />
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 1.75C3.25736 1.75 2.25 2.75736 2.25 4V8C2.25 9.24264 3.25736 10.25 4.5 10.25H8C9.24264 10.25 10.25 9.24264 10.25 8V4C10.25 2.75736 9.24264 1.75 8 1.75H4.5ZM3.75 4C3.75 3.58579 4.08579 3.25 4.5 3.25H8C8.41421 3.25 8.75 3.58579 8.75 4V8C8.75 8.41421 8.41421 8.75 8 8.75H4.5C4.08579 8.75 3.75 8.41421 3.75 8V4ZM4.5 13.75C3.25736 13.75 2.25 14.7574 2.25 16V20C2.25 21.2426 3.25736 22.25 4.5 22.25H8C9.24264 22.25 10.25 21.2426 10.25 20V16C10.25 14.7574 9.24264 13.75 8 13.75H4.5ZM3.75 16C3.75 15.5858 4.08579 15.25 4.5 15.25H8C8.41421 15.25 8.75 15.5858 8.75 16V20C8.75 20.4142 8.41421 20.75 8 20.75H4.5C4.08579 20.75 3.75 20.4142 3.75 20V16ZM13.75 4C13.75 2.75736 14.7574 1.75 16 1.75H19.5C20.7426 1.75 21.75 2.75736 21.75 4V8C21.75 9.24264 20.7426 10.25 19.5 10.25H16C14.7574 10.25 13.75 9.24264 13.75 8V4ZM16 3.25C15.5858 3.25 15.25 3.58579 15.25 4V8C15.25 8.41421 15.5858 8.75 16 8.75H19.5C19.9142 8.75 20.25 8.41421 20.25 8V4C20.25 3.58579 19.9142 3.25 19.5 3.25H16ZM16 13.75C14.7574 13.75 13.75 14.7574 13.75 16V20C13.75 21.2426 14.7574 22.25 16 22.25H19.5C20.7426 22.25 21.75 21.2426 21.75 20V16C21.75 14.7574 20.7426 13.75 19.5 15.25H16C15.5858 20.75 15.25 20.4142 15.25 20V16Z" />
                                 </svg>
                                 <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Workflow Templates</span>
                             </span>
                         </a>
                     </li>
-                    @endif
+                    @endcan
                 </ul>
             </div>
+            @endcanany
 
             <!-- Group 3: SYSTEM ADMINISTRATION -->
             <div>

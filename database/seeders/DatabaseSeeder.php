@@ -61,10 +61,21 @@ class DatabaseSeeder extends Seeder
         // ─────────────────────────────────────────────
         // 2. Create Roles (explicit permissions merged with always-enabled)
         // ─────────────────────────────────────────────
+        $userApprovalPermissions = [
+            'view-approval-inbox',
+            'view-approval-history',
+            'view-approval-requests',
+        ];
+        $adminApprovalPermissions = array_merge($userApprovalPermissions, [
+            'manage-approvals',
+            'manage-approval-workflows',
+        ]);
+
         $adminRole = Role::create([
             'name' => 'admin',
             'permissions' => array_values(array_unique(array_merge(
                 ['manage-users', 'manage-roles', 'manage-org-chart'],
+                $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
         ]);
@@ -72,17 +83,22 @@ class DatabaseSeeder extends Seeder
             'name' => 'manager',
             'permissions' => array_values(array_unique(array_merge(
                 ['manage-users', 'manage-org-chart'],
+                $userApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
         ]);
         $userRole = Role::create([
             'name' => 'user',
-            'permissions' => $alwaysEnabledPermissions,
+            'permissions' => array_values(array_unique(array_merge(
+                $userApprovalPermissions,
+                $alwaysEnabledPermissions,
+            ))),
         ]);
         $platformAdminRole = Role::create([
             'name' => 'platform-admin',
             'permissions' => array_values(array_unique(array_merge(
                 ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform'],
+                $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
         ]);

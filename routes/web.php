@@ -68,27 +68,31 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
 
     // Approval Management
-    Route::get('/approval-management', [ApprovalManagementController::class, 'index'])
-        ->name('approval-management.index');
-    Route::post('/approval-management/{step}/delegate', [ApprovalManagementController::class, 'delegate'])
-        ->name('approval-management.delegate');
-    Route::post('/approval-management/{step}/skip', [ApprovalManagementController::class, 'skip'])
-        ->name('approval-management.skip');
+    Route::middleware('can:manage-approvals')->group(function () {
+        Route::get('/approval-management', [ApprovalManagementController::class, 'index'])
+            ->name('approval-management.index');
+        Route::post('/approval-management/{step}/delegate', [ApprovalManagementController::class, 'delegate'])
+            ->name('approval-management.delegate');
+        Route::post('/approval-management/{step}/skip', [ApprovalManagementController::class, 'skip'])
+            ->name('approval-management.skip');
+    });
 
     // Approval Workflow Templates
-    Route::resource('approval-workflows', ApprovalWorkflowController::class)->parameters([
-        'approval-workflows' => 'workflow',
-    ]);
-    Route::post('approval-workflows/{workflow}/restore', [ApprovalWorkflowController::class, 'restore'])->name('approval-workflows.restore');
-    Route::delete('approval-workflows/{workflow}/soft-delete', [ApprovalWorkflowController::class, 'softDelete'])->name('approval-workflows.soft-delete');
-    Route::delete('approval-workflows/{workflow}/trash', [ApprovalWorkflowController::class, 'trash'])->name('approval-workflows.trash');
+    Route::middleware('can:manage-approval-workflows')->group(function () {
+        Route::resource('approval-workflows', ApprovalWorkflowController::class)->parameters([
+            'approval-workflows' => 'workflow',
+        ]);
+        Route::post('approval-workflows/{workflow}/restore', [ApprovalWorkflowController::class, 'restore'])->name('approval-workflows.restore');
+        Route::delete('approval-workflows/{workflow}/soft-delete', [ApprovalWorkflowController::class, 'softDelete'])->name('approval-workflows.soft-delete');
+        Route::delete('approval-workflows/{workflow}/trash', [ApprovalWorkflowController::class, 'trash'])->name('approval-workflows.trash');
+    });
 });
 
 // Approval Routes (authenticated users)
 Route::middleware('auth')->prefix('approvals')->name('approvals.')->group(function () {
-    Route::get('/inbox', [ApprovalController::class, 'inbox'])->name('inbox');
-    Route::get('/history', [ApprovalController::class, 'history'])->name('history');
-    Route::get('/requests', [ApprovalController::class, 'requests'])->name('requests');
+    Route::get('/inbox', [ApprovalController::class, 'inbox'])->name('inbox')->middleware('can:view-approval-inbox');
+    Route::get('/history', [ApprovalController::class, 'history'])->name('history')->middleware('can:view-approval-history');
+    Route::get('/requests', [ApprovalController::class, 'requests'])->name('requests')->middleware('can:view-approval-requests');
     Route::get('/{request}', [ApprovalController::class, 'show'])->name('show');
     Route::post('/{step}/approve', [ApprovalController::class, 'approve'])->name('approve');
     Route::post('/{step}/reject', [ApprovalController::class, 'reject'])->name('reject');

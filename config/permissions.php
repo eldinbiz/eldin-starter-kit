@@ -40,6 +40,26 @@ return [
             'label' => 'Manage Platform',
             'group' => 'System Administration',
         ],
+        'view-approval-inbox' => [
+            'label' => 'Inbox: Menu access for all approval requests assigned to you',
+            'group' => 'Approval Management',
+        ],
+        'view-approval-history' => [
+            'label' => 'History: Menu access to view past approval decisions and actions',
+            'group' => 'Approval Management',
+        ],
+        'view-approval-requests' => [
+            'label' => 'My Requests: Menu access to track approval requests you submitted',
+            'group' => 'Approval Management',
+        ],
+        'manage-approvals' => [
+            'label' => 'Manage Approvals: Administrative access to monitor, reassign, skip, or override any approval request',
+            'group' => 'Approval Management',
+        ],
+        'manage-approval-workflows' => [
+            'label' => 'Workflow Templates: Administrative access to create, edit, and configure approval workflow templates',
+            'group' => 'Approval Management',
+        ],
     ],
 
     /*
@@ -51,6 +71,7 @@ return [
         'General',
         'User Management',
         'Role Management',
+        'Approval Management',
         'System Administration',
     ],
 

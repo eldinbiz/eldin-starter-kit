@@ -20,6 +20,14 @@ uses(RefreshDatabase::class);
 // Helpers
 // ---------------------------------------------------------------------------
 
+function attachUserRoleIfMissing(User $user, Company $company): void
+{
+    if ($user->companyRoles()->wherePivot('company_id', $company->id)->doesntExist()) {
+        $userRole = Role::where('name', 'user')->first() ?? Role::factory()->user()->create();
+        $user->companyRoles()->attach($userRole->id, ['company_id' => $company->id]);
+    }
+}
+
 function createApprovalSetup(): array
 {
     $company = Company::factory()->create(['is_active' => true]);
@@ -29,6 +37,9 @@ function createApprovalSetup(): array
 
     $company->users()->attach($requestor->id, ['manager_id' => $manager->id, 'status' => 'active']);
     $company->users()->attach($manager->id, ['manager_id' => null, 'status' => 'active']);
+
+    attachUserRoleIfMissing($requestor, $company);
+    attachUserRoleIfMissing($manager, $company);
 
     $template = WorkflowTemplate::factory()->create(['company_id' => $company->id, 'name' => 'Test Workflow']);
     $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 1', 'order' => 0]);
@@ -51,6 +62,9 @@ function createAwaitingPreviousSetup(): array
     $company->users()->attach($requestor->id, ['manager_id' => $manager->id, 'status' => 'active']);
     $company->users()->attach($manager->id, ['manager_id' => null, 'status' => 'active']);
 
+    attachUserRoleIfMissing($requestor, $company);
+    attachUserRoleIfMissing($manager, $company);
+
     $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
     $group = WorkflowGroup::factory()->create(['template_id' => $template->id]);
     WorkflowStep::factory()->nPlus1()->create(['group_id' => $group->id, 'order' => 0]);
@@ -65,6 +79,7 @@ function createAwaitingPreviousSetup(): array
 
 function actAsApprovalUser(TestCase $test, User $user, Company $company): void
 {
+    attachUserRoleIfMissing($user, $company);
     $test->actingAs($user);
     session(['active_company_id' => $company->id]);
 }

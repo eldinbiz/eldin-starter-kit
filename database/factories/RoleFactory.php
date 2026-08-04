@@ -40,7 +40,13 @@ class RoleFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'name' => 'manager',
-            'permissions' => ['manage-org-chart'],
+            'permissions' => [
+                'manage-users',
+                'manage-org-chart',
+                'view-approval-inbox',
+                'view-approval-history',
+                'view-approval-requests',
+            ],
         ]);
     }
 
@@ -51,7 +57,11 @@ class RoleFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'name' => 'user',
-            'permissions' => [],
+            'permissions' => [
+                'view-approval-inbox',
+                'view-approval-history',
+                'view-approval-requests',
+            ],
         ]);
     }
 }
