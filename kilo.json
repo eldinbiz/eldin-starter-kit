@@ -15,5 +15,6 @@
         "glob": "allow",
         "task": "allow",
         "skill": "allow"
-    }
+    },
+    "snapshot": true
 }
