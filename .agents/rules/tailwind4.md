@@ -1,6 +1,6 @@
 ---
 trigger: model_decision
-description: Triggers on frontend code, HTML views, or UI components. Enforces Tailwind CSS v4 runtime layout using CDN and CSS-first configuration. Note: All guidelines in this rule are exempted for layouts and designs specified in tailadmin-scaffolder skills.
+description: Triggers on frontend code, HTML views, or UI components. Enforces Tailwind CSS v4 runtime layout using CDN and CSS-first configuration. Note: All guidelines in this rule are exempted for layouts and designs specified in tailadmin skills.
 ---
 
 # Tailwind CSS v4 (Non-Compilation Runtime) Rule
@@ -9,7 +9,7 @@ This rule strictly governs all frontend styling tasks, ensuring the AI agent use
 
 > [!NOTE]
 > **TailAdmin Scaffolder Exemption:**
-> All rules, styling paradigms, layout patterns, and utility scale restrictions defined in this document **do not apply** to layouts, components, or styling specifications defined in the `tailadmin-scaffolder` skills (located in [.agents/skills/tailadmin-scaffolder](file:///c:/Users/eldin.akbar/Documents/Dev learn/First tauri app/.agents/skills/tailadmin-scaffolder/)). For components or pages based on TailAdmin patterns, implement the styles and markup exactly as specified in those skills.
+> All rules, styling paradigms, layout patterns, and utility scale restrictions defined in this document **do not apply** to layouts, components, or styling specifications defined in the `tailadmin` skill (located in [.agents/skills/tailadmin/SKILL.md](file:///C:/Users/eldin.akbar/Documents/Other%20Scripts/scaffolding-app/.agents/skills/tailadmin/SKILL.md)). For components or pages based on TailAdmin patterns, implement the styles and markup exactly as specified in that skill.
 
 ## 1. Zero-Build Architecture
 - **No Build Tools:** Do not generate scripts or dependencies for Vite, PostCSS, Webpack, or Tailwind CLI.

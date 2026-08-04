@@ -11,7 +11,7 @@ This rule strictly governs all lightweight client-side interactions and reactivi
 - **No NPM Bundling:** Do not install alpinejs via npm or import it into an asset bundler unless explicitly instructed.
 - **The Defer Script Tag:** Ensure layout files load Alpine via its official CDN with the mandatory `defer` attribute inside the `<head>` tag so it plays nicely with other scripts:
   ```html
-  <script defer src="[https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js](https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js)"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   ```
 
 ## 2. Structural Paradigms & State Location
@@ -39,3 +39,6 @@ When Alpine components need to sync with backend data via Laravel Livewire or tr
 ## 4. Forbidden Anti-Patterns for AI Generation
 - **No Vanilla QuerySelectors:** Do not generate scripts using `document.getElementById` or `querySelector` inside an Alpine context. Use native Alpine magic utilities like `$refs`, `$el`, `$dispatch`, or `$root`.
 - **Avoid Over-nesting States:** Ensure inner structures understand outer `x-data` scoping rules without duplicating variables unnecessarily.
+
+## 5. Confirmation Modals & Type-to-Confirm
+When building confirmation modals with type-to-confirm for destructive actions, consult the on-demand skill: read [.agents/skills/alpine-modal/SKILL.md](file:///C:/Users/eldin.akbar/Documents/Other%20Scripts/scaffolding-app/.agents/skills/alpine-modal/SKILL.md).
