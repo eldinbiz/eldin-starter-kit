@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\ApprovalManagementController;
 use App\Http\Controllers\Admin\ApprovalWorkflowController;
 use App\Http\Controllers\Admin\OrgChartController;
 use App\Http\Controllers\Admin\UserController;
@@ -65,6 +66,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/org-chart/tree', [OrgChartController::class, 'tree'])->name('org-chart.tree');
     Route::patch('/org-chart/reassign', [OrgChartController::class, 'updateManager'])->name('org-chart.reassign');
     Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
+
+    // Approval Management
+    Route::get('/approval-management', [ApprovalManagementController::class, 'index'])
+        ->name('approval-management.index');
+    Route::post('/approval-management/{step}/delegate', [ApprovalManagementController::class, 'delegate'])
+        ->name('approval-management.delegate');
+    Route::post('/approval-management/{step}/skip', [ApprovalManagementController::class, 'skip'])
+        ->name('approval-management.skip');
 
     // Approval Workflow Templates
     Route::resource('approval-workflows', ApprovalWorkflowController::class)->parameters([

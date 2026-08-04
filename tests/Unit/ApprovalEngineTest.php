@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 use App\Enums\ApprovalStatus;
 use App\Enums\GroupType;
+use App\Enums\ResolverType;
 use App\Enums\StepState;
+use App\Events\Approval\ApprovalCanceled;
+use App\Events\Approval\ApprovalCompleted;
+use App\Events\Approval\ApprovalDelegated;
+use App\Events\Approval\ApprovalRejected;
+use App\Events\Approval\ApprovalRequested;
+use App\Events\Approval\ApprovalStepCompleted;
 use App\Models\Approval\ApprovalRequest;
 use App\Models\Approval\ApprovalRequestStep;
 use App\Models\Approval\WorkflowGroup;
@@ -13,11 +20,6 @@ use App\Models\Approval\WorkflowTemplate;
 use App\Models\Company;
 use App\Models\User;
 use App\Services\ApprovalEngine;
-use App\Events\Approval\ApprovalCompleted;
-use App\Events\Approval\ApprovalDelegated;
-use App\Events\Approval\ApprovalRejected;
-use App\Events\Approval\ApprovalRequested;
-use App\Events\Approval\ApprovalStepCompleted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\FakeApprovable;
@@ -205,7 +207,7 @@ it('throws RuntimeException when specific_user resolver has no user_id in payloa
     $group = WorkflowGroup::factory()->create(['template_id' => $template->id]);
     WorkflowStep::factory()->create([
         'group_id' => $group->id,
-        'resolver_type' => \App\Enums\ResolverType::SpecificUser,
+        'resolver_type' => ResolverType::SpecificUser,
         'resolver_payload' => [],
     ]);
 
@@ -481,7 +483,7 @@ it('dispatches ApprovalCanceled event', function () {
 
     approvalEngine()->cancel($request, $requestor);
 
-    Event::assertDispatched(\App\Events\Approval\ApprovalCanceled::class, fn ($event) => $event->approvalRequest->is($request) && $event->canceledBy->is($requestor));
+    Event::assertDispatched(ApprovalCanceled::class, fn ($event) => $event->approvalRequest->is($request) && $event->canceledBy->is($requestor));
 });
 
 it('throws RuntimeException when request is already approved', function () {

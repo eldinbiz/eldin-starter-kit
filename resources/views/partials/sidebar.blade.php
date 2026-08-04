@@ -125,8 +125,24 @@
                         </a>
                     </li>
 
-                    <!-- Workflow Templates (Admin only) -->
+                    <!-- Admin Approval Items -->
                     @if (Auth::user()?->getActiveRole()?->name === 'admin')
+                    <!-- Manage Approvals -->
+                    <li>
+                        <a
+                            href="{{ route('admin.approval-management.index') }}"
+                            class="menu-item group {{ Request::is('admin/approval-management*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        >
+                            <span class="flex items-center gap-3">
+                                <svg class="fill-current {{ Request::is('admin/approval-management*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 3C2.00736 3 1 4.00736 1 5.25V18.75C1 19.9926 2.00736 21 3.25 21H20.75C21.9926 21 23 19.9926 23 18.75V5.25C23 4.00736 21.9926 3 20.75 3H3.25ZM2.5 8.25V5.25C2.5 4.83579 2.83579 4.5 3.25 4.5H9V8.25H2.5ZM2.5 14.25V9.75H9V19.5H3.25C2.83579 19.5 2.5 19.1642 2.5 18.75V14.25ZM10.5 19.5V9.75H17V15.75H17.75V19.5H10.5ZM17 8.25V4.5H20.75C21.1642 4.5 21.5 4.83579 21.5 5.25V13.25H18.5V17V18.75C18.5 19.1642 18.1642 19.5 17.75 19.5H17.75V8.25H17Z" />
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Manage Approvals</span>
+                            </span>
+                        </a>
+                    </li>
+
+                    <!-- Workflow Templates -->
                     <li>
                         <a
                             href="{{ route('admin.approval-workflows.index') }}"

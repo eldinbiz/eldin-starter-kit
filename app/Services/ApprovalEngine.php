@@ -200,6 +200,36 @@ class ApprovalEngine
     }
 
     /**
+     * Skip a pending or awaiting step — marks it as bypassed and advances the state machine.
+     */
+    public function skipStep(ApprovalRequestStep $step, User $skippedBy): void
+    {
+        $allowedStates = [StepState::Pending, StepState::AwaitingPrevious];
+
+        if (! in_array($step->state, $allowedStates, true)) {
+            throw new RuntimeException('This step is not in an actionable state.');
+        }
+
+        DB::transaction(function () use ($step, $skippedBy): void {
+            $request = $step->request()->lockForUpdate()->firstOrFail();
+
+            if (! $request->isPending()) {
+                throw new RuntimeException('This approval request is no longer pending.');
+            }
+
+            $step->update([
+                'state' => StepState::Skipped,
+                'action_at' => now(),
+                'notes' => "Skipped by administrator ({$skippedBy->name})",
+            ]);
+
+            ApprovalStepCompleted::dispatch($step);
+
+            $this->advanceStateMachine($request);
+        });
+    }
+
+    /**
      * Manually resolve an N+1_of_previous step that could not be auto-resolved
      * (e.g., previous approver had no manager). Assigns a specific user.
      */
