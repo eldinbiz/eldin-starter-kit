@@ -26,7 +26,7 @@ Commands that **mutate the database, delete data, alter schema, or change system
 | **Data seeding** | `php artisan db:seed`, `php artisan migrate:fresh --seed` |
 | **Data deletion** | `php artisan db:wipe`, truncate/delete SQL via tinker |
 | **Environment mutation** | `php artisan key:generate`, `php artisan storage:link` |
-| **Tests (side effects)** | `php artisan test` (may use test DB, treat as potentially destructive) |
+| **Tests (side effects)** | `composer test` (runs `php artisan config:clear` + `php artisan test`; treat as destructive) |
 | **Cache clearing (production)** | `php artisan config:clear`, `php artisan cache:clear` (safe locally, delegate in production context) |
 | **Destructive Git** | `git push`, `git reset --hard`, `git clean -fd` |
 | **Package removal** | `composer remove ...`, `npm uninstall ...` |

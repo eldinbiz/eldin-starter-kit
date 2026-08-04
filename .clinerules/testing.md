@@ -29,7 +29,7 @@ When the agent **adds, modifies, or refactors** any of the following, it **MUST*
 ## 3. Test Quality Rules
 
 - Use the existing project conventions (Pest, `RefreshDatabase`, factories, session priming for CSRF).
-- Run `php artisan test` after creating/modifying tests to verify they pass.
+- Run `composer test` after creating/modifying tests to verify they pass.
 - Do **NOT** delete or skip existing tests without explicit user approval.
 
 ## 4. Reporting Test Results
@@ -37,7 +37,7 @@ When the agent **adds, modifies, or refactors** any of the following, it **MUST*
 After creating or modifying tests, report the results:
 
 ```
-php artisan test --compact tests/Feature/NewTestFile.php
+composer test --compact tests/Feature/NewTestFile.php
 ```
 
 If a test fails for a **pre-existing reason** (e.g., DataTable rendering bug), note it explicitly and explain why it's not caused by the current change.
