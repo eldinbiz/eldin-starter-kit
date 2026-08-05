@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "security-audit": {
+      "source": "hexters/laravel-security-audit",
+      "sourceType": "github",
+      "skillPath": "skills/security-audit/SKILL.md",
+      "computedHash": "fc988a4f4c8737e4439cbe8eeaa13eef0261fb36bf6c80ce0d6ee2da3c74d05b"
+    }
+  }
+}
