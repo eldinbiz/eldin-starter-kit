@@ -159,10 +159,16 @@ class User extends Authenticatable
                 ->wherePivot('company_id', $company->id)
                 ->where('name', $activeRoleName)
                 ->first();
-        } else {
+        }
+
+        if (! $this->cachedActiveRole) {
             $this->cachedActiveRole = $this->companyRoles()
                 ->wherePivot('company_id', $company->id)
                 ->first();
+
+            if ($this->cachedActiveRole) {
+                session(["active_role.{$company->id}" => $this->cachedActiveRole->name]);
+            }
         }
 
         $this->cachedActiveRoleCompanyId = $company->id;

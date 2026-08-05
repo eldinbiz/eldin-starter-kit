@@ -87,3 +87,40 @@ test('impersonating user can leave impersonation session', function () {
 
     expect(auth()->id())->toBe($admin->id);
 });
+
+test('impersonated user retains their active role permissions and can access gated routes', function () {
+    $company = Company::factory()->create();
+
+    $adminRole = Role::create([
+        'name' => 'admin',
+        'permissions' => ['user-impersonation'],
+        'is_active' => true,
+    ]);
+
+    $approverRole = Role::create([
+        'name' => 'approver',
+        'permissions' => ['view-approval-inbox', 'view-approval-history', 'view-approval-requests'],
+        'is_active' => true,
+    ]);
+
+    $admin = User::factory()->create();
+    $targetUser = User::factory()->create();
+
+    $admin->companies()->attach($company->id);
+    $admin->companyRoles()->attach($adminRole->id, ['company_id' => $company->id]);
+
+    $targetUser->companies()->attach($company->id);
+    $targetUser->companyRoles()->attach($approverRole->id, ['company_id' => $company->id]);
+
+    // Admin starts impersonating target user
+    $this->actingAs($admin)
+        ->withSession(['active_company_id' => $company->id, 'active_role.'.$company->id => 'admin'])
+        ->get(route('impersonate', $targetUser->id))
+        ->assertRedirect();
+
+    expect(auth()->id())->toBe($targetUser->id);
+
+    // Access gated inbox route while impersonating
+    $this->get(route('approvals.inbox'))
+        ->assertStatus(200);
+});

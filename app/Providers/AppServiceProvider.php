@@ -45,12 +45,36 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ApprovalCanceled::class, UpdateApprovableStatus::class);
 
         // Register impersonation session switch event listeners
-        Event::listen(\Lab404\Impersonate\Events\TakeImpersonation::class, function (): void {
+        Event::listen(\Lab404\Impersonate\Events\TakeImpersonation::class, function ($event): void {
             session()->flash('impersonation_switched', 'started');
+
+            /** @var User $impersonated */
+            $impersonated = $event->impersonated;
+            $company = $impersonated->getActiveCompany();
+
+            if ($company) {
+                session(['active_company_id' => $company->id]);
+                $role = $impersonated->getActiveRole($company);
+                if ($role) {
+                    session(["active_role.{$company->id}" => $role->name]);
+                }
+            }
         });
 
-        Event::listen(\Lab404\Impersonate\Events\LeaveImpersonation::class, function (): void {
+        Event::listen(\Lab404\Impersonate\Events\LeaveImpersonation::class, function ($event): void {
             session()->flash('impersonation_switched', 'stopped');
+
+            /** @var User $impersonator */
+            $impersonator = $event->impersonator;
+            $company = $impersonator->getActiveCompany();
+
+            if ($company) {
+                session(['active_company_id' => $company->id]);
+                $role = $impersonator->getActiveRole($company);
+                if ($role) {
+                    session(["active_role.{$company->id}" => $role->name]);
+                }
+            }
         });
 
         // Platform-level gate: checks ALL roles across ALL companies
