@@ -127,9 +127,18 @@ User enters email → system looks up user → reads `auth_method` → routes to
 
 ---
 
+### 6. User Impersonation
+
+- **Package Integration**: Implemented using `lab404/laravel-impersonate` package.
+- **Explicit Permission Gate**: Initiating an impersonation session strictly requires holding the explicit `user-impersonation` permission (defined in `canImpersonate()` on `User` model).
+- **Session & UI Banner**: Secure session switching with sticky impersonation alert banner in topbar showing target user details and "Stop Impersonating" action.
+- **Audit Trail**: Dispatches activity log events (`TakeImpersonation`, `LeaveImpersonation`) for security audit compliance.
+
+---
+
 ## P2 — Future (v1.2+)
 
-### 6. System Configuration Module
+### 7. System Configuration Module
 
 **App-Level Settings** (platform admin only):
 - Application name, logo, favicon
@@ -167,4 +176,5 @@ User enters email → system looks up user → reads `auth_method` → routes to
 | 8 | Audit Trail | P1 | ☐ To Do |
 | 9 | API Layer | P1 | ☐ To Do |
 | 10 | Authentication Overhaul | P1 | ☐ To Do |
-| 11 | System Configuration | P2 | ☐ To Do |
+| 11 | User Impersonation | P1 | ☐ To Do |
+| 12 | System Configuration | P2 | ☐ To Do |

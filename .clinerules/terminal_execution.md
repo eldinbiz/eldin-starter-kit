@@ -74,41 +74,31 @@ Git Bash runs a Unix-like shell emulation layer. While it uses Unix-style comman
 4. **Apply** forward-slashes for PHP/Composer vendor paths (§0.3) if on Windows.
 5. **Verify** you are not accidentally using Unix commands in CMD or CMD commands in Unix.
 
-## 1. Non-Destructive Commands (Agent May Execute)
+## 1. Always Ask User Preference Before Execution
 
-The agent is permitted to run **safe, read-only, or environment-scoped** commands directly, including:
+Whenever a terminal command needs to be executed (whether read-only or state-modifying):
 
-- `php artisan route:list` — listing routes
-- `php artisan list` — listing available commands
-- `php artisan about` — environment info
-- `php -v`, `node -v`, `composer --version` — version checks
-- `git status`, `git log`, `git diff` — read-only git operations
-- `ls`, `dir`, `cat`, `type` — filesystem reads
-- `php artisan tinker --execute="..."` — read-only tinker queries
-- `composer install` (when adding/updating non-destructive dependencies)
-- `npm install` (non-destructive package additions)
+- **Display the Command:** Present the exact command clearly in a code block with context on what it does and why it is needed.
+- **Ask the User:** Always ask the user whether they prefer to:
+  1. **Run the command themselves** in their terminal, OR
+  2. **Let the agent execute the command** on their behalf so the agent can capture output, analyze logs, and automatically debug/fix any issues or errors.
 
-## 2. Destructive Commands (MUST Delegate to User)
+## 2. Command Categories Reference
 
-Commands that **mutate the database, delete data, alter schema, or change system state** must NEVER be executed by the agent (unless explicitly ordered by the users, but you must confirm this with the user twice). These include:
+When asking the user, provide context on what the command does:
 
 | Category | Examples |
 |---|---|
-| **Schema changes** | `php artisan migrate`, `php artisan migrate:fresh`, `php artisan migrate:rollback` |
-| **Data seeding** | `php artisan db:seed`, `php artisan migrate:fresh --seed` |
-| **Data deletion** | `php artisan db:wipe`, truncate/delete SQL via tinker |
-| **Environment mutation** | `php artisan key:generate`, `php artisan storage:link` |
-| **Tests (side effects)** | `composer test` (runs `php artisan config:clear` + `php artisan test`; treat as destructive) |
-| **Cache clearing (production)** | `php artisan config:clear`, `php artisan cache:clear` (safe locally, delegate in production context) |
-| **Destructive Git** | `git push`, `git reset --hard`, `git clean -fd` |
-| **Package removal** | `composer remove ...`, `npm uninstall ...` |
+| **Package Management** | `composer require lab404/laravel-impersonate`, `npm install ...` |
+| **Schema & Migrations** | `php artisan migrate`, `php artisan migrate:fresh` |
+| **Data Seeding & Reset** | `php artisan db:seed`, `php artisan migrate:fresh --seed` |
+| **Tests & Verification** | `composer test`, `vendor/bin/pest` |
+| **Environment & Maintenance** | `php artisan key:generate`, `php artisan storage:link`, `php artisan config:clear` |
+| **Git Operations** | `git status`, `git diff`, `git push`, `git reset` |
 
-When the agent determines a command falls into this category, it must:
-- Display the exact command clearly in a code block.
-- Explain what the command does, why it is needed, and any expected output.
-- Instruct the user to run the command in their own terminal.
-- Wait for user confirmation before proceeding with any dependent next steps.
+## 3. Output Review & Automated Debugging
 
-## 3. Ambiguous Commands
-
-If a command's destructiveness is unclear, the agent must **default to delegation** — present it to the user and explain the ambiguity rather than risk unintended data loss.
+When the user chooses to let the agent run the command:
+- Execute the command via tools.
+- Carefully inspect stdout/stderr.
+- If errors occur, analyze the root cause and propose or apply fixes immediately.
