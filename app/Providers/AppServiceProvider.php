@@ -44,6 +44,15 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ApprovalRejected::class, UpdateApprovableStatus::class);
         Event::listen(ApprovalCanceled::class, UpdateApprovableStatus::class);
 
+        // Register impersonation session switch event listeners
+        Event::listen(\Lab404\Impersonate\Events\TakeImpersonation::class, function (): void {
+            session()->flash('impersonation_switched', 'started');
+        });
+
+        Event::listen(\Lab404\Impersonate\Events\LeaveImpersonation::class, function (): void {
+            session()->flash('impersonation_switched', 'stopped');
+        });
+
         // Platform-level gate: checks ALL roles across ALL companies
         Gate::define('manage-platform', function (User $user): bool {
             return $user->hasPlatformAccess();

@@ -27,6 +27,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Impersonation Routes
+    Route::impersonate();
+
     // Role Switch Route
     Route::post('/switch-role', [RoleController::class, 'switch'])->name('switch-role');
 

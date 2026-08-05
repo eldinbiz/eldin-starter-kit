@@ -14,13 +14,31 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Lab404\Impersonate\Models\Impersonate;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasCompanyContext, HasFactory, Notifiable;
+    use HasCompanyContext, HasFactory, Impersonate, Notifiable;
+
+    /**
+     * Check if the user can impersonate other users.
+     * Strictly requires explicit user-impersonation permission on active role.
+     */
+    public function canImpersonate(): bool
+    {
+        return $this->getActiveRole()?->hasPermission('user-impersonation') ?? false;
+    }
+
+    /**
+     * Check if the user can be impersonated by another user.
+     */
+    public function canBeImpersonated(): bool
+    {
+        return true;
+    }
 
     /**
      * Cached active role instance for the current request.

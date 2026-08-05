@@ -110,6 +110,7 @@
 
                 <!-- Role Selector Dropdown -->
                 @auth
+                @if($activeCompany)
                 <div class="relative" x-data="{ roleDropdown: false }" @click.outside="roleDropdown = false">
                     <button
                         @click="roleDropdown = !roleDropdown"
@@ -137,6 +138,7 @@
                         @endforeach
                     </div>
                 </div>
+                @endif
                 @endauth
 
                 <!-- 2. User Profile Dropdown -->

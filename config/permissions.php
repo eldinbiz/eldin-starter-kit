@@ -23,6 +23,10 @@ return [
             'label' => 'Manage Users',
             'group' => 'User Management',
         ],
+        'user-impersonation' => [
+            'label' => 'User Impersonation: Ability to log in as another user account',
+            'group' => 'User Management',
+        ],
         'manage-roles' => [
             'label' => 'Manage Roles',
             'group' => 'Role Management',

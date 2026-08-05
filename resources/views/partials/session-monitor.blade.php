@@ -5,11 +5,19 @@
 
         // Verify session via backend — does NOT renew (route excludes StartSession)
         const check = () => {
+            if (window.isImpersonationTransition) {
+                return Promise.resolve();
+            }
+
             return fetch('{{ route('session.status') }}', {
                 headers: { Accept: 'application/json' },
             })
                 .then(res => res.json())
                 .then(data => {
+                    if (window.isImpersonationTransition) {
+                        return;
+                    }
+
                     sessionExpired = ! data.authenticated;
 
                     if (sessionExpired) {
@@ -22,7 +30,7 @@
 
         // Listen for wake-up signals from other tabs — verify independently
         channel.onmessage = (e) => {
-            if (e.data.type === 'check-now') {
+            if (e.data.type === 'check-now' && ! window.isImpersonationTransition) {
                 check();
             }
         };

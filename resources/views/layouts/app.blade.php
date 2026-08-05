@@ -39,6 +39,24 @@
             <!-- Small Device Overlay -->
             @include('partials.overlay')
 
+            @impersonating
+            <div 
+                class="sticky top-0 z-50 flex items-center justify-between bg-amber-500 px-4 py-2 text-xs font-semibold text-gray-900 shadow-md md:px-6 md:py-2.5 md:text-sm"
+            >
+                <div class="flex items-center gap-2">
+                    <span class="text-base">🎭</span>
+                    <span>You are currently impersonating <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }}).</span>
+                </div>
+                <a 
+                    href="{{ route('impersonate.leave') }}" 
+                    class="inline-flex items-center gap-1.5 rounded bg-gray-900 px-3 py-1 text-xs font-medium text-white transition hover:bg-gray-800 focus:ring-2 focus:ring-gray-900 focus:outline-none"
+                >
+                    <span>🛑</span>
+                    <span>Stop Impersonating</span>
+                </a>
+            </div>
+            @endImpersonating
+
             <!-- Header -->
             @include('partials.header')
 
@@ -53,7 +71,44 @@
 
     @stack('scripts')
 
+    <script>
+        window.isImpersonationTransition = false;
+    </script>
+
     <!-- Session Expiry Monitor & Modal -->
     @include('partials.session-monitor')
+
+    @auth
+    <script>
+        (function () {
+            if (!('BroadcastChannel' in window)) return;
+
+            const tabId = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+            const bc = new BroadcastChannel('impersonation_channel');
+
+            bc.onmessage = function (event) {
+                if (event.data && event.data.type === 'IMPERSONATION_CHANGED' && event.data.senderTabId && event.data.senderTabId !== tabId) {
+                    window.isImpersonationTransition = true;
+                    window.location.replace("{{ route('dashboard') }}");
+                }
+            };
+
+            window.broadcastImpersonationChange = function () {
+                window.isImpersonationTransition = true;
+                try {
+                    bc.postMessage({
+                        type: 'IMPERSONATION_CHANGED',
+                        senderTabId: tabId,
+                        timestamp: Date.now()
+                    });
+                } catch (e) {}
+            };
+
+            @if(session('impersonation_switched'))
+                window.broadcastImpersonationChange();
+            @endif
+        })();
+    </script>
+    @endauth
 </body>
 </html>

@@ -30,10 +30,20 @@ trait HasCompanyContext
         $activeCompanyId = session('active_company_id');
 
         if ($activeCompanyId) {
-            return $this->cachedActiveCompany = $this->companies()->where('companies.id', $activeCompanyId)->first();
+            $company = $this->companies()->where('companies.id', $activeCompanyId)->first();
+
+            if ($company) {
+                return $this->cachedActiveCompany = $company;
+            }
         }
 
-        return $this->cachedActiveCompany = $this->companies()->first();
+        $fallbackCompany = $this->companies()->first();
+
+        if ($fallbackCompany) {
+            session(['active_company_id' => $fallbackCompany->id]);
+        }
+
+        return $this->cachedActiveCompany = $fallbackCompany;
     }
 
     /**
@@ -41,8 +51,14 @@ trait HasCompanyContext
      *
      * @return Collection<int, Role>
      */
-    public function getCompanyRoles(Company $company): Collection
+    public function getCompanyRoles(?Company $company = null): Collection
     {
+        $company ??= $this->getActiveCompany();
+
+        if (! $company) {
+            return new Collection();
+        }
+
         return $this->companyRoles()
             ->wherePivot('company_id', $company->id)
             ->get();
@@ -51,8 +67,14 @@ trait HasCompanyContext
     /**
      * Get the user's manager within a specific company.
      */
-    public function getManager(Company $company): ?self
+    public function getManager(?Company $company = null): ?self
     {
+        $company ??= $this->getActiveCompany();
+
+        if (! $company) {
+            return null;
+        }
+
         $membership = $this->companies()->where('companies.id', $company->id)->first();
 
         if ($membership && $membership->pivot->manager_id) {
@@ -70,8 +92,14 @@ trait HasCompanyContext
      *
      * @return Collection<int, self>
      */
-    public function getSubordinates(Company $company): Collection
+    public function getSubordinates(?Company $company = null): Collection
     {
+        $company ??= $this->getActiveCompany();
+
+        if (! $company) {
+            return new Collection();
+        }
+
         return $company->users()
             ->wherePivot('manager_id', $this->id)
             ->get();
