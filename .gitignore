@@ -26,3 +26,12 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 .kilo/plans/
+
+# AI Configurations
+/.agents/
+/.cline/
+/.clinerules/
+/.github/
+/.kilo/
+/.opencode/
+
