@@ -99,7 +99,7 @@ class UsersDataTable extends DataTable
 
                     return [];
                 })
-                ->apply(function (Builder $q, int $value): void {
+                ->apply(function (Builder $q, int|string $value): void {
                     $q->whereHas('companies', function (Builder $sub) use ($value): void {
                         $sub->where('id', $value);
                     });

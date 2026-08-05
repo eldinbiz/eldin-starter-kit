@@ -82,11 +82,18 @@ it('blocks non-admin users from user management', function () {
 it('allows admin to view the user listing page', function () {
     actAsAdmin($this);
 
-    // SKIPPED: DataTable index view has a pre-existing rendering bug
-    // ($results not initialized before getCollection() in the DataTable
-    // base class). This is a view-layer issue unrelated to route auth.
-    // Tested instead: create/edit/delete routes all work correctly.
-})->skip('DataTable index view has a pre-existing rendering bug.');
+    $this->get('/admin/users')->assertOk();
+});
+
+it('allows filtering users by company id without type error', function () {
+    [$user, $company] = actAsAdmin($this);
+    Role::factory()->create(['name' => 'platform-admin', 'permissions' => ['*']]);
+    $user->companyRoles()->attach(Role::where('name', 'platform-admin')->value('id'), ['company_id' => $company->id]);
+
+    $response = $this->get('/admin/users?filter_company_id='.$company->id);
+
+    $response->assertOk();
+});
 
 // ---------------------------------------------------------------------------
 // Create User
