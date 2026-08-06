@@ -104,4 +104,14 @@ trait HasCompanyContext
             ->wherePivot('manager_id', $this->id)
             ->get();
     }
+
+    /**
+     * Check if user belongs to a given company.
+     */
+    public function belongsToCompany(Company|int $company): bool
+    {
+        $id = $company instanceof Company ? $company->id : $company;
+
+        return $this->companies()->where('companies.id', $id)->exists();
+    }
 }

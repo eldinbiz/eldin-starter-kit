@@ -182,7 +182,7 @@ class ApprovalController extends Controller
         }
 
         // Only admins or the requestor can manually resolve stuck steps
-        $request = $step->request;
+        $request = $step->loadMissing('request')->request;
         if ($request->requestor_id !== $user->id && ! $user->hasPlatformAccess()) {
             abort(403);
         }

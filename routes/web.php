@@ -35,6 +35,12 @@ Route::middleware('auth')->group(function () {
 
     // Company Switch Route
     Route::post('/switch-company', [CompanyController::class, 'switch'])->name('switch-company');
+
+    // Notification Routes
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/latest', [\App\Http\Controllers\NotificationController::class, 'latest'])->name('notifications.latest');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
 });
 
 // Administration Routes
