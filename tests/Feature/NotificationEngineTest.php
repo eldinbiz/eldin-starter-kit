@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\ApprovalStatus;
+use App\Enums\StepState;
 use App\Events\Approval\ApprovalRequested;
 use App\Events\NotificationRequested;
 use App\Models\Approval\ApprovalRequest;
@@ -80,7 +82,7 @@ test('ApprovalRequested domain event triggers ApprovalNotificationSubscriber and
         'approvable_id' => 1,
         'workflow_template_id' => $template->id,
         'workflow_snapshot' => ['groups' => []],
-        'status' => App\Enums\ApprovalStatus::Pending,
+        'status' => ApprovalStatus::Pending,
     ]);
 
     $approvalRequest->steps()->create([
@@ -89,7 +91,7 @@ test('ApprovalRequested domain event triggers ApprovalNotificationSubscriber and
         'order' => 1,
         'resolver_type' => 'specific_user',
         'approver_id' => $approver->id,
-        'state' => App\Enums\StepState::Pending,
+        'state' => StepState::Pending,
     ]);
 
     ApprovalRequested::dispatch($approvalRequest);
@@ -139,7 +141,7 @@ test('POST /notifications/{id}/read marks notification as read and auto-switches
             message: 'Click to switch to company 2.',
             companyId: $company2->id,
             companyName: $company2->name,
-            url: '/admin/approval-requests/99'
+            url: '/approvals/99'
         )
     );
 
@@ -151,7 +153,7 @@ test('POST /notifications/{id}/read marks notification as read and auto-switches
         ->assertOk()
         ->assertJson([
             'success' => true,
-            'redirect_url' => '/admin/approval-requests/99',
+            'redirect_url' => '/approvals/99',
         ]);
 
     expect($notification->fresh()->read_at)->not()->toBeNull();

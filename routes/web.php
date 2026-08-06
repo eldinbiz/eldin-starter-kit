@@ -10,6 +10,8 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,10 +39,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/switch-company', [CompanyController::class, 'switch'])->name('switch-company');
 
     // Notification Routes
-    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/latest', [\App\Http\Controllers\NotificationController::class, 'latest'])->name('notifications.latest');
-    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
-    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/latest', [NotificationController::class, 'latest'])->name('notifications.latest');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
 });
 
 // Administration Routes
@@ -108,4 +110,14 @@ Route::middleware('auth')->prefix('approvals')->name('approvals.')->group(functi
     Route::post('/{request}/cancel', [ApprovalController::class, 'cancel'])->name('cancel');
     Route::post('/{step}/delegate', [ApprovalController::class, 'delegate'])->name('delegate');
     Route::post('/{step}/resolve-previous-manager', [ApprovalController::class, 'resolvePreviousManager'])->name('resolve-previous-manager');
+});
+
+// Purchase Request Routes
+Route::middleware('auth')->prefix('purchase-requests')->name('purchase-requests.')->group(function () {
+    Route::get('/', [PurchaseRequestController::class, 'index'])->name('index');
+    Route::get('/create', [PurchaseRequestController::class, 'create'])->name('create');
+    Route::post('/', [PurchaseRequestController::class, 'store'])->name('store');
+    Route::get('/{purchaseRequest}', [PurchaseRequestController::class, 'show'])->name('show');
+    Route::get('/{purchaseRequest}/preview-workflow', [PurchaseRequestController::class, 'previewWorkflow'])->name('preview-workflow');
+    Route::post('/{purchaseRequest}/submit-for-approval', [PurchaseRequestController::class, 'submitForApproval'])->name('submit-for-approval');
 });
