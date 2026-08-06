@@ -38,6 +38,10 @@ RUN composer install --no-interaction --no-progress --no-scripts
 # App code
 COPY . .
 
+# Clear stale cached manifests copied from host and re-discover packages
+RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php bootstrap/cache/config.php bootstrap/cache/routes-v7.php \
+    && php artisan package:discover --ansi || true
+
 # Frontend build
 RUN npm ci --ignore-scripts && npm run build && rm -rf node_modules
 

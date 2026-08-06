@@ -6,4 +6,10 @@ set -e
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Clear stale cached package manifests mounted from host
+rm -f /var/www/html/bootstrap/cache/packages.php /var/www/html/bootstrap/cache/services.php /var/www/html/bootstrap/cache/routes-v7.php /var/www/html/bootstrap/cache/config.php
+
+# Re-discover packages
+php artisan package:discover --ansi || true
+
 exec docker-php-entrypoint php-fpm
