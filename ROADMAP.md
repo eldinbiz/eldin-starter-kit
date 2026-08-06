@@ -127,7 +127,7 @@ User enters email → system looks up user → reads `auth_method` → routes to
 
 ---
 
-### 6. User Impersonation
+### 6. User Impersonation ✅ Done
 
 - **Package Integration**: Implemented using `lab404/laravel-impersonate` package.
 - **Explicit Permission Gate**: Initiating an impersonation session strictly requires holding the explicit `user-impersonation` permission (defined in `canImpersonate()` on `User` model).
@@ -176,5 +176,5 @@ User enters email → system looks up user → reads `auth_method` → routes to
 | 8 | Audit Trail | P1 | ☐ To Do |
 | 9 | API Layer | P1 | ☐ To Do |
 | 10 | Authentication Overhaul | P1 | ☐ To Do |
-| 11 | User Impersonation | P1 | ☐ To Do |
+| 11 | User Impersonation | P1 | ✅ Done |
 | 12 | System Configuration | P2 | ☐ To Do |
