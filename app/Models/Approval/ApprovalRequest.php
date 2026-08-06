@@ -6,6 +6,7 @@ namespace App\Models\Approval;
 
 use App\Contracts\Approvable;
 use App\Enums\ApprovalStatus;
+use App\Enums\GroupType;
 use App\Enums\StepState;
 use App\Models\Company;
 use App\Models\User;
@@ -140,26 +141,34 @@ class ApprovalRequest extends Model
      */
     public function currentSteps()
     {
-        // Collect groups from snapshot, find first with pending steps
         $snapshot = $this->workflow_snapshot;
 
         if (! $snapshot || ! isset($snapshot['groups'])) {
             return collect();
         }
 
-        $pendingSteps = $this->steps->where('state', StepState::Pending);
+        foreach ($snapshot['groups'] as $group) {
+            $groupName = $group['name'];
+            $groupType = $group['type'] ?? GroupType::Sequential->value;
+            $groupSteps = $this->steps->where('group_name', $groupName);
 
-        if ($pendingSteps->isEmpty()) {
-            return collect();
+            $pendingInGroup = $groupSteps->where('state', StepState::Pending);
+
+            if ($pendingInGroup->isNotEmpty()) {
+                if ($groupType === GroupType::Sequential->value) {
+                    $minOrder = $pendingInGroup->min('order');
+
+                    return $pendingInGroup->where('order', $minOrder);
+                }
+
+                return $pendingInGroup;
+            }
+
+            if ($groupSteps->contains('state', StepState::AwaitingPrevious)) {
+                return collect();
+            }
         }
 
-        // Find the group of the first pending step by order
-        $firstPendingOrder = $pendingSteps->min('order');
-
-        // All steps in the same group share a group_name; find the group boundary
-        $firstPendingStep = $pendingSteps->firstWhere('order', $firstPendingOrder);
-        $groupName = $firstPendingStep?->group_name;
-
-        return $pendingSteps->where('group_name', $groupName);
+        return collect();
     }
 }

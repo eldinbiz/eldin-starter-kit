@@ -20,6 +20,7 @@ use App\Models\Approval\ApprovalRequestStep;
 use App\Models\Approval\WorkflowTemplate;
 use App\Models\Company;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -53,13 +54,18 @@ class ApprovalEngine
             ]);
 
             // Build runtime step records
-            foreach ($snapshot['groups'] as $group) {
+            foreach ($snapshot['groups'] as $groupIndex => $group) {
                 foreach ($group['steps'] as $stepData) {
                     $resolverType = ResolverType::from($stepData['resolver_type']);
 
-                    if ($resolverType === ResolverType::NPlus1OfPrevious) {
-                        // Cannot resolve at submission time — will be resolved when the
-                        // previous step in the same sequential group completes.
+                    $isNonFirstGroup = $groupIndex > 0;
+                    $isSequentialStepNonZero = ($group['type'] === GroupType::Sequential->value && $stepData['order'] > 0);
+
+                    if ($isNonFirstGroup || $resolverType === ResolverType::NPlus1OfPrevious || $isSequentialStepNonZero) {
+                        $approverId = ($resolverType === ResolverType::NPlus1OfPrevious)
+                            ? null
+                            : $this->resolveApproverUserId($resolverType, $stepData['resolver_payload'] ?? [], $requestor, $company);
+
                         ApprovalRequestStep::create([
                             'approval_request_id' => $request->id,
                             'group_name' => $group['name'],
@@ -67,7 +73,7 @@ class ApprovalEngine
                             'order' => $stepData['order'],
                             'resolver_type' => $resolverType,
                             'resolver_payload' => $stepData['resolver_payload'] ?? [],
-                            'approver_id' => null,
+                            'approver_id' => $approverId,
                             'state' => StepState::AwaitingPrevious,
                         ]);
 
@@ -117,9 +123,9 @@ class ApprovalEngine
                 'notes' => $notes,
             ]);
 
-            ApprovalStepCompleted::dispatch($step);
-
             $this->advanceStateMachine($request);
+
+            ApprovalStepCompleted::dispatch($step);
         });
     }
 
@@ -223,9 +229,9 @@ class ApprovalEngine
                 'notes' => "Skipped by administrator ({$skippedBy->name})",
             ]);
 
-            ApprovalStepCompleted::dispatch($step);
-
             $this->advanceStateMachine($request);
+
+            ApprovalStepCompleted::dispatch($step);
         });
     }
 
@@ -444,8 +450,11 @@ class ApprovalEngine
                 return;
             }
 
-            // If any step is still awaiting or pending, the group is not complete
-            if ($groupSteps->contains(fn ($s) => in_array($s->state, [StepState::Pending, StepState::AwaitingPrevious], true))) {
+            $isComplete = $groupSteps->every(fn ($s) => in_array($s->state, [StepState::Approved, StepState::Skipped], true));
+
+            if (! $isComplete) {
+                $this->activateGroupStepsIfNeeded($request, $group, $groupSteps);
+
                 return;
             }
 
@@ -461,6 +470,69 @@ class ApprovalEngine
                 return;
             }
             // Otherwise continue to next group (the loop will handle it)
+        }
+    }
+
+    /**
+     * Activate awaiting steps for an active group when its previous group completes.
+     *
+     * @param  Collection<int, ApprovalRequestStep>  $groupSteps
+     */
+    private function activateGroupStepsIfNeeded(ApprovalRequest $request, array $group, Collection $groupSteps): void
+    {
+        $awaitingSteps = $groupSteps->where('state', StepState::AwaitingPrevious);
+
+        if ($awaitingSteps->isEmpty()) {
+            return;
+        }
+
+        // If some step in this group is already Pending or Approved, do not activate everything if sequential
+        $hasPendingOrApproved = $groupSteps->contains(fn ($s) => in_array($s->state, [StepState::Pending, StepState::Approved], true));
+
+        $groupType = GroupType::from($group['type']);
+        $approvable = $request->getApprovable();
+        $company = $approvable?->getApprovalCompany();
+        $requestor = $request->requestor;
+
+        if ($groupType === GroupType::Sequential) {
+            if (! $hasPendingOrApproved) {
+                $minOrder = $awaitingSteps->min('order');
+                $targetStep = $awaitingSteps->firstWhere('order', $minOrder);
+
+                if ($targetStep) {
+                    $this->activateSingleStep($targetStep, $requestor, $company);
+                }
+            }
+        } else {
+            foreach ($awaitingSteps as $step) {
+                $this->activateSingleStep($step, $requestor, $company);
+            }
+        }
+
+        $request->load('steps');
+    }
+
+    private function activateSingleStep(ApprovalRequestStep $step, ?User $requestor, ?Company $company): void
+    {
+        if ($step->approver_id === null && $company && $requestor) {
+            try {
+                $approverId = $this->resolveApproverUserId(
+                    $step->resolver_type,
+                    $step->resolver_payload ?? [],
+                    $requestor,
+                    $company
+                );
+                $step->update([
+                    'approver_id' => $approverId,
+                    'state' => StepState::Pending,
+                ]);
+            } catch (RuntimeException $e) {
+                // Leave as AwaitingPrevious if resolution fails (for admin intervention)
+            }
+        } else {
+            $step->update([
+                'state' => StepState::Pending,
+            ]);
         }
     }
 

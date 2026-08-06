@@ -651,13 +651,13 @@ it('advances to next group when current sequential group is fully approved', fun
     [$company, [$requestor, $manager]] = createApprovalManagerChain();
     $template = createTwoGroupTemplate($company);
     $request = submitApprovalRequest($company, $requestor, $template);
-    $steps = $request->steps()->orderBy('order')->get();
+    $steps = $request->steps()->orderBy('id')->get();
 
     approvalEngine()->approve($steps[0], $manager);
     $request->refresh();
     expect($request->status)->toBe(ApprovalStatus::Pending);
 
-    approvalEngine()->approve($steps[1], $manager);
+    approvalEngine()->approve($steps[1]->fresh(), $manager);
     $request->refresh();
     expect($request->status)->toBe(ApprovalStatus::Approved);
 });

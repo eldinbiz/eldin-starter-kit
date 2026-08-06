@@ -440,3 +440,98 @@ it('returns 403 when step is not AwaitingPrevious', function () {
         'approver_id' => $newApprover->id,
     ])->assertForbidden();
 });
+
+it('shows approve and reject action buttons to step 2 approver after step 1 is approved in sequential group', function () {
+    $company = Company::factory()->create();
+    $requestor = User::factory()->create();
+    $manager1 = User::factory()->create();
+    $manager2 = User::factory()->create();
+
+    $company->users()->attach($requestor->id, ['manager_id' => $manager1->id, 'status' => 'active']);
+    $company->users()->attach($manager1->id, ['manager_id' => $manager2->id, 'status' => 'active']);
+    $company->users()->attach($manager2->id, ['manager_id' => null, 'status' => 'active']);
+
+    $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
+    $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'order' => 0, 'type' => App\Enums\GroupType::Sequential]);
+    WorkflowStep::factory()->nPlus1()->create(['group_id' => $group->id, 'order' => 0]);
+    WorkflowStep::factory()->nPlus1OfPrevious()->create(['group_id' => $group->id, 'order' => 1]);
+
+    $approvable = FakeApprovable::createFor($requestor, $company);
+    $engine = app(ApprovalEngine::class);
+    $approvalRequest = $engine->submit($approvable, $template);
+
+    // Manager 1 approves Step 1
+    $step1 = $approvalRequest->steps()->where('order', 0)->first();
+    $engine->approve($step1, $manager1, 'Step 1 Approved');
+
+    // Manager 2 visits the approval request page
+    actAsApprovalUser($this, $manager2, $company);
+
+    $response = $this->get(route('approvals.show', $approvalRequest));
+
+    $response->assertOk();
+    $response->assertSee('Approve');
+    $response->assertSee('Reject');
+    $response->assertSee('You are the current approver.');
+});
+
+it('activates parallel group steps and notifies all parallel approvers only after sequential group 1 completes', function () {
+    $company = Company::factory()->create();
+    $requestor = User::factory()->create();
+    $manager1 = User::factory()->create();
+    $manager2 = User::factory()->create();
+    $parallel1 = User::factory()->create();
+    $parallel2 = User::factory()->create();
+    $parallel3 = User::factory()->create();
+
+    $company->users()->attach($requestor->id, ['manager_id' => $manager1->id, 'status' => 'active']);
+    $company->users()->attach($manager1->id, ['manager_id' => $manager2->id, 'status' => 'active']);
+    $company->users()->attach($manager2->id, ['manager_id' => null, 'status' => 'active']);
+    $company->users()->attach($parallel1->id, ['status' => 'active']);
+    $company->users()->attach($parallel2->id, ['status' => 'active']);
+    $company->users()->attach($parallel3->id, ['status' => 'active']);
+
+    $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
+    $g1 = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 1', 'order' => 0, 'type' => App\Enums\GroupType::Sequential]);
+    WorkflowStep::factory()->nPlus1()->create(['group_id' => $g1->id, 'order' => 0]);
+    WorkflowStep::factory()->nPlus1OfPrevious()->create(['group_id' => $g1->id, 'order' => 1]);
+
+    $g2 = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 2', 'order' => 1, 'type' => App\Enums\GroupType::Parallel]);
+    WorkflowStep::factory()->specificUser($parallel1->id)->create(['group_id' => $g2->id, 'order' => 0]);
+    WorkflowStep::factory()->specificUser($parallel2->id)->create(['group_id' => $g2->id, 'order' => 1]);
+    WorkflowStep::factory()->specificUser($parallel3->id)->create(['group_id' => $g2->id, 'order' => 2]);
+
+    $approvable = FakeApprovable::createFor($requestor, $company);
+    $engine = app(ApprovalEngine::class);
+    $approvalRequest = $engine->submit($approvable, $template);
+
+    // Initial state: Group 2 steps are AwaitingPrevious
+    expect($parallel1->unreadNotifications()->count())->toBe(0);
+    expect($parallel2->unreadNotifications()->count())->toBe(0);
+    expect($parallel3->unreadNotifications()->count())->toBe(0);
+
+    $g1Steps = $approvalRequest->steps()->where('group_name', 'Group 1')->get();
+    $engine->approve($g1Steps->where('order', 0)->first(), $manager1);
+
+    // Group 1 Step 1 done, Group 1 Step 2 pending for Manager 2
+    expect($parallel1->unreadNotifications()->count())->toBe(0);
+
+    // Manager 2 approves Group 1 Step 2 -> Group 1 completes! Group 2 activates!
+    $g1Step2 = $approvalRequest->steps()->where('group_name', 'Group 1')->where('order', 1)->first();
+    $engine->approve($g1Step2, $manager2);
+
+    // All 3 parallel approvers in Group 2 receive notification
+    expect($parallel1->unreadNotifications()->count())->toBe(1);
+    expect($parallel2->unreadNotifications()->count())->toBe(1);
+    expect($parallel3->unreadNotifications()->count())->toBe(1);
+
+    // All 3 parallel approvers in Group 2 see Approve & Reject buttons
+    foreach ([$parallel1, $parallel2, $parallel3] as $pUser) {
+        actAsApprovalUser($this, $pUser, $company);
+        $res = $this->get(route('approvals.show', $approvalRequest));
+        $res->assertOk();
+        $res->assertSee('Approve');
+        $res->assertSee('Reject');
+        $res->assertSee('You are the current approver.');
+    }
+});

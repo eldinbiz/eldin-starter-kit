@@ -47,7 +47,7 @@ class ApprovalNotificationSubscriber
     {
         $step = $event->step;
         $request = $step->loadMissing('request')->request;
-        $request->loadMissing(['steps.approver', 'company', 'requestor']);
+        $request->unsetRelation('steps')->load(['steps.approver', 'company', 'requestor']);
 
         // 1. Notify Next Step Approvers if any steps just transitioned to Pending
         $pendingSteps = $request->steps->where('state', StepState::Pending);

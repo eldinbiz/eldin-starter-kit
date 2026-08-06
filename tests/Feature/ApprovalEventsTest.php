@@ -244,3 +244,34 @@ it('fires the listener after the wrapping database transaction commits', functio
 
     $this->assertDatabaseHas('fake_approvables', ['id' => $approvable->id, 'is_completed' => 1]);
 });
+
+it('notifies next step approver when step 1 of sequential group is approved', function () {
+    $company = Company::factory()->create();
+    $requestor = User::factory()->create();
+    $manager1 = User::factory()->create();
+    $manager2 = User::factory()->create();
+
+    $company->users()->attach($requestor->id, ['manager_id' => $manager1->id, 'status' => 'active']);
+    $company->users()->attach($manager1->id, ['manager_id' => $manager2->id, 'status' => 'active']);
+    $company->users()->attach($manager2->id, ['manager_id' => null, 'status' => 'active']);
+
+    $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
+    $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'order' => 0, 'type' => App\Enums\GroupType::Sequential]);
+    WorkflowStep::factory()->nPlus1()->create(['group_id' => $group->id, 'order' => 0]);
+    WorkflowStep::factory()->nPlus1OfPrevious()->create(['group_id' => $group->id, 'order' => 1]);
+
+    $approvable = FakeApprovable::createFor($requestor, $company);
+    $engine = app(ApprovalEngine::class);
+    $approvalRequest = $engine->submit($approvable, $template);
+
+    // Step 1 is pending for Manager 1, Step 2 is AwaitingPrevious
+    expect($manager1->unreadNotifications()->count())->toBe(1);
+    expect($manager2->unreadNotifications()->count())->toBe(0);
+
+    $step1 = $approvalRequest->steps()->where('order', 0)->first();
+    $engine->approve($step1, $manager1, 'Step 1 Approved');
+
+    // After step 1 approval, Step 2 is resolved to Pending for Manager 2, and Manager 2 receives notification
+    expect($manager2->unreadNotifications()->count())->toBe(1);
+    expect($manager2->unreadNotifications()->first()->data['title'])->toBe('Approval Requested');
+});
