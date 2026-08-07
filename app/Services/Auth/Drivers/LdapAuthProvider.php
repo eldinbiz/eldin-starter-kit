@@ -37,6 +37,7 @@ class LdapAuthProvider implements AuthProviderInterface
         // If LDAP extension is not installed, fallback log and return false or mock in testing
         if (! function_exists('ldap_connect')) {
             Log::warning('LDAP PHP extension is not enabled on this server.');
+
             return false;
         }
 

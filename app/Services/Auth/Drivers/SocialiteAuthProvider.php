@@ -7,6 +7,7 @@ namespace App\Services\Auth\Drivers;
 use App\Models\AuthProviderSetting;
 use App\Models\User;
 use App\Services\Auth\Contracts\AuthProviderInterface;
+use GuzzleHttp\Client;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -18,9 +19,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialiteAuthProvider implements AuthProviderInterface
 {
-    public function __construct(private string $provider)
-    {
-    }
+    public function __construct(private string $provider) {}
 
     public function authenticate(User $user, array $credentials, ?AuthProviderSetting $setting = null): bool
     {
@@ -52,7 +51,7 @@ class SocialiteAuthProvider implements AuthProviderInterface
         try {
             $driver = Socialite::driver($this->provider);
             if (config('app.env') === 'local') {
-                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+                $driver->setHttpClient(new Client(['verify' => false]));
             }
             $socialiteUser = $driver->user();
         } catch (\Throwable $e) {

@@ -56,7 +56,7 @@ trait HasCompanyContext
         $company ??= $this->getActiveCompany();
 
         if (! $company) {
-            return new Collection();
+            return new Collection;
         }
 
         return $this->companyRoles()
@@ -97,7 +97,7 @@ trait HasCompanyContext
         $company ??= $this->getActiveCompany();
 
         if (! $company) {
-            return new Collection();
+            return new Collection;
         }
 
         return $company->users()

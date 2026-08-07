@@ -16,9 +16,7 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    public function __construct(private AuthProviderManager $authManager)
-    {
-    }
+    public function __construct(private AuthProviderManager $authManager) {}
 
     /**
      * Show the login screen.
@@ -87,7 +85,7 @@ class AuthController extends Controller
 
         if ($authMethod !== 'local' && ($setting === null || ! $setting->is_enabled)) {
             throw ValidationException::withMessages([
-                'email' => __("Authentication method [:method] is currently disabled.", ['method' => $authMethod]),
+                'email' => __('Authentication method [:method] is currently disabled.', ['method' => $authMethod]),
             ]);
         }
 

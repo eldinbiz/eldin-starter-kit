@@ -15,6 +15,7 @@
         "laravel/framework": "^13.8",
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^3.0",
+        "romalytar/yammi-audit-log-laravel": "^2.2",
         "socialiteproviders/auth0": "^4.2",
         "socialiteproviders/microsoft": "^4.10",
         "socialiteproviders/saml2": "^4.9"

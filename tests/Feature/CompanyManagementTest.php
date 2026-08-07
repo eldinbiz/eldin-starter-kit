@@ -132,7 +132,7 @@ it('allows admin to reparent a company via API', function (): void {
         'company_id' => $company->id,
         'new_parent_id' => $parent->id,
     ])->assertSuccessful()
-      ->assertJson(['success' => true]);
+        ->assertJson(['success' => true]);
 
     $company->refresh();
     expect($company->parent_id)->toBe($parent->id);
@@ -147,7 +147,7 @@ it('prevents self-referencing when reparenting a company', function (): void {
         'company_id' => $company->id,
         'new_parent_id' => $company->id,
     ])->assertStatus(422)
-      ->assertJson(['error' => 'A company cannot be its own parent.']);
+        ->assertJson(['error' => 'A company cannot be its own parent.']);
 });
 
 it('prevents cycle creation when reparenting a parent under its subsidiary', function (): void {
@@ -162,7 +162,7 @@ it('prevents cycle creation when reparenting a parent under its subsidiary', fun
         'company_id' => $parent->id,
         'new_parent_id' => $grandchild->id,
     ])->assertStatus(422)
-      ->assertJson(['error' => 'Cannot move a company under one of its own subsidiaries.']);
+        ->assertJson(['error' => 'Cannot move a company under one of its own subsidiaries.']);
 });
 
 // ---------------------------------------------------------------------------
@@ -224,7 +224,7 @@ it('allows admin to store a new company with logo upload', function (): void {
         'logo' => $logo,
         'is_active' => 1,
     ])->assertRedirect(route('admin.companies.index'))
-      ->assertSessionHas('success', 'Company created successfully.');
+        ->assertSessionHas('success', 'Company created successfully.');
 
     $this->assertDatabaseHas('companies', [
         'name' => 'Stark Industries',
@@ -283,7 +283,7 @@ it('allows admin to update company details and logo', function (): void {
         'logo' => $newLogo,
         'is_active' => 1,
     ])->assertRedirect(route('admin.companies.index'))
-      ->assertSessionHas('success', 'Company updated successfully.');
+        ->assertSessionHas('success', 'Company updated successfully.');
 
     $company->refresh();
     expect($company->name)->toBe('New Name')
@@ -345,7 +345,7 @@ it('allows admin to assign a user to a company with job title and roles', functi
         'roles' => [$role->id],
         'job_title' => 'Software Engineer',
     ])->assertRedirect(route('admin.companies.edit', $targetCompany))
-      ->assertSessionHas('success', 'User assigned to company.');
+        ->assertSessionHas('success', 'User assigned to company.');
 
     $this->assertDatabaseHas('company_user', [
         'company_id' => $targetCompany->id,
@@ -381,7 +381,7 @@ it('allows admin to remove a user from a company and reassign direct reportees t
     $this->delete(route('admin.companies.remove-user', [$targetCompany, $manager->id]), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.companies.edit', $targetCompany))
-      ->assertSessionHas('success');
+        ->assertSessionHas('success');
 
     // Manager should be detached from company
     $this->assertDatabaseMissing('company_user', [

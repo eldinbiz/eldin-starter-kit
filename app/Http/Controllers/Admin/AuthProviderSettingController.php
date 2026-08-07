@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuthProviderSetting;
+use App\Services\Auth\AuthProviderManager;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -67,7 +69,7 @@ class AuthProviderSettingController extends Controller
     /**
      * Test connection parameters for a specific provider.
      */
-    public function test(Request $request, string $provider): \Illuminate\Http\JsonResponse
+    public function test(Request $request, string $provider): JsonResponse
     {
         $validProviders = ['local', 'ldap', 'google', 'microsoft', 'auth0', 'saml2'];
 
@@ -84,7 +86,7 @@ class AuthProviderSettingController extends Controller
             $config = $savedSetting->settings ?? [];
         }
 
-        $authManager = app(\App\Services\Auth\AuthProviderManager::class);
+        $authManager = app(AuthProviderManager::class);
         $driver = $authManager->driver($provider);
 
         $result = $driver->testConnection($config);

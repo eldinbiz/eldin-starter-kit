@@ -37,6 +37,7 @@ class User extends Authenticatable
     protected $attributes = [
         'auth_method' => 'local',
     ];
+
     /** @use HasFactory<UserFactory> */
     use HasCompanyContext, HasFactory, Impersonate, Notifiable;
 

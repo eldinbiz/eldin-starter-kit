@@ -8,11 +8,18 @@ use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalRejected;
 use App\Listeners\Approval\UpdateApprovableStatus;
+use App\Listeners\AuditSubscriber;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Lab404\Impersonate\Events\LeaveImpersonation;
+use Lab404\Impersonate\Events\TakeImpersonation;
+use SocialiteProviders\Auth0\Auth0ExtendSocialite;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
+use SocialiteProviders\Saml2\Saml2ExtendSocialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,20 +52,20 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ApprovalCanceled::class, UpdateApprovableStatus::class);
 
         // Register SocialiteProviders extension listeners if packages are present
-        if (class_exists(\SocialiteProviders\Manager\SocialiteWasCalled::class)) {
-            if (class_exists(\SocialiteProviders\Saml2\Saml2ExtendSocialite::class)) {
-                Event::listen(\SocialiteProviders\Manager\SocialiteWasCalled::class, \SocialiteProviders\Saml2\Saml2ExtendSocialite::class);
+        if (class_exists(SocialiteWasCalled::class)) {
+            if (class_exists(Saml2ExtendSocialite::class)) {
+                Event::listen(SocialiteWasCalled::class, Saml2ExtendSocialite::class);
             }
-            if (class_exists(\SocialiteProviders\Auth0\Auth0ExtendSocialite::class)) {
-                Event::listen(\SocialiteProviders\Manager\SocialiteWasCalled::class, \SocialiteProviders\Auth0\Auth0ExtendSocialite::class);
+            if (class_exists(Auth0ExtendSocialite::class)) {
+                Event::listen(SocialiteWasCalled::class, Auth0ExtendSocialite::class);
             }
-            if (class_exists(\SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class)) {
-                Event::listen(\SocialiteProviders\Manager\SocialiteWasCalled::class, \SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class);
+            if (class_exists(MicrosoftExtendSocialite::class)) {
+                Event::listen(SocialiteWasCalled::class, MicrosoftExtendSocialite::class);
             }
         }
 
         // Register impersonation session switch event listeners
-        Event::listen(\Lab404\Impersonate\Events\TakeImpersonation::class, function ($event): void {
+        Event::listen(TakeImpersonation::class, function ($event): void {
             session()->flash('impersonation_switched', 'started');
 
             /** @var User $impersonated */
@@ -74,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        Event::listen(\Lab404\Impersonate\Events\LeaveImpersonation::class, function ($event): void {
+        Event::listen(LeaveImpersonation::class, function ($event): void {
             session()->flash('impersonation_switched', 'stopped');
 
             /** @var User $impersonator */
@@ -93,6 +100,11 @@ class AppServiceProvider extends ServiceProvider
         // Platform-level gate: checks ALL roles across ALL companies
         Gate::define('manage-platform', function (User $user): bool {
             return $user->hasPlatformAccess();
+        });
+
+        // Gate for Audit Log UI (Yammi audit log checks viewAuditLog gate)
+        Gate::define('viewAuditLog', function (User $user): bool {
+            return $user->hasPlatformAccess() || Gate::allows('view-audit-logs');
         });
 
         // Share company context with all views — memoized, single-query per request

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\GroupType;
 use App\Enums\StepState;
 use App\Models\Approval\WorkflowGroup;
 use App\Models\Approval\WorkflowStep;
@@ -452,7 +453,7 @@ it('shows approve and reject action buttons to step 2 approver after step 1 is a
     $company->users()->attach($manager2->id, ['manager_id' => null, 'status' => 'active']);
 
     $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
-    $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'order' => 0, 'type' => App\Enums\GroupType::Sequential]);
+    $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'order' => 0, 'type' => GroupType::Sequential]);
     WorkflowStep::factory()->nPlus1()->create(['group_id' => $group->id, 'order' => 0]);
     WorkflowStep::factory()->nPlus1OfPrevious()->create(['group_id' => $group->id, 'order' => 1]);
 
@@ -492,11 +493,11 @@ it('activates parallel group steps and notifies all parallel approvers only afte
     $company->users()->attach($parallel3->id, ['status' => 'active']);
 
     $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
-    $g1 = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 1', 'order' => 0, 'type' => App\Enums\GroupType::Sequential]);
+    $g1 = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 1', 'order' => 0, 'type' => GroupType::Sequential]);
     WorkflowStep::factory()->nPlus1()->create(['group_id' => $g1->id, 'order' => 0]);
     WorkflowStep::factory()->nPlus1OfPrevious()->create(['group_id' => $g1->id, 'order' => 1]);
 
-    $g2 = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 2', 'order' => 1, 'type' => App\Enums\GroupType::Parallel]);
+    $g2 = WorkflowGroup::factory()->create(['template_id' => $template->id, 'name' => 'Group 2', 'order' => 1, 'type' => GroupType::Parallel]);
     WorkflowStep::factory()->specificUser($parallel1->id)->create(['group_id' => $g2->id, 'order' => 0]);
     WorkflowStep::factory()->specificUser($parallel2->id)->create(['group_id' => $g2->id, 'order' => 1]);
     WorkflowStep::factory()->specificUser($parallel3->id)->create(['group_id' => $g2->id, 'order' => 2]);

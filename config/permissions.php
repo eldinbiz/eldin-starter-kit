@@ -48,6 +48,10 @@ return [
             'label' => 'Manage Platform',
             'group' => 'System Administration',
         ],
+        'view-audit-logs' => [
+            'label' => 'View Audit Logs: Access system audit trail and change history logs',
+            'group' => 'System Administration',
+        ],
         'view-approval-inbox' => [
             'label' => 'Inbox: Menu access for all approval requests assigned to you',
             'group' => 'Approval Management',

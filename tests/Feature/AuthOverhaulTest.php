@@ -7,6 +7,8 @@ use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Laravel\Socialite\Facades\Socialite;
 
 uses(RefreshDatabase::class);
 
@@ -152,7 +154,7 @@ it('handles SAML 2.0 Socialite callback auto-provisioning when enabled', functio
     $provider = Mockery::mock('Laravel\Socialite\Contracts\Provider');
     $provider->shouldReceive('user')->andReturn($abstractUser);
 
-    Laravel\Socialite\Facades\Socialite::shouldReceive('driver')->with('saml2')->andReturn($provider);
+    Socialite::shouldReceive('driver')->with('saml2')->andReturn($provider);
 
     $response = $this->get(route('auth.callback', ['provider' => 'saml2']));
 
@@ -175,8 +177,8 @@ it('tests local auth connection successfully', function () {
 });
 
 it('tests google auth provider connection endpoint successfully', function () {
-    Illuminate\Support\Facades\Http::fake([
-        'https://oauth2.googleapis.com/token' => Illuminate\Support\Facades\Http::response(['error' => 'invalid_grant'], 400),
+    Http::fake([
+        'https://oauth2.googleapis.com/token' => Http::response(['error' => 'invalid_grant'], 400),
     ]);
 
     $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'google'), [
@@ -193,8 +195,8 @@ it('tests google auth provider connection endpoint successfully', function () {
 });
 
 it('tests auth0 auth provider connection endpoint successfully', function () {
-    Illuminate\Support\Facades\Http::fake([
-        'https://my-tenant.auth0.com/oauth/token' => Illuminate\Support\Facades\Http::response(['access_token' => 'mock_token'], 200),
+    Http::fake([
+        'https://my-tenant.auth0.com/oauth/token' => Http::response(['access_token' => 'mock_token'], 200),
     ]);
 
     $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'auth0'), [

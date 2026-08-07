@@ -129,7 +129,7 @@ it('allows admin to store a new role with permissions', function (): void {
         'name' => 'auditor',
         'permissions' => ['users.view', 'reports.view'],
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('success', 'Role created successfully.');
+        ->assertSessionHas('success', 'Role created successfully.');
 
     $this->assertDatabaseHas('roles', [
         'name' => 'auditor',
@@ -206,7 +206,7 @@ it('allows admin to update a role name and permissions', function (): void {
         'name' => 'senior-supervisor',
         'permissions' => ['users.view', 'users.create'],
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('success', 'Role updated successfully.');
+        ->assertSessionHas('success', 'Role updated successfully.');
 
     $this->assertDatabaseHas('roles', [
         'id' => $role->id,
@@ -245,7 +245,7 @@ it('allows admin to disable an active role', function (): void {
     $this->delete(route('admin.roles.destroy', $role), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('success', 'Role "temporary-role" has been disabled.');
+        ->assertSessionHas('success', 'Role "temporary-role" has been disabled.');
 
     $role->refresh();
     expect($role->is_active)->toBeFalse();
@@ -261,7 +261,7 @@ it('prevents disabling the default user role', function (): void {
     $this->delete(route('admin.roles.destroy', $userRole), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('error', 'The "user" role cannot be disabled.');
+        ->assertSessionHas('error', 'The "user" role cannot be disabled.');
 
     $userRole->refresh();
     expect($userRole->is_active)->toBeTrue();
@@ -281,7 +281,7 @@ it('allows admin to enable a disabled role', function (): void {
     $this->post(route('admin.roles.restore', $role), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('success', 'Role "disabled-role" has been enabled.');
+        ->assertSessionHas('success', 'Role "disabled-role" has been enabled.');
 
     $role->refresh();
     expect($role->is_active)->toBeTrue();
@@ -298,7 +298,7 @@ it('allows admin to restore a soft-deleted role', function (): void {
     $this->post(route('admin.roles.restore', $role), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('success', 'Role "trashed-role" has been restored.');
+        ->assertSessionHas('success', 'Role "trashed-role" has been restored.');
 
     $role->refresh();
     expect($role->trashed())->toBeFalse()
@@ -319,7 +319,7 @@ it('allows admin to soft-delete a disabled role', function (): void {
     $this->delete(route('admin.roles.soft-delete', $role), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('success', 'Role "to-be-deleted" has been deleted.');
+        ->assertSessionHas('success', 'Role "to-be-deleted" has been deleted.');
 
     $this->assertSoftDeleted('roles', ['id' => $role->id]);
 });
@@ -334,7 +334,7 @@ it('prevents soft-deleting an active role without disabling it first', function 
     $this->delete(route('admin.roles.soft-delete', $role), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('error', 'Role "active-role" must be disabled before it can be deleted.');
+        ->assertSessionHas('error', 'Role "active-role" must be disabled before it can be deleted.');
 
     $this->assertDatabaseHas('roles', ['id' => $role->id, 'deleted_at' => null]);
 });
@@ -349,7 +349,7 @@ it('prevents soft-deleting the default user role', function (): void {
     $this->delete(route('admin.roles.soft-delete', $userRole), [
         '_token' => session()->token(),
     ])->assertRedirect(route('admin.roles.index'))
-      ->assertSessionHas('error', 'The "user" role cannot be deleted.');
+        ->assertSessionHas('error', 'The "user" role cannot be deleted.');
 
     $this->assertDatabaseHas('roles', ['id' => $userRole->id, 'deleted_at' => null]);
 });

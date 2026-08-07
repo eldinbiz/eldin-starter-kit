@@ -169,7 +169,7 @@ it('allows admin to reassign an employee to a new manager', function (): void {
         'job_title' => 'Senior Developer',
         'status' => 'active',
     ])->assertSuccessful()
-      ->assertJson(['success' => true]);
+        ->assertJson(['success' => true]);
 
     $this->assertDatabaseHas('company_user', [
         'company_id' => $company->id,
@@ -189,7 +189,7 @@ it('prevents setting an employee as their own manager', function (): void {
         'user_id' => $user->id,
         'new_manager_id' => $user->id,
     ])->assertStatus(422)
-      ->assertJson(['error' => 'A user cannot be their own manager.']);
+        ->assertJson(['error' => 'A user cannot be their own manager.']);
 });
 
 it('auto-promotes manager to root when assigned under their own subordinate to prevent cycles', function (): void {
@@ -207,7 +207,7 @@ it('auto-promotes manager to root when assigned under their own subordinate to p
         'user_id' => $leader->id,
         'new_manager_id' => $subordinate->id,
     ])->assertSuccessful()
-      ->assertJson(['success' => true]);
+        ->assertJson(['success' => true]);
 
     // Subordinate should have been auto-promoted to root (manager_id = null)
     $this->assertDatabaseHas('company_user', [

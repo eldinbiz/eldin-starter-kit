@@ -15,7 +15,7 @@ class NotificationRequested
     use Dispatchable, SerializesModels;
 
     /**
-     * @param User|Enumerable<int, User>|array<int, User|int>|int $recipients
+     * @param  User|Enumerable<int, User>|array<int, User|int>|int  $recipients
      */
     public function __construct(
         public readonly User|Enumerable|array|int $recipients,

@@ -33,7 +33,7 @@ class SamlAuthProvider implements AuthProviderInterface
         }
 
         // Build standard SAML 2.0 Request redirect or query parameters
-        $redirectUrl = $ssoUrl . (str_contains($ssoUrl, '?') ? '&' : '?') . http_build_query([
+        $redirectUrl = $ssoUrl.(str_contains($ssoUrl, '?') ? '&' : '?').http_build_query([
             'SAMLRequest' => base64_encode('<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" IssueInstant="'.now()->toIso8601String().'" ID="ID_'.Str::random(16).'"/>'),
             'RelayState' => route('auth.callback', ['provider' => 'saml2']),
         ]);

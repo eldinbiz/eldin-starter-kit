@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\GroupType;
 use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalDelegated;
@@ -256,7 +257,7 @@ it('notifies next step approver when step 1 of sequential group is approved', fu
     $company->users()->attach($manager2->id, ['manager_id' => null, 'status' => 'active']);
 
     $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
-    $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'order' => 0, 'type' => App\Enums\GroupType::Sequential]);
+    $group = WorkflowGroup::factory()->create(['template_id' => $template->id, 'order' => 0, 'type' => GroupType::Sequential]);
     WorkflowStep::factory()->nPlus1()->create(['group_id' => $group->id, 'order' => 0]);
     WorkflowStep::factory()->nPlus1OfPrevious()->create(['group_id' => $group->id, 'order' => 1]);
 

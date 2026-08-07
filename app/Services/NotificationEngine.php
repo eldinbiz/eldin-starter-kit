@@ -16,7 +16,7 @@ class NotificationEngine
     /**
      * Dispatch a notification payload to one or more recipients.
      *
-     * @param User|Enumerable<int, User>|array<int, User|int>|int $recipients
+     * @param  User|Enumerable<int, User>|array<int, User|int>|int  $recipients
      */
     public function send(User|Enumerable|array|int $recipients, NotificationPayload $payload): void
     {
@@ -30,7 +30,7 @@ class NotificationEngine
     }
 
     /**
-     * @param User|Enumerable<int, User>|array<int, User|int>|int $recipients
+     * @param  User|Enumerable<int, User>|array<int, User|int>|int  $recipients
      * @return Collection<int, User>
      */
     private function resolveRecipients(User|Enumerable|array|int $recipients): Collection
@@ -45,6 +45,7 @@ class NotificationEngine
 
         if (is_int($recipients)) {
             $user = User::find($recipients);
+
             return $user ? collect([$user]) : collect();
         }
 

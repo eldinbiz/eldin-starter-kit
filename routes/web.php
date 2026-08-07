@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ApprovalManagementController;
 use App\Http\Controllers\Admin\ApprovalWorkflowController;
+use App\Http\Controllers\Admin\AuthProviderSettingController;
 use App\Http\Controllers\Admin\OrgChartController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApprovalController;
@@ -53,9 +54,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // System Auth Provider Settings
     Route::middleware('can:manage-auth-providers')->group(function () {
-        Route::get('/settings/auth-providers', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'index'])->name('settings.auth-providers.index');
-        Route::put('/settings/auth-providers/{provider}', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'update'])->name('settings.auth-providers.update');
-        Route::post('/settings/auth-providers/{provider}/test', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'test'])->name('settings.auth-providers.test');
+        Route::get('/settings/auth-providers', [AuthProviderSettingController::class, 'index'])->name('settings.auth-providers.index');
+        Route::put('/settings/auth-providers/{provider}', [AuthProviderSettingController::class, 'update'])->name('settings.auth-providers.update');
+        Route::post('/settings/auth-providers/{provider}/test', [AuthProviderSettingController::class, 'test'])->name('settings.auth-providers.test');
     });
 
     Route::resource('users', UserController::class);
