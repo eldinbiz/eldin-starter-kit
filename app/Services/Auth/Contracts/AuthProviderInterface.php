@@ -25,4 +25,11 @@ interface AuthProviderInterface
      * Handle incoming callback from identity provider.
      */
     public function handleCallback(Request $request, ?AuthProviderSetting $setting = null): ?User;
+
+    /**
+     * Test connection reachability and configuration validity.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function testConnection(array $config): array;
 }

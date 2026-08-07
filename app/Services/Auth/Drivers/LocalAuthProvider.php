@@ -33,4 +33,12 @@ class LocalAuthProvider implements AuthProviderInterface
     {
         return null;
     }
+
+    public function testConnection(array $config): array
+    {
+        return [
+            'success' => true,
+            'message' => __('Local authentication refers to database accounts. Local auth driver is operational.'),
+        ];
+    }
 }

@@ -164,3 +164,44 @@ it('handles SAML 2.0 Socialite callback auto-provisioning when enabled', functio
         ->and($user->auth_method)->toBe('saml2')
         ->and(auth()->check())->toBeTrue();
 });
+
+it('tests local auth connection successfully', function () {
+    $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'local'));
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'success' => true,
+        ]);
+});
+
+it('tests google auth provider connection endpoint successfully', function () {
+    Illuminate\Support\Facades\Http::fake([
+        'https://accounts.google.com/.well-known/openid-configuration' => Illuminate\Support\Facades\Http::response(['issuer' => 'https://accounts.google.com'], 200),
+    ]);
+
+    $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'google'), [
+        'settings' => [
+            'client_id' => 'test-id',
+            'client_secret' => 'test-secret',
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'success' => true,
+        ]);
+});
+
+it('returns failure when testing google auth with missing credentials', function () {
+    $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'google'), [
+        'settings' => [
+            'client_id' => '',
+            'client_secret' => '',
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'success' => false,
+        ]);
+});

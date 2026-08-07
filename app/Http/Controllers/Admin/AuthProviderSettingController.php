@@ -63,4 +63,32 @@ class AuthProviderSettingController extends Controller
         return redirect()->route('admin.settings.auth-providers.index', ['tab' => $provider])
             ->with('success', __(':provider settings updated successfully.', ['provider' => strtoupper($provider)]));
     }
+
+    /**
+     * Test connection parameters for a specific provider.
+     */
+    public function test(Request $request, string $provider): \Illuminate\Http\JsonResponse
+    {
+        $validProviders = ['local', 'ldap', 'google', 'microsoft', 'auth0', 'saml2'];
+
+        if (! in_array($provider, $validProviders, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => __('Invalid provider selected.'),
+            ], 422);
+        }
+
+        $config = $request->input('settings', []);
+        if (empty($config)) {
+            $savedSetting = AuthProviderSetting::forProvider($provider);
+            $config = $savedSetting->settings ?? [];
+        }
+
+        $authManager = app(\App\Services\Auth\AuthProviderManager::class);
+        $driver = $authManager->driver($provider);
+
+        $result = $driver->testConnection($config);
+
+        return response()->json($result);
+    }
 }

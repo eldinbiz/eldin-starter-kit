@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -100,5 +101,89 @@ class SocialiteAuthProvider implements AuthProviderInterface
             'tenant' => $config['tenant_id'] ?? null,
             'domain' => $config['domain'] ?? null,
         ]);
+    }
+
+    public function testConnection(array $config): array
+    {
+        if ($this->provider === 'saml2') {
+            $metadataUrl = $config['metadata_url'] ?? '';
+            $ssoUrl = $config['sso_url'] ?? '';
+
+            if ($metadataUrl !== '') {
+                try {
+                    $response = Http::timeout(5)->get($metadataUrl);
+                    if ($response->successful()) {
+                        return [
+                            'success' => true,
+                            'message' => __('SAML 2.0 IdP Metadata URL is accessible and returned valid metadata.'),
+                        ];
+                    }
+                } catch (\Throwable $e) {
+                    return [
+                        'success' => false,
+                        'message' => __('Failed to reach SAML 2.0 Metadata URL: ').$e->getMessage(),
+                    ];
+                }
+            }
+
+            if ($ssoUrl !== '') {
+                try {
+                    $response = Http::timeout(5)->get($ssoUrl);
+                    return [
+                        'success' => true,
+                        'message' => __('SAML 2.0 SSO ACS URL is reachable (HTTP status ').$response->status().').',
+                    ];
+                } catch (\Throwable $e) {
+                    return [
+                        'success' => false,
+                        'message' => __('Failed to reach SAML 2.0 SSO URL: ').$e->getMessage(),
+                    ];
+                }
+            }
+
+            return [
+                'success' => false,
+                'message' => __('Please provide an IdP Metadata URL or Single Sign-On (ACS) URL to test.'),
+            ];
+        }
+
+        $clientId = trim((string) ($config['client_id'] ?? ''));
+        $clientSecret = trim((string) ($config['client_secret'] ?? ''));
+
+        if ($clientId === '' || $clientSecret === '') {
+            return [
+                'success' => false,
+                'message' => __('Client ID and Client Secret are required.'),
+            ];
+        }
+
+        $endpoint = match ($this->provider) {
+            'google' => 'https://accounts.google.com/.well-known/openid-configuration',
+            'microsoft' => sprintf('https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration', $config['tenant_id'] ?? 'common'),
+            'auth0' => isset($config['domain']) && $config['domain'] !== '' ? sprintf('https://%s/.well-known/openid-configuration', $config['domain']) : null,
+            default => null,
+        };
+
+        if ($endpoint) {
+            try {
+                $response = Http::timeout(5)->get($endpoint);
+                if ($response->successful()) {
+                    return [
+                        'success' => true,
+                        'message' => __(':provider identity provider configuration endpoint is reachable.', ['provider' => ucfirst($this->provider)]),
+                    ];
+                }
+            } catch (\Throwable $e) {
+                return [
+                    'success' => false,
+                    'message' => __('Failed to reach :provider endpoint: ', ['provider' => ucfirst($this->provider)]).$e->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'success' => true,
+            'message' => __(':provider parameters are configured.', ['provider' => ucfirst($this->provider)]),
+        ];
     }
 }

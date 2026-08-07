@@ -55,6 +55,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::middleware('can:manage-auth-providers')->group(function () {
         Route::get('/settings/auth-providers', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'index'])->name('settings.auth-providers.index');
         Route::put('/settings/auth-providers/{provider}', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'update'])->name('settings.auth-providers.update');
+        Route::post('/settings/auth-providers/{provider}/test', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'test'])->name('settings.auth-providers.test');
     });
 
     Route::resource('users', UserController::class);

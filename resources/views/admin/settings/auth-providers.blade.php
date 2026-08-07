@@ -80,8 +80,29 @@
     <!-- Tab Contents -->
 
     <!-- Local Tab -->
-    <div x-show="activeTab === 'local'" x-cloak>
-        <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-5 dark:border-brand-900/40 dark:bg-brand-950/20">
+    <div x-show="activeTab === 'local'" x-cloak x-data="{
+        testing: false,
+        testResult: null,
+        async testLocal() {
+            this.testing = true;
+            this.testResult = null;
+            try {
+                const response = await fetch('{{ route('admin.settings.auth-providers.test', 'local') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                });
+                this.testResult = await response.json();
+            } catch (err) {
+                this.testResult = { success: false, message: 'Unable to test local auth.' };
+            } finally {
+                this.testing = false;
+            }
+        }
+    }">
+        <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-5 dark:border-brand-900/40 dark:bg-brand-950/20 mb-6">
             <div class="flex items-start gap-3">
                 <span class="text-brand-500">ℹ️</span>
                 <div>
@@ -91,6 +112,30 @@
                     </p>
                 </div>
             </div>
+        </div>
+
+        <div x-show="testResult !== null" x-cloak class="mb-4">
+            <div
+                :class="testResult && testResult.success ? 'bg-success-50 text-success-700 border-success-200 dark:bg-success-500/10 dark:text-success-400 dark:border-success-500/20' : 'bg-error-50 text-error-700 border-error-200 dark:bg-error-500/10 dark:text-error-400 dark:border-error-500/20'"
+                class="rounded-lg border p-4 text-sm font-medium flex items-center justify-between"
+            >
+                <div class="flex items-center gap-2">
+                    <span x-text="testResult && testResult.success ? '✅' : '❌'"></span>
+                    <span x-text="testResult ? testResult.message : ''"></span>
+                </div>
+                <button type="button" @click="testResult = null" class="text-xs opacity-60 hover:opacity-100">&times;</button>
+            </div>
+        </div>
+
+        <div>
+            <button
+                type="button"
+                @click="testLocal()"
+                :disabled="testing"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+                <span x-text="testing ? 'Testing Connection...' : 'Test Connection'"></span>
+            </button>
         </div>
     </div>
 
@@ -103,40 +148,79 @@
             $configData = $setting?->settings ?? [];
         @endphp
         <div x-show="activeTab === '{{ $prov }}'" x-cloak>
-            <form action="{{ route('admin.settings.auth-providers.update', $prov) }}" method="POST" class="space-y-6">
+            <form
+                x-data="{
+                    testing: false,
+                    testResult: null,
+                    async testConnection() {
+                        this.testing = true;
+                        this.testResult = null;
+                        const formData = new FormData($el);
+                        try {
+                            const response = await fetch('{{ route('admin.settings.auth-providers.test', $prov) }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: formData
+                            });
+                            this.testResult = await response.json();
+                        } catch (err) {
+                            this.testResult = { success: false, message: 'Network or request error while testing connection.' };
+                        } finally {
+                            this.testing = false;
+                        }
+                    }
+                }"
+                action="{{ route('admin.settings.auth-providers.update', $prov) }}"
+                method="POST"
+                class="space-y-6"
+            >
                 @csrf
                 @method('PUT')
 
                 <!-- Toggles -->
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div class="flex items-center justify-between rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                <div class="space-y-4 rounded-xl border border-gray-200 p-5 dark:border-gray-800">
+                    <div class="flex items-center justify-between">
                         <div>
-                            <label class="font-medium text-gray-800 dark:text-white/90">Enable Provider</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Allow users to authenticate using {{ strtoupper($prov) }}</p>
+                            <span class="font-medium text-gray-800 dark:text-white/90">Enable Provider</span>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Allow users to log in using {{ strtoupper($prov) }}</p>
                         </div>
-                        <input type="checkbox" name="is_enabled" value="1" {{ $isEnabled ? 'checked' : '' }} class="h-5 w-5 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                        <label class="relative inline-flex cursor-pointer items-center">
+                            <input type="checkbox" name="is_enabled" value="1" class="peer sr-only" {{ $isEnabled ? 'checked' : '' }}>
+                            <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-brand-500 peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-gray-700"></div>
+                        </label>
                     </div>
-
-                    <div class="flex items-center justify-between rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+                    <div class="border-t border-gray-100 pt-4 dark:border-gray-800 flex items-center justify-between">
                         <div>
-                            <label class="font-medium text-gray-800 dark:text-white/90">Allow Auto-Provisioning (JIT)</label>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Automatically create local user account on first successful SSO login</p>
+                            <span class="font-medium text-gray-800 dark:text-white/90">Auto-Provisioning (JIT)</span>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Automatically create local user accounts for new authenticated SSO users</p>
                         </div>
-                        <input type="checkbox" name="allow_auto_provisioning" value="1" {{ $autoProvision ? 'checked' : '' }} class="h-5 w-5 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+                        <label class="relative inline-flex cursor-pointer items-center">
+                            <input type="checkbox" name="allow_auto_provisioning" value="1" class="peer sr-only" {{ $autoProvision ? 'checked' : '' }}>
+                            <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-brand-500 peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-gray-700"></div>
+                        </label>
                     </div>
                 </div>
 
                 <!-- Provider Fields -->
                 @if ($prov === 'ldap')
                     <div class="space-y-4">
-                        <div>
-                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">LDAP Host</label>
-                            <input type="text" name="settings[host]" value="{{ old('settings.host', $configData['host'] ?? '') }}" placeholder="ldap.example.com" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white">
-                        </div>
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            <div class="sm:col-span-2">
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">LDAP Host</label>
+                                <input type="text" name="settings[host]" value="{{ old('settings.host', $configData['host'] ?? '') }}" placeholder="ldap.example.com" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white">
+                            </div>
                             <div>
                                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Port</label>
                                 <input type="number" name="settings[port]" value="{{ old('settings.port', $configData['port'] ?? 389) }}" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">User DN Format</label>
+                                <input type="text" name="settings[user_dn_format]" value="{{ old('settings.user_dn_format', $configData['user_dn_format'] ?? 'uid=%s,%s') }}" placeholder="uid=%s,%s" class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm dark:border-gray-700 dark:text-white">
                             </div>
                             <div>
                                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Encryption</label>
@@ -204,9 +288,32 @@
                     </div>
                 @endif
 
-                <div class="pt-4">
+                <!-- Inline Test Result Alert -->
+                <div x-show="testResult !== null" x-cloak class="transition-all">
+                    <div
+                        :class="testResult && testResult.success ? 'bg-success-50 text-success-700 border-success-200 dark:bg-success-500/10 dark:text-success-400 dark:border-success-500/20' : 'bg-error-50 text-error-700 border-error-200 dark:bg-error-500/10 dark:text-error-400 dark:border-error-500/20'"
+                        class="rounded-lg border p-4 text-sm font-medium flex items-center justify-between"
+                    >
+                        <div class="flex items-center gap-2">
+                            <span x-text="testResult && testResult.success ? '✅' : '❌'"></span>
+                            <span x-text="testResult ? testResult.message : ''"></span>
+                        </div>
+                        <button type="button" @click="testResult = null" class="text-xs opacity-60 hover:opacity-100">&times;</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 pt-4">
                     <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600">
                         Save {{ strtoupper($prov) }} Settings
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="testConnection()"
+                        :disabled="testing"
+                        class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                    >
+                        <span x-text="testing ? 'Testing Connection...' : 'Test Connection'"></span>
                     </button>
                 </div>
             </form>

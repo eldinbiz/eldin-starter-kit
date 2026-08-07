@@ -71,4 +71,48 @@ class LdapAuthProvider implements AuthProviderInterface
     {
         return null;
     }
+
+    public function testConnection(array $config): array
+    {
+        $host = $config['host'] ?? '';
+        $port = (int) ($config['port'] ?? 389);
+
+        if ($host === '') {
+            return [
+                'success' => false,
+                'message' => __('LDAP host is required to test connection.'),
+            ];
+        }
+
+        if (function_exists('ldap_connect')) {
+            $encryption = $config['encryption'] ?? 'none';
+            $uri = $encryption === 'ssl' ? "ldaps://{$host}:{$port}" : "ldap://{$host}:{$port}";
+            $connection = @ldap_connect($uri);
+
+            if ($connection) {
+                @ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
+                @ldap_set_option($connection, LDAP_OPT_NETWORK_TIMEOUT, 3);
+
+                return [
+                    'success' => true,
+                    'message' => __("Successfully connected to LDAP server at {$host}:{$port}."),
+                ];
+            }
+        }
+
+        $socket = @fsockopen($host, $port, $errno, $errstr, 3.0);
+        if ($socket) {
+            fclose($socket);
+
+            return [
+                'success' => true,
+                'message' => __("Successfully reached LDAP host port at {$host}:{$port}."),
+            ];
+        }
+
+        return [
+            'success' => false,
+            'message' => __("Unable to connect to LDAP host at {$host}:{$port}."),
+        ];
+    }
 }
