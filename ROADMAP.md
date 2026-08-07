@@ -59,7 +59,7 @@ Pending ──→ Approved
 
 ---
 
-### 2. Notification Module ⌛In progress
+### 2. Notification Module ✅ Done
 
 **Channels:**
 - **In-app:** bell icon in topbar navbar, dropdown with unread badge count, persisted in database, mark-as-read / mark-all-read
@@ -172,7 +172,7 @@ User enters email → system looks up user → reads `auth_method` → routes to
 | 4 | Admin Panel (Companies, Roles, Users, Org Chart) | Built | ✅ Done |
 | 5 | DataTable component | Built | ✅ Done |
 | 6 | Approval Module | P0 | ✅ Done |
-| 7 | Notification Module | P0 | ⌛In progress |
+| 7 | Notification Module | P0 | ✅ Done |
 | 8 | Audit Trail | P1 | ☐ To Do |
 | 9 | API Layer | P1 | ☐ To Do |
 | 10 | Authentication Overhaul | P1 | ☐ To Do |
