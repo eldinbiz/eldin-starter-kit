@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login/lookup', [AuthController::class, 'lookup'])->name('login.lookup');
+
+    Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirect'])->name('auth.redirect');
+    Route::get('/auth/{provider}/callback', [AuthController::class, 'callback'])->name('auth.callback');
+    Route::post('/auth/{provider}/callback', [AuthController::class, 'callback']);
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
@@ -46,6 +51,12 @@ Route::middleware('auth')->group(function () {
 
 // Administration Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // System Auth Provider Settings
+    Route::middleware('can:manage-auth-providers')->group(function () {
+        Route::get('/settings/auth-providers', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'index'])->name('settings.auth-providers.index');
+        Route::put('/settings/auth-providers/{provider}', [\App\Http\Controllers\Admin\AuthProviderSettingController::class, 'update'])->name('settings.auth-providers.update');
+    });
+
     Route::resource('users', UserController::class);
     Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
     Route::post('roles/{role}/restore', [App\Http\Controllers\Admin\RoleController::class, 'restore'])->name('roles.restore')->withTrashed();

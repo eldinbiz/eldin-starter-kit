@@ -29,6 +29,7 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= 'password',
             'remember_token' => Str::random(10),
+            'auth_method' => 'local',
         ];
     }
 

@@ -16,10 +16,27 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Lab404\Impersonate\Models\Impersonate;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'auth_method', 'external_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    public const array AUTH_METHODS = [
+        'local' => 'Local Password',
+        'ldap' => 'LDAP Directory',
+        'google' => 'Google SSO',
+        'microsoft' => 'Microsoft SSO',
+        'auth0' => 'Auth0 SSO',
+        'saml2' => 'SAML 2.0',
+    ];
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'auth_method' => 'local',
+    ];
     /** @use HasFactory<UserFactory> */
     use HasCompanyContext, HasFactory, Impersonate, Notifiable;
 

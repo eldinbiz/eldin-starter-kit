@@ -101,29 +101,22 @@ Pending ──→ Approved
 
 ---
 
-### 5. Authentication Overhaul
+### 5. Authentication Overhaul ✅ Done
 
 Per-user configurable authentication method with system-level provider configuration.
 
 **Two-tier model:**
-- **Per-user `auth_method`** on the `users` table (`local`, `ldap`, `google`, `microsoft`, `auth0`, `saml`, `openid`). Determines how this specific user authenticates — globally, regardless of which company they belong to.
-- **System-level provider config**: platform admin configures connection details once at the application level:
-  - LDAP: host, port, base DN, bind DN, encryption
+- **Per-user `auth_method`** on the `users` table (`local`, `ldap`, `google`, `microsoft`, `auth0`, `saml2`). Determines how this specific user authenticates — globally, regardless of which company they belong to. Managed in User Management.
+- **System-level provider config**: platform admin configures connection details once at the application level under System Configuration (`/admin/settings/auth-providers`) in tabbed UI:
+  - Local: Notice banner *"authentication will refer to user account data. no configuration necessary"*
+  - LDAP: host, port, base DN, encryption
   - Google OAuth: client ID, client secret
   - Microsoft OAuth: tenant ID, client ID, client secret
   - Auth0: domain, client ID, client secret
-  - SAML 2.0: IdP entity ID, SSO URL, x.509 certificate
-  - OpenID Connect: issuer URL, client ID, client secret
+  - SAML 2.0: IdP entity ID, SSO URL
 
 **Login flow:**
-User enters email → system looks up user → reads `auth_method` → routes to the correct authentication provider using system-wide config → authenticates → company selector (if user belongs to multiple companies).
-
-**Supported providers:**
-- Local user/password (already built)
-- LDAP
-- SSO: Google, Microsoft, Auth0
-- SAML 2.0
-- OpenID Connect
+Dynamic 2-step flow: User enters email → system looks up user → reads `auth_method` → routes to password prompt (local/ldap) or redirects to SSO endpoint (`google`, `microsoft`, `auth0`, `saml2`) → authenticates.
 
 ---
 
@@ -155,7 +148,7 @@ User enters email → system looks up user → reads `auth_method` → routes to
 - Variable placeholders: `{{ user_name }}`, `{{ company_name }}`, `{{ approval_link }}`, etc.
 
 **Authentication Providers:**
-- Managed by the [Authentication Overhaul](#5-authentication-overhaul) module (P1). Per-user `auth_method` column + system-level provider configuration for LDAP, Google, Microsoft, Auth0, SAML 2.0, and OpenID Connect.
+- Managed by the [Authentication Overhaul](#5-authentication-overhaul) module (P1). Per-user `auth_method` column + system-level provider configuration for LDAP, Google, Microsoft, Auth0, and SAML 2.0.
 
 **Feature Toggles:**
 - Enable/disable modules per company
@@ -175,6 +168,6 @@ User enters email → system looks up user → reads `auth_method` → routes to
 | 7 | Notification Module | P0 | ✅ Done |
 | 8 | Audit Trail | P1 | ☐ To Do |
 | 9 | API Layer | P1 | ☐ To Do |
-| 10 | Authentication Overhaul | P1 | ☐ To Do |
+| 10 | Authentication Overhaul | P1 | ✅ Done |
 | 11 | User Impersonation | P1 | ✅ Done |
 | 12 | System Configuration | P2 | ☐ To Do |

@@ -94,6 +94,25 @@
                 />
             </div>
 
+            <!-- Authentication Method -->
+            <div>
+                <label for="auth_method" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Authentication Method <span class="text-error-500">*</span>
+                </label>
+                <select
+                    id="auth_method"
+                    name="auth_method"
+                    required
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
+                >
+                    @foreach (\App\Models\User::AUTH_METHODS as $key => $label)
+                        <option value="{{ $key }}" {{ old('auth_method', $user->auth_method ?? 'local') === $key ? 'selected' : '' }}>
+                            {{ $label }} ({{ $key }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             <!-- Assign Roles -->
             <div>
                 <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">

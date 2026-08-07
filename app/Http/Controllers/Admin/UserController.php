@@ -48,8 +48,9 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
+            'auth_method' => ['nullable', 'string', Rule::in(array_keys(User::AUTH_METHODS))],
             'roles' => ['required', 'array'],
-            'roles.*' => [Rule::exists('roles', 'id')->where('is_active', true)->whereNull('deleted_at')],
+            'roles.*' => [Rule::exists('roles', 'id')->where('is_active', true)->where('deleted_at', null)],
         ]);
 
         $activeCompany = auth()->user()?->getActiveCompany();
@@ -64,6 +65,7 @@ class UserController extends Controller
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
             'password' => Hash::make($request->string('password')->toString()),
+            'auth_method' => $request->input('auth_method') ?? 'local',
         ]);
 
         // Enforce default 'user' role is always assigned
@@ -134,8 +136,9 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
+            'auth_method' => ['nullable', 'string', Rule::in(array_keys(User::AUTH_METHODS))],
             'roles' => ['required', 'array'],
-            'roles.*' => [Rule::exists('roles', 'id')->where('is_active', true)->whereNull('deleted_at')],
+            'roles.*' => [Rule::exists('roles', 'id')->where('is_active', true)->where('deleted_at', null)],
         ]);
 
         $activeCompany = auth()->user()?->getActiveCompany();
@@ -149,6 +152,7 @@ class UserController extends Controller
         $userData = [
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
+            'auth_method' => $request->input('auth_method', $user->auth_method ?? 'local'),
         ];
 
         if ($request->filled('password')) {

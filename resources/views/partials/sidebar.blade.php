@@ -253,6 +253,24 @@
                     </li>
                     @endif
 
+                    <!-- Auth Providers -->
+                    @can('manage-auth-providers')
+                    <li>
+                        <a
+                            href="{{ route('admin.settings.auth-providers.index') }}"
+                            class="menu-item group {{ Request::is('admin/settings/auth-providers*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        >
+                            <span class="flex items-center gap-3">
+                                <!-- Key/Lock Icon -->
+                                <svg class="fill-current {{ Request::is('admin/settings/auth-providers*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C8.68629 2 6 4.68629 6 8C6 9.8564 6.8458 11.5152 8.17511 12.6074L3.25 17.5325V20.75C3.25 21.3023 3.69772 21.75 4.25 21.75H7.5V19.5H9.75V17.25H12L13.3926 15.8249C14.4848 17.1542 16.1436 18 18 18C21.3137 18 24 15.3137 24 12C24 8.68629 21.3137 6 18 6C16.1436 6 14.4848 6.8458 13.3926 8.17511L12 2ZM18 10.5C17.1716 10.5 16.5 9.82843 16.5 9C16.5 8.17157 17.1716 7.5 18 7.5C18.8284 7.5 19.5 8.17157 19.5 9C19.5 9.82843 18.8284 10.5 18 10.5Z" />
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Auth Providers</span>
+                            </span>
+                        </a>
+                    </li>
+                    @endcan
+
                     <!-- System Variables (Placeholder) -->
                     <li>
                         <a

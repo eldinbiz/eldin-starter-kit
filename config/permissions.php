@@ -40,6 +40,10 @@ return [
             'label' => 'Manage Organization Chart',
             'group' => 'System Administration',
         ],
+        'manage-auth-providers' => [
+            'label' => 'Manage Auth Providers: Configure system-wide authentication methods and JIT auto-provisioning',
+            'group' => 'System Administration',
+        ],
         'manage-platform' => [
             'label' => 'Manage Platform',
             'group' => 'System Administration',

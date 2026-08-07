@@ -44,6 +44,14 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ApprovalRejected::class, UpdateApprovableStatus::class);
         Event::listen(ApprovalCanceled::class, UpdateApprovableStatus::class);
 
+        // Register SocialiteProviders SAML 2.0 extension listener if package is present
+        if (class_exists(\SocialiteProviders\Manager\SocialiteWasCalled::class) && class_exists(\SocialiteProviders\Saml2\Saml2ExtendSocialite::class)) {
+            Event::listen(
+                \SocialiteProviders\Manager\SocialiteWasCalled::class,
+                \SocialiteProviders\Saml2\Saml2ExtendSocialite::class
+            );
+        }
+
         // Register impersonation session switch event listeners
         Event::listen(\Lab404\Impersonate\Events\TakeImpersonation::class, function ($event): void {
             session()->flash('impersonation_switched', 'started');
