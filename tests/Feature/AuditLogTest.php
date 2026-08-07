@@ -70,3 +70,26 @@ it('renders the embedded audit trail iframe page for authorized admins', functio
     $response->assertSee('<iframe', false);
     $response->assertSee('/audit-log');
 });
+
+it('records access audit log entry when user impersonation starts and stops', function (): void {
+    if (! class_exists(AuditLog::class)) {
+        $this->markTestSkipped('Yammi AuditLog package not yet installed via composer.');
+    }
+
+    AuditLog::fake();
+
+    $company = Company::factory()->create(['is_active' => true]);
+    $adminRole = Role::factory()->admin()->create();
+
+    $admin = User::factory()->create();
+    $admin->companies()->attach($company->id, ['status' => 'active']);
+    $admin->companyRoles()->attach($adminRole->id, ['company_id' => $company->id]);
+
+    $target = User::factory()->create();
+
+    $admin->impersonate($target);
+    AuditLog::assertRecorded(User::class, $target->id, 'accessed');
+
+    $admin->leaveImpersonation();
+    AuditLog::assertRecorded(User::class, $target->id, 'accessed');
+});

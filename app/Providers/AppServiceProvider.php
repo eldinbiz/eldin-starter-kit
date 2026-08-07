@@ -19,6 +19,7 @@ use SocialiteProviders\Auth0\Auth0ExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
 use SocialiteProviders\Saml2\Saml2ExtendSocialite;
+use Yammi\AuditLog\Infrastructure\Facade\AuditLog;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -78,11 +79,17 @@ class AppServiceProvider extends ServiceProvider
                     session(["active_role.{$company->id}" => $role->name]);
                 }
             }
+
+            if (class_exists(AuditLog::class)) {
+                AuditLog::recordAccess($impersonated);
+            }
         });
 
         Event::listen(LeaveImpersonation::class, function ($event): void {
             session()->flash('impersonation_switched', 'stopped');
 
+            /** @var User $impersonated */
+            $impersonated = $event->impersonated;
             /** @var User $impersonator */
             $impersonator = $event->impersonator;
             $company = $impersonator->getActiveCompany();
@@ -93,6 +100,10 @@ class AppServiceProvider extends ServiceProvider
                 if ($role) {
                     session(["active_role.{$company->id}" => $role->name]);
                 }
+            }
+
+            if (class_exists(AuditLog::class)) {
+                AuditLog::recordAccess($impersonated);
             }
         });
 
