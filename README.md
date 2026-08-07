@@ -24,9 +24,12 @@ docker compose up -d --build
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan storage:link
 docker compose exec app php artisan migrate:fresh --seed
+docker compose exec app php artisan audit-log:ui enable
 ```
 
 The Docker setup auto-loads `.env.docker` which points to the MariaDB container — no manual `.env` edits needed.
+
+> **Note:** `audit-log:ui enable` is also run automatically by `entrypoint.sh` on every container start, so this step is only needed if you skipped it during first-time setup.
 
 Open **http://localhost:8080** — you're done.
 
@@ -67,6 +70,7 @@ Auto-loads `.env.docker` (MariaDB). No manual `.env` edits needed.
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan storage:link
 docker compose exec app php artisan migrate:fresh --seed
+docker compose exec app php artisan audit-log:ui enable
 ```
 
 ### Docker → Local
@@ -106,6 +110,7 @@ When you `git checkout` a different branch, the files on disk update instantly (
 # Step by step
 docker compose exec app composer install --no-interaction
 docker compose exec app php artisan optimize:clear
+docker compose exec app php artisan audit-log:ui enable
 docker compose exec vite npm install
 docker compose exec vite npm run build
 docker compose restart queue
@@ -116,12 +121,13 @@ docker compose exec app php artisan migrate
 
 ```bash
 # One-liner (skip migrate — run it separately if needed)
-docker compose exec app composer install --no-interaction && docker compose exec app php artisan optimize:clear && docker compose exec vite npm install && docker compose exec vite npm run build && docker compose restart queue
+docker compose exec app composer install --no-interaction && docker compose exec app php artisan optimize:clear && docker compose exec app php artisan audit-log:ui enable && docker compose exec vite npm install && docker compose exec vite npm run build && docker compose restart queue
 ```
 
 > **What each command does:**
 > - `composer install` — syncs vendor to the new branch's `composer.lock`
 > - `optimize:clear` — flushes config, route, view, event, and compiled caches
+> - `audit-log:ui enable` — re-enables the Yammi audit trail dashboard (required after cache clear)
 > - `npm install && npm run build` — rebuilds frontend assets
 > - `restart queue` — forces the queue worker to reload new code
 
@@ -192,12 +198,15 @@ docker compose build --no-cache
 docker compose up -d
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate:fresh --seed
+docker compose exec app php artisan audit-log:ui enable
 ```
 
 ```bash
 # Inline (one-liner)
-docker compose down -v && docker compose build --no-cache && docker compose up -d && docker compose exec app php artisan key:generate && docker compose exec app php artisan migrate:fresh --seed
+docker compose down -v && docker compose build --no-cache && docker compose up -d && docker compose exec app php artisan key:generate && docker compose exec app php artisan migrate:fresh --seed && docker compose exec app php artisan audit-log:ui enable
 ```
+
+> **Note:** `audit-log:ui enable` is also handled automatically by `entrypoint.sh`, so after `docker compose up -d` the dashboard should already be active. Run it manually only if the `/audit-log` route returns 404.
 
 **Rebuild images, keep database:**
 

@@ -12,4 +12,7 @@ rm -f /var/www/html/bootstrap/cache/packages.php /var/www/html/bootstrap/cache/s
 # Re-discover packages
 php artisan package:discover --ansi || true
 
+# Enable Yammi audit-log UI dashboard (idempotent — safe to run every start)
+php artisan audit-log:ui enable || true
+
 exec docker-php-entrypoint php-fpm
