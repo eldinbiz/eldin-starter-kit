@@ -11,7 +11,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\PurchaseRequestController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -110,14 +109,4 @@ Route::middleware('auth')->prefix('approvals')->name('approvals.')->group(functi
     Route::post('/{request}/cancel', [ApprovalController::class, 'cancel'])->name('cancel');
     Route::post('/{step}/delegate', [ApprovalController::class, 'delegate'])->name('delegate');
     Route::post('/{step}/resolve-previous-manager', [ApprovalController::class, 'resolvePreviousManager'])->name('resolve-previous-manager');
-});
-
-// Purchase Request Routes
-Route::middleware('auth')->prefix('purchase-requests')->name('purchase-requests.')->group(function () {
-    Route::get('/', [PurchaseRequestController::class, 'index'])->name('index');
-    Route::get('/create', [PurchaseRequestController::class, 'create'])->name('create');
-    Route::post('/', [PurchaseRequestController::class, 'store'])->name('store');
-    Route::get('/{purchaseRequest}', [PurchaseRequestController::class, 'show'])->name('show');
-    Route::get('/{purchaseRequest}/preview-workflow', [PurchaseRequestController::class, 'previewWorkflow'])->name('preview-workflow');
-    Route::post('/{purchaseRequest}/submit-for-approval', [PurchaseRequestController::class, 'submitForApproval'])->name('submit-for-approval');
 });
