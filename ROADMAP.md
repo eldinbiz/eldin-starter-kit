@@ -82,7 +82,7 @@ Pending ──→ Approved
 
 ## P1 — High Priority (v1.1)
 
-### 3. Audit Trail ⏳ In Progress
+### 3. Audit Trail ✅ Done
 
 - Polymorphic activity log: `actor` (who), `action` (what), `subject` (on what model), `before` / `after` (JSON delta), `timestamp`
 - Covers: Eloquent model events (created/updated/deleted), approval events, role assignment changes, login/logout
@@ -167,7 +167,7 @@ Dynamic 2-step flow: User enters email → system looks up user → reads `auth_
 | 5 | DataTable component | Built | ✅ Done |
 | 6 | Approval Module | P0 | ✅ Done |
 | 7 | Notification Module | P0 | ✅ Done |
-| 8 | Audit Trail | P1 | ⏳ In Progress |
+| 8 | Audit Trail | P1 | ✅ Done |
 | 9 | API Layer | P1 | ☐ To Do |
 | 10 | Authentication Overhaul | P1 | ✅ Done |
 | 11 | User Impersonation | P1 | ✅ Done |
