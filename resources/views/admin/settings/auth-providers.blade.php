@@ -213,7 +213,8 @@
                             <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-brand-500 peer-checked:after:translate-x-full peer-checked:after:border-white dark:bg-gray-700"></div>
                         </label>
                     </div>
-                    <div class="border-t border-gray-100 pt-4 dark:border-gray-800 flex items-center justify-between">
+                    {{-- for now, this is not used. hide this for future development --}}
+                    <div class="hidden border-t border-gray-100 pt-4 dark:border-gray-800 flex items-center justify-between">
                         <div>
                             <span class="font-medium text-gray-800 dark:text-white/90">Auto-Provisioning (JIT)</span>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Automatically create local user accounts for new authenticated SSO users</p>
