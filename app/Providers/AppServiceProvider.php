@@ -8,7 +8,6 @@ use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalRejected;
 use App\Listeners\Approval\UpdateApprovableStatus;
-use App\Listeners\AuditSubscriber;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;

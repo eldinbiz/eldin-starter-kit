@@ -51,3 +51,22 @@ it('fakes and records audit log entries when AuditLog package is loaded', functi
 
     AuditLog::assertRecorded(User::class, $user->id, 'updated');
 });
+
+it('renders the embedded audit trail iframe page for authorized admins', function (): void {
+    $company = Company::factory()->create(['is_active' => true]);
+    $adminRole = Role::factory()->admin()->create();
+
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, ['status' => 'active']);
+    $user->companyRoles()->attach($adminRole->id, ['company_id' => $company->id]);
+
+    $this->actingAs($user);
+    session(['active_company_id' => $company->id]);
+
+    $response = $this->get(route('admin.audit-trail.index'));
+
+    $response->assertStatus(200);
+    $response->assertSee('System Audit Trail');
+    $response->assertSee('<iframe', false);
+    $response->assertSee('/audit-log');
+});
