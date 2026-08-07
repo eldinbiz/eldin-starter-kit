@@ -111,9 +111,10 @@ Per-user configurable authentication method with system-level provider configura
   - Local: Notice banner *"authentication will refer to user account data. no configuration necessary"*
   - LDAP: host, port, base DN, encryption
   - Google OAuth: client ID, client secret
-  - Microsoft OAuth: tenant ID, client ID, client secret
-  - Auth0: domain, client ID, client secret
-  - SAML 2.0: IdP entity ID, SSO URL
+  - Microsoft OAuth: tenant ID, client ID, client secret (`socialiteproviders/microsoft`)
+  - Auth0: domain, client ID, client secret (`socialiteproviders/auth0`)
+  - SAML 2.0: IdP entity ID, SSO URL, metadata URL, certificate (`socialiteproviders/saml2`)
+- **Test Connection**: Live real-time connection testing button on each tab verifying server reachability, OIDC discovery endpoints, and OAuth client credential validity.
 
 **Login flow:**
 Dynamic 2-step flow: User enters email → system looks up user → reads `auth_method` → routes to password prompt (local/ldap) or redirects to SSO endpoint (`google`, `microsoft`, `auth0`, `saml2`) → authenticates.

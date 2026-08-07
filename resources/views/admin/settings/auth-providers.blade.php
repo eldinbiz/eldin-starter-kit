@@ -94,9 +94,19 @@
                         'Accept': 'application/json'
                     }
                 });
-                this.testResult = await response.json();
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (!response.ok && !data.message) {
+                        data.message = `HTTP Error ${response.status}: ${response.statusText}`;
+                    }
+                    this.testResult = data;
+                } else {
+                    const text = await response.text();
+                    this.testResult = { success: false, message: `Server Error (${response.status}): ${text.substring(0, 200)}` };
+                }
             } catch (err) {
-                this.testResult = { success: false, message: 'Unable to test local auth.' };
+                this.testResult = { success: false, message: `Connection test error: ${err.message || err}` };
             } finally {
                 this.testing = false;
             }
@@ -156,6 +166,7 @@
                         this.testing = true;
                         this.testResult = null;
                         const formData = new FormData($el);
+                        formData.delete('_method');
                         try {
                             const response = await fetch('{{ route('admin.settings.auth-providers.test', $prov) }}', {
                                 method: 'POST',
@@ -165,9 +176,19 @@
                                 },
                                 body: formData
                             });
-                            this.testResult = await response.json();
+                            const contentType = response.headers.get('content-type') || '';
+                            if (contentType.includes('application/json')) {
+                                const data = await response.json();
+                                if (!response.ok && !data.message) {
+                                    data.message = `HTTP Error ${response.status}: ${response.statusText}`;
+                                }
+                                this.testResult = data;
+                            } else {
+                                const text = await response.text();
+                                this.testResult = { success: false, message: `Server Error (${response.status}): ${text.substring(0, 200)}` };
+                            }
                         } catch (err) {
-                            this.testResult = { success: false, message: 'Network or request error while testing connection.' };
+                            this.testResult = { success: false, message: `Connection test error: ${err.message || err}` };
                         } finally {
                             this.testing = false;
                         }

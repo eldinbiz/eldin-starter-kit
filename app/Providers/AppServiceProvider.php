@@ -44,12 +44,17 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ApprovalRejected::class, UpdateApprovableStatus::class);
         Event::listen(ApprovalCanceled::class, UpdateApprovableStatus::class);
 
-        // Register SocialiteProviders SAML 2.0 extension listener if package is present
-        if (class_exists(\SocialiteProviders\Manager\SocialiteWasCalled::class) && class_exists(\SocialiteProviders\Saml2\Saml2ExtendSocialite::class)) {
-            Event::listen(
-                \SocialiteProviders\Manager\SocialiteWasCalled::class,
-                \SocialiteProviders\Saml2\Saml2ExtendSocialite::class
-            );
+        // Register SocialiteProviders extension listeners if packages are present
+        if (class_exists(\SocialiteProviders\Manager\SocialiteWasCalled::class)) {
+            if (class_exists(\SocialiteProviders\Saml2\Saml2ExtendSocialite::class)) {
+                Event::listen(\SocialiteProviders\Manager\SocialiteWasCalled::class, \SocialiteProviders\Saml2\Saml2ExtendSocialite::class);
+            }
+            if (class_exists(\SocialiteProviders\Auth0\Auth0ExtendSocialite::class)) {
+                Event::listen(\SocialiteProviders\Manager\SocialiteWasCalled::class, \SocialiteProviders\Auth0\Auth0ExtendSocialite::class);
+            }
+            if (class_exists(\SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class)) {
+                Event::listen(\SocialiteProviders\Manager\SocialiteWasCalled::class, \SocialiteProviders\Microsoft\MicrosoftExtendSocialite::class);
+            }
         }
 
         // Register impersonation session switch event listeners

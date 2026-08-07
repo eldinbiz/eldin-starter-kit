@@ -176,13 +176,32 @@ it('tests local auth connection successfully', function () {
 
 it('tests google auth provider connection endpoint successfully', function () {
     Illuminate\Support\Facades\Http::fake([
-        'https://accounts.google.com/.well-known/openid-configuration' => Illuminate\Support\Facades\Http::response(['issuer' => 'https://accounts.google.com'], 200),
+        'https://oauth2.googleapis.com/token' => Illuminate\Support\Facades\Http::response(['error' => 'invalid_grant'], 400),
     ]);
 
     $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'google'), [
         'settings' => [
             'client_id' => 'test-id',
             'client_secret' => 'test-secret',
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJson([
+            'success' => true,
+        ]);
+});
+
+it('tests auth0 auth provider connection endpoint successfully', function () {
+    Illuminate\Support\Facades\Http::fake([
+        'https://my-tenant.auth0.com/oauth/token' => Illuminate\Support\Facades\Http::response(['access_token' => 'mock_token'], 200),
+    ]);
+
+    $response = $this->actingAs($this->admin)->postJson(route('admin.settings.auth-providers.test', 'auth0'), [
+        'settings' => [
+            'domain' => 'my-tenant.auth0.com',
+            'client_id' => 'test-auth0-id',
+            'client_secret' => 'test-auth0-secret',
         ],
     ]);
 

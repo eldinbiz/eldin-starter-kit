@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -41,41 +42,74 @@ class SocialiteAuthProvider implements AuthProviderInterface
     public function handleCallback(Request $request, ?AuthProviderSetting $setting = null): ?User
     {
         if ($setting === null || ! $setting->is_enabled) {
+            Log::warning("SSO callback failed: Auth provider {$this->provider} setting is null or disabled.");
+
             return null;
         }
 
         $this->configureSocialiteService($setting);
 
         try {
-            $socialiteUser = Socialite::driver($this->provider)->user();
-        } catch (\Throwable) {
+            $driver = Socialite::driver($this->provider);
+            if (config('app.env') === 'local') {
+                $driver->setHttpClient(new \GuzzleHttp\Client(['verify' => false]));
+            }
+            $socialiteUser = $driver->user();
+        } catch (\Throwable $e) {
+            Log::error("Socialite callback exception for {$this->provider}: {$e->getMessage()}", [
+                'exception' => $e,
+            ]);
+
             return null;
         }
 
         $email = $socialiteUser->getEmail();
         if (! $email) {
+            Log::warning("SSO callback failed for {$this->provider}: No email address returned from identity provider.");
+
             return null;
         }
 
         $user = User::where('email', $email)->first();
 
         if (! $user && $setting->allow_auto_provisioning) {
+            $name = trim($socialiteUser->getName() ?? '');
+            if ($name === '') {
+                $name = $socialiteUser->getNickname() ?? Str::before($email, '@');
+            }
+
             $user = User::create([
-                'name' => $socialiteUser->getName() ?? Str::before($email, '@'),
+                'name' => $name,
                 'email' => $email,
                 'password' => Hash::make(Str::random(32)),
                 'auth_method' => $this->provider,
                 'external_id' => $socialiteUser->getId(),
             ]);
+            Log::info("Auto-provisioned new user {$email} via {$this->provider}.");
         }
 
         if ($user) {
             $user->update([
                 'external_id' => $socialiteUser->getId(),
             ]);
+        } else {
+            Log::warning("SSO callback failed for {$this->provider}: User {$email} not found and auto-provisioning is disabled.");
         }
 
         return $user;
+    }
+
+    private function parseDomainHost(string $rawDomain): string
+    {
+        $trimmed = trim($rawDomain);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $url = preg_match('#^https?://#i', $trimmed) ? $trimmed : "https://{$trimmed}";
+        $host = parse_url($url, PHP_URL_HOST);
+
+        return is_string($host) ? trim($host) : '';
     }
 
     private function configureSocialiteService(AuthProviderSetting $setting): void
@@ -94,12 +128,15 @@ class SocialiteAuthProvider implements AuthProviderInterface
             return;
         }
 
+        $domain = $this->parseDomainHost((string) ($config['domain'] ?? ''));
+
         Config::set("services.{$this->provider}", [
             'client_id' => $config['client_id'] ?? '',
             'client_secret' => $config['client_secret'] ?? '',
             'redirect' => route('auth.callback', ['provider' => $this->provider]),
             'tenant' => $config['tenant_id'] ?? null,
-            'domain' => $config['domain'] ?? null,
+            'domain' => $domain !== '' ? $domain : null,
+            'base_url' => $domain !== '' ? "https://{$domain}" : null,
         ]);
     }
 
@@ -111,7 +148,11 @@ class SocialiteAuthProvider implements AuthProviderInterface
 
             if ($metadataUrl !== '') {
                 try {
-                    $response = Http::timeout(5)->get($metadataUrl);
+                    $response = Http::withoutVerifying()
+                        ->withHeaders(['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'])
+                        ->timeout(8)
+                        ->get($metadataUrl);
+
                     if ($response->successful()) {
                         return [
                             'success' => true,
@@ -128,7 +169,11 @@ class SocialiteAuthProvider implements AuthProviderInterface
 
             if ($ssoUrl !== '') {
                 try {
-                    $response = Http::timeout(5)->get($ssoUrl);
+                    $response = Http::withoutVerifying()
+                        ->withHeaders(['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'])
+                        ->timeout(8)
+                        ->get($ssoUrl);
+
                     return [
                         'success' => true,
                         'message' => __('SAML 2.0 SSO ACS URL is reachable (HTTP status ').$response->status().').',
@@ -157,26 +202,137 @@ class SocialiteAuthProvider implements AuthProviderInterface
             ];
         }
 
-        $endpoint = match ($this->provider) {
-            'google' => 'https://accounts.google.com/.well-known/openid-configuration',
-            'microsoft' => sprintf('https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration', $config['tenant_id'] ?? 'common'),
-            'auth0' => isset($config['domain']) && $config['domain'] !== '' ? sprintf('https://%s/.well-known/openid-configuration', $config['domain']) : null,
-            default => null,
-        };
+        $domain = $this->parseDomainHost((string) ($config['domain'] ?? ''));
 
-        if ($endpoint) {
+        if ($this->provider === 'auth0' && $domain === '') {
+            return [
+                'success' => false,
+                'message' => __('Auth0 domain is required (e.g. your-tenant.auth0.com).'),
+            ];
+        }
+
+        if ($this->provider === 'auth0') {
             try {
-                $response = Http::timeout(5)->get($endpoint);
-                if ($response->successful()) {
+                $response = Http::withoutVerifying()
+                    ->asForm()
+                    ->timeout(8)
+                    ->post("https://{$domain}/oauth/token", [
+                        'grant_type' => 'client_credentials',
+                        'client_id' => $clientId,
+                        'client_secret' => $clientSecret,
+                        'audience' => "https://{$domain}/api/v2/",
+                    ]);
+
+                $data = $response->json();
+                $error = is_array($data) ? ($data['error'] ?? null) : null;
+                $description = is_array($data) ? ($data['error_description'] ?? null) : null;
+
+                if ($response->status() === 401 || $error === 'invalid_client' || $description === 'Unauthorized') {
                     return [
-                        'success' => true,
-                        'message' => __(':provider identity provider configuration endpoint is reachable.', ['provider' => ucfirst($this->provider)]),
+                        'success' => false,
+                        'message' => __('Auth0 verification failed: Invalid Client ID or Client Secret.'),
                     ];
                 }
+
+                if ($response->successful() || in_array($error, ['unauthorized_client', 'invalid_request', 'unsupported_grant_type', 'bad_oauth'], true) || (is_string($description) && str_contains($description, 'audience'))) {
+                    return [
+                        'success' => true,
+                        'message' => __('Auth0 domain, Client ID, and Client Secret verified successfully.'),
+                    ];
+                }
+
+                return [
+                    'success' => false,
+                    'message' => __('Auth0 verification failed: ').($description ?? $error ?? "HTTP {$response->status()}"),
+                ];
             } catch (\Throwable $e) {
                 return [
                     'success' => false,
-                    'message' => __('Failed to reach :provider endpoint: ', ['provider' => ucfirst($this->provider)]).$e->getMessage(),
+                    'message' => __('Auth0 connection error: ').$e->getMessage(),
+                ];
+            }
+        }
+
+        if ($this->provider === 'google') {
+            try {
+                $response = Http::withoutVerifying()
+                    ->asForm()
+                    ->timeout(8)
+                    ->post('https://oauth2.googleapis.com/token', [
+                        'client_id' => $clientId,
+                        'client_secret' => $clientSecret,
+                        'grant_type' => 'authorization_code',
+                        'code' => 'invalid_code_check',
+                    ]);
+
+                $data = $response->json();
+                $error = is_array($data) ? ($data['error'] ?? null) : null;
+
+                if ($error === 'invalid_client') {
+                    return [
+                        'success' => false,
+                        'message' => __('Google verification failed: Invalid Client ID or Client Secret.'),
+                    ];
+                }
+
+                if ($error === 'invalid_grant' || $response->successful()) {
+                    return [
+                        'success' => true,
+                        'message' => __('Google Client ID and Client Secret verified successfully.'),
+                    ];
+                }
+
+                return [
+                    'success' => false,
+                    'message' => __('Google verification failed: ').(($data['error_description'] ?? null) ?? $error ?? "HTTP {$response->status()}"),
+                ];
+            } catch (\Throwable $e) {
+                return [
+                    'success' => false,
+                    'message' => __('Google connection error: ').$e->getMessage(),
+                ];
+            }
+        }
+
+        if ($this->provider === 'microsoft') {
+            $tenant = $config['tenant_id'] ?? 'common';
+            try {
+                $response = Http::withoutVerifying()
+                    ->asForm()
+                    ->timeout(8)
+                    ->post("https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token", [
+                        'client_id' => $clientId,
+                        'client_secret' => $clientSecret,
+                        'grant_type' => 'client_credentials',
+                        'scope' => 'https://graph.microsoft.com/.default',
+                    ]);
+
+                $data = $response->json();
+                $error = is_array($data) ? ($data['error'] ?? null) : null;
+                $description = is_array($data) ? (string) ($data['error_description'] ?? '') : '';
+
+                if ($error === 'invalid_client' || str_contains($description, 'AADSTS700016') || str_contains($description, 'AADSTS7000215')) {
+                    return [
+                        'success' => false,
+                        'message' => __('Microsoft verification failed: Invalid Client ID or Client Secret.'),
+                    ];
+                }
+
+                if ($response->successful() || str_contains($description, 'AADSTS700021') || str_contains($description, 'AADSTS500011')) {
+                    return [
+                        'success' => true,
+                        'message' => __('Microsoft Azure AD Client ID and Client Secret verified successfully.'),
+                    ];
+                }
+
+                return [
+                    'success' => false,
+                    'message' => __('Microsoft verification failed: ').($description !== '' ? $description : ($error ?? "HTTP {$response->status()}")),
+                ];
+            } catch (\Throwable $e) {
+                return [
+                    'success' => false,
+                    'message' => __('Microsoft connection error: ').$e->getMessage(),
                 ];
             }
         }
