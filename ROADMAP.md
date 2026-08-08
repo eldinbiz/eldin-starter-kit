@@ -91,7 +91,7 @@ Pending ──→ Approved
 
 ---
 
-### 4. API Layer
+### 4. API Layer ⏳ In Progress
 
 - REST/JSON API with Laravel Sanctum token-based authentication
 - Eloquent API Resources for consistent response structure
@@ -168,7 +168,7 @@ Dynamic 2-step flow: User enters email → system looks up user → reads `auth_
 | 6 | Approval Module | P0 | ✅ Done |
 | 7 | Notification Module | P0 | ✅ Done |
 | 8 | Audit Trail | P1 | ✅ Done |
-| 9 | API Layer | P1 | ☐ To Do |
+| 9 | API Layer | P1 | ⏳ In Progress |
 | 10 | Authentication Overhaul | P1 | ✅ Done |
 | 11 | User Impersonation | P1 | ✅ Done |
 | 12 | System Configuration | P2 | ☐ To Do |
