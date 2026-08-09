@@ -11,8 +11,10 @@
     "require": {
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",
+        "dedoc/scramble": "^0.13.39",
         "lab404/laravel-impersonate": "^1.7",
         "laravel/framework": "^13.8",
+        "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^3.0",
         "romalytar/yammi-audit-log-laravel": "^2.2",

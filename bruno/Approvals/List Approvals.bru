@@ -1,0 +1,15 @@
+meta {
+  name: List Approvals
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/approvals
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Company-ID: {{companyId}}
+}

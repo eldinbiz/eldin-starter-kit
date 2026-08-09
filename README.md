@@ -233,3 +233,13 @@ docker compose up -d --build
 ### Local Mode
 
 The `composer dev` command already runs `php artisan queue:listen` alongside the server and Vite. Jobs are processed automatically as you work.
+
+---
+
+## API Layer & Documentation
+
+- **Interactive API Docs (Swagger/OpenAPI 3.1)**: [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (or `http://localhost:8080/docs/api` in Docker)
+- **API Developer Guide**: See [docs/API_LAYER_GUIDE.md](docs/API_LAYER_GUIDE.md) for architecture, multi-tenant scoping (`X-Company-ID`), and code templates.
+- **Bruno API Collection**: Located in `bruno/` for instant API testing in the VS Code Bruno extension.
+- **Agent Skill**: `.agents/skills/api-layer-integration/SKILL.md` ensures all future AI-scaffolded modules adhere to standard API conventions.
+

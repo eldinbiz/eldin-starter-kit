@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ApprovalManagementController;
 use App\Http\Controllers\Admin\ApprovalWorkflowController;
+use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\AuditTrailController;
 use App\Http\Controllers\Admin\AuthProviderSettingController;
 use App\Http\Controllers\Admin\OrgChartController;
@@ -114,6 +115,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('approval-workflows/{workflow}/restore', [ApprovalWorkflowController::class, 'restore'])->name('approval-workflows.restore');
         Route::delete('approval-workflows/{workflow}/soft-delete', [ApprovalWorkflowController::class, 'softDelete'])->name('approval-workflows.soft-delete');
         Route::delete('approval-workflows/{workflow}/trash', [ApprovalWorkflowController::class, 'trash'])->name('approval-workflows.trash');
+    });
+
+    // API Token Governance
+    Route::middleware('can:manage-platform')->group(function () {
+        Route::resource('api-tokens', ApiTokenController::class)->only(['index', 'store', 'destroy']);
     });
 });
 

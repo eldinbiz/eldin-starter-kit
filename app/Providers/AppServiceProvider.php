@@ -12,7 +12,10 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Lab404\Impersonate\Events\LeaveImpersonation;
 use Lab404\Impersonate\Events\TakeImpersonation;
 use SocialiteProviders\Auth0\Auth0ExtendSocialite;
@@ -38,6 +41,14 @@ class AppServiceProvider extends ServiceProvider
     {
         // Catch N+1 lazy loading violations loudly during development
         Model::preventLazyLoading(! app()->isProduction());
+
+        RateLimiter::for('api.auth', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+
+        RateLimiter::for('api.v1', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
         // Register a Gate for each permission defined in config/permissions.php
         foreach (config('permissions.list', []) as $key => $definition) {
@@ -116,6 +127,23 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewAuditLog', function (User $user): bool {
             return $user->hasPlatformAccess() || Gate::allows('view-audit-logs');
         });
+
+        // Scramble OpenAPI Configuration & Security
+        if (class_exists(\Dedoc\Scramble\Scramble::class)) {
+            \Dedoc\Scramble\Scramble::afterOpenApiGenerated(function (\Dedoc\Scramble\Support\Generator\OpenApi $openApi): void {
+                $openApi->secure(
+                    \Dedoc\Scramble\Support\Generator\SecurityScheme::http('bearer')
+                );
+            });
+
+            Gate::define('viewApiDocs', function (?User $user): bool {
+                if (app()->environment('local', 'testing')) {
+                    return true;
+                }
+
+                return $user?->hasPlatformAccess() ?? false;
+            });
+        }
 
         // Share company context with all views — memoized, single-query per request
         view()->composer('*', function ($view): void {

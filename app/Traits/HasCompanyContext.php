@@ -27,7 +27,7 @@ trait HasCompanyContext
             return $this->cachedActiveCompany;
         }
 
-        $activeCompanyId = session('active_company_id');
+        $activeCompanyId = session('active_company_id') ?? request()->header('X-Company-ID');
 
         if ($activeCompanyId) {
             $company = $this->companies()->where('companies.id', $activeCompanyId)->first();

@@ -42,4 +42,27 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Indicate that the user is a system bot.
+     */
+    public function system(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_system' => true,
+        ]);
+    }
+
+    /**
+     * Give the user the platform-admin role.
+     */
+    public function platformAdmin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $company = \App\Models\Company::factory()->create();
+            $user->companies()->attach($company->id);
+            $role = \App\Models\Role::firstOrCreate(['name' => 'platform-admin', 'is_system_role' => true, 'company_id' => null]);
+            $user->companyRoles()->attach($role->id, ['company_id' => $company->id]);
+        });
+    }
 }

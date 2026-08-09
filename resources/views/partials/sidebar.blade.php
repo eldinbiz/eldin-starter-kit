@@ -271,6 +271,44 @@
                     </li>
                     @endcan
 
+                    <!-- API Tokens -->
+                    @can('manage-platform')
+                    <li>
+                        <a
+                            href="{{ route('admin.api-tokens.index') }}"
+                            class="menu-item group {{ Request::is('admin/api-tokens*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                        >
+                            <span class="flex items-center gap-3">
+                                <!-- Code / Terminal Icon -->
+                                <svg class="fill-current {{ Request::is('admin/api-tokens*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M8.70711 5.29289C8.31658 4.90237 7.68342 4.90237 7.29289 5.29289L2.29289 10.2929C1.90237 10.6834 1.90237 11.3166 2.29289 11.7071L7.29289 16.7071C7.68342 17.0976 8.31658 17.0976 8.70711 16.7071C9.09763 16.3166 9.09763 15.6834 8.70711 15.2929L4.41421 11L8.70711 6.70711C9.09763 6.31658 9.09763 5.68342 8.70711 5.29289ZM15.2929 5.29289C15.6834 4.90237 16.3166 4.90237 16.7071 5.29289L21.7071 10.2929C22.0976 10.6834 22.0976 11.3166 21.7071 11.7071L16.7071 16.7071C16.3166 17.0976 15.6834 17.0976 15.2929 16.7071C14.9024 16.3166 14.9024 15.6834 15.2929 15.2929L19.5858 11L15.2929 6.70711C14.9024 6.31658 14.9024 5.68342 15.2929 5.29289Z" />
+                                </svg>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>API Tokens</span>
+                            </span>
+                        </a>
+                    </li>
+
+                    <!-- API Docs (Scramble) -->
+                    <li>
+                        <a
+                            href="{{ url('/docs/api') }}"
+                            target="_blank"
+                            class="menu-item group menu-item-inactive"
+                        >
+                            <span class="flex items-center gap-3">
+                                <!-- Book / Docs Icon -->
+                                <svg class="fill-current menu-item-icon-inactive" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C9.79086 4.5 7.72893 3.65961 6.16434 2.27493C5.52044 1.70511 4.5 2.16238 4.5 3.02324V18.1402C4.5 18.7303 4.88764 19.2483 5.45423 19.4147C7.43324 19.9959 9.6192 20.25 12 20.25C14.3808 20.25 16.5668 19.9959 18.5458 19.4147C19.1124 19.2483 19.5 18.7303 19.5 18.1402V3.02324C19.5 2.16238 18.4796 1.70511 17.8357 2.27493C16.2711 3.65961 14.2091 4.5 12 4.5ZM6 4.60098C7.6834 5.56847 9.7564 6 12 6C14.2436 6 16.3166 5.56847 18 4.60098V17.7505C16.208 18.3619 14.1884 18.75 12 18.75C9.81156 18.75 7.79198 18.3619 6 17.7505V4.60098Z" />
+                                </svg>
+                                <span class="menu-item-text flex items-center gap-1.5" x-show="!sidebarToggle || sidebarHover" x-cloak>
+                                    API Docs
+                                    <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                </span>
+                            </span>
+                        </a>
+                    </li>
+                    @endcan
+
                     <!-- Audit Trail -->
                     @can('viewAuditLog')
                     <li>

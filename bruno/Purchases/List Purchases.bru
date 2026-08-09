@@ -1,0 +1,15 @@
+meta {
+  name: List Purchases
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/purchases
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Company-ID: {{companyId}}
+}

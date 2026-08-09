@@ -22,18 +22,18 @@ class UsersDataTable extends DataTable
         $activeCompany = $authUser?->getActiveCompany();
 
         if ($isPlatformAdmin) {
-            return User::query()->with(['companyRoles', 'companies']);
+            return User::human()->with(['companyRoles', 'companies']);
         }
 
         if ($activeCompany) {
-            return User::query()
+            return User::human()
                 ->whereHas('companies', function (Builder $q) use ($activeCompany): void {
                     $q->where('companies.id', $activeCompany->id);
                 })
                 ->with(['companyRoles', 'companies']);
         }
 
-        return User::query()->with(['companyRoles', 'companies']);
+        return User::human()->with(['companyRoles', 'companies']);
     }
 
     public function columns(): array

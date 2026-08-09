@@ -14,9 +14,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
 use Lab404\Impersonate\Models\Impersonate;
+use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'auth_method', 'external_id'])]
+#[Fillable(['name', 'email', 'password', 'auth_method', 'external_id', 'is_system'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -39,7 +41,7 @@ class User extends Authenticatable
     ];
 
     /** @use HasFactory<UserFactory> */
-    use HasCompanyContext, HasFactory, Impersonate, Notifiable;
+    use HasApiTokens, HasCompanyContext, HasFactory, Impersonate, Notifiable;
 
     /**
      * Check if the user can impersonate other users.
@@ -56,6 +58,16 @@ class User extends Authenticatable
     public function canBeImpersonated(): bool
     {
         return true;
+    }
+
+    public function scopeHuman(Builder $query): Builder
+    {
+        return $query->where('is_system', false);
+    }
+
+    public function scopeSystem(Builder $query): Builder
+    {
+        return $query->where('is_system', true);
     }
 
     /**
@@ -204,6 +216,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_system' => 'boolean',
         ];
     }
 }
