@@ -135,13 +135,15 @@ class ApiTokenController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request, \App\DataTables\ApiTokensDataTable $dataTable)
     {
-        // Get system users (bots) and their tokens
-        $systemUsers = User::system()->with('tokens')->get();
+        $dataTable->handle($request);
         $endpoints = self::AVAILABLE_ENDPOINTS;
 
-        return view('admin.api-tokens.index', compact('systemUsers', 'endpoints'));
+        return view('admin.api-tokens.index', [
+            'dataTable' => $dataTable,
+            'endpoints' => $endpoints,
+        ]);
     }
 
     /**

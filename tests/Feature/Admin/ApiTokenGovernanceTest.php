@@ -114,3 +114,26 @@ it('rejects api requests with expired tokens', function () {
         ->getJson('/api/v1/me')
         ->assertUnauthorized();
 });
+
+it('filters and searches api tokens in datatable', function () {
+    $admin = User::factory()->platformAdmin()->create();
+    $bot = User::factory()->system()->create(['name' => 'Custom Bot', 'email' => 'bot.custom@system.local']);
+    
+    $activeToken = $bot->createToken('Active Sync Token', ['*'], now()->addDays(30));
+    $expiredToken = $bot->createToken('Old Expired Token', ['*'], now()->subDay());
+
+    // Search by token name
+    $this->actingAs($admin)
+        ->get(route('admin.api-tokens.index', ['search' => 'Sync']))
+        ->assertOk()
+        ->assertSee('Active Sync Token')
+        ->assertDontSee('Old Expired Token');
+
+    // Filter by expired status
+    $this->actingAs($admin)
+        ->get(route('admin.api-tokens.index', ['status' => 'expired']))
+        ->assertOk()
+        ->assertSee('Old Expired Token')
+        ->assertDontSee('Active Sync Token');
+});
+
