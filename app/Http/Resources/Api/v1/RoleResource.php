@@ -19,14 +19,10 @@ class RoleResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'description' => $this->description,
-            'is_system_role' => $this->is_system_role,
-            'company_id' => $this->company_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'permissions' => $this->whenLoaded('permissions', function () {
-                return $this->permissions->pluck('name');
-            }),
+            'permissions' => $this->permissions ?? [],
+            'is_active' => (bool) ($this->is_active ?? true),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }

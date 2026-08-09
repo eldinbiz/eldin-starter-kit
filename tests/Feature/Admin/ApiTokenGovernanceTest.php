@@ -64,3 +64,53 @@ it('revokes an api token successfully', function () {
         'id' => $token->accessToken->id,
     ]);
 });
+
+it('generates a token with custom expiration and granular abilities', function () {
+    $admin = User::factory()->platformAdmin()->create();
+
+    $response = $this->actingAs($admin)
+        ->post(route('admin.api-tokens.store'), [
+            'name' => 'Approvals Webhook',
+            'expiry' => '30',
+            'abilities' => ['approvals:index', 'approvals:show'],
+        ]);
+
+    $response->assertRedirect()
+        ->assertSessionHas('flash.api_token');
+
+    $bot = User::where('email', 'bot.approvals-webhook@system.local')->first();
+    expect($bot->tokens)->toHaveCount(1);
+    
+    $token = $bot->tokens->first();
+    expect($token->abilities)->toEqual(['approvals:index', 'approvals:show']);
+    expect($token->expires_at)->not->toBeNull();
+    expect($token->expires_at->isFuture())->toBeTrue();
+});
+
+it('enforces token abilities on api routes allowing authorized abilities and denying unauthorized abilities', function () {
+    $bot = User::factory()->system()->create();
+    
+    // Create token with only 'notifications:index' ability
+    $plainToken = $bot->createToken('Limited Token', ['notifications:index'])->plainTextToken;
+
+    // Allowed endpoint
+    $this->withHeader('Authorization', 'Bearer ' . $plainToken)
+        ->getJson('/api/v1/notifications')
+        ->assertOk();
+
+    // Unauthorized endpoint (requires 'auth:me')
+    $this->withHeader('Authorization', 'Bearer ' . $plainToken)
+        ->getJson('/api/v1/me')
+        ->assertForbidden();
+});
+
+it('rejects api requests with expired tokens', function () {
+    $bot = User::factory()->system()->create();
+    
+    // Create already expired token
+    $plainToken = $bot->createToken('Expired Token', ['*'], now()->subHour())->plainTextToken;
+
+    $this->withHeader('Authorization', 'Bearer ' . $plainToken)
+        ->getJson('/api/v1/me')
+        ->assertUnauthorized();
+});

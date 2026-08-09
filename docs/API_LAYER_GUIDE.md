@@ -158,7 +158,7 @@ class ExpenseReportController extends Controller
 ```
 
 ### Step 3: Register the Routes in `routes/api.php`
-Add the routes into the `v1` prefix group:
+Add the routes into the `v1` prefix group with granular `ability:<scope>` gating:
 
 ```php
 // routes/api.php
@@ -167,11 +167,39 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api.v1'])->group(func
     
     // Company Scoped Routes
     Route::middleware(['api.company'])->group(function () {
-        Route::get('expenses', [ExpenseReportController::class, 'index']);
-        Route::get('expenses/{expenseReport}', [ExpenseReportController::class, 'show']);
+        Route::get('expenses', [ExpenseReportController::class, 'index'])->middleware('ability:expenses:index');
+        Route::get('expenses/{expenseReport}', [ExpenseReportController::class, 'show'])->middleware('ability:expenses:show');
     });
 });
 ```
+
+### Step 4: Register Endpoints in Token Permissions Registry
+
+To allow administrators to generate scoped API tokens for this new module, register your endpoints in `App\Http\Controllers\Admin\ApiTokenController::AVAILABLE_ENDPOINTS`:
+
+```php
+// app/Http/Controllers/Admin/ApiTokenController.php
+
+[
+    'ability' => 'expenses:index',
+    'method' => 'GET',
+    'path' => '/api/v1/expenses',
+    'label' => 'List Expense Reports',
+    'group' => 'Expenses',
+    'doc_anchor' => 'expenseReport.index',
+],
+[
+    'ability' => 'expenses:show',
+    'method' => 'GET',
+    'path' => '/api/v1/expenses/{id}',
+    'label' => 'View Expense Report Detail',
+    'group' => 'Expenses',
+    'doc_anchor' => 'expenseReport.show',
+],
+```
+
+> [!TIP]
+> **Deep-Linking Docs Anchors**: Scramble generates operation IDs using `{controllerShortName}.{method}` (e.g., `expenseReport.index`). In Stoplight Elements, setting `doc_anchor` enables the `[Docs ↗]` button in the token modal to open `#/operations/{operationId}` directly!
 
 ---
 

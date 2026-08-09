@@ -16,17 +16,21 @@ class ActivityLogResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $changes = is_string($this->changes ?? null) 
+            ? json_decode($this->changes, true) 
+            : ($this->changes ?? []);
+
         return [
             'id' => $this->id,
-            'log_name' => $this->log_name,
-            'description' => $this->description,
-            'subject_type' => $this->subject_type,
-            'subject_id' => $this->subject_id,
-            'causer_type' => $this->causer_type,
-            'causer_id' => $this->causer_id,
-            'properties' => $this->properties,
+            'auditable_type' => $this->auditable_type,
+            'auditable_id' => $this->auditable_id,
+            'event' => $this->event,
+            'actor_type' => $this->actor_type,
+            'actor_id' => $this->actor_id,
+            'actor_label' => $this->actor_label,
+            'changes' => $changes,
+            'occurred_at' => $this->occurred_at,
             'created_at' => $this->created_at,
-            'causer' => new UserResource($this->whenLoaded('causer')),
         ];
     }
 }

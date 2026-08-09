@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => AdminMiddleware::class,
             'active.company' => SetActiveCompany::class,
             'api.company' => \App\Http\Middleware\ApiSetActiveCompany::class,
+            'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         ]);
 
         $middleware->web(append: [

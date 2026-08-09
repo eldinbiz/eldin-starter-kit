@@ -17,7 +17,7 @@ class RoleController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $roles = Role::with('permissions')
+        $roles = Role::query()
             ->paginate($request->query('per_page', 15));
 
         return response()->json([
@@ -36,8 +36,6 @@ class RoleController extends Controller
      */
     public function show(Role $role): JsonResponse
     {
-        $role->load('permissions');
-
         return response()->json([
             'data' => new RoleResource($role),
         ]);
