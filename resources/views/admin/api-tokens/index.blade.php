@@ -9,6 +9,10 @@
 
 <div x-data="{ 
     showCreateModal: false,
+    showScopesModal: false,
+    viewingToken: null,
+    viewingAbilities: [],
+    allEndpoints: {{ json_encode($endpoints) }},
     selectAll: true,
     allAbilities: {{ json_encode(array_column($endpoints, 'ability')) }},
     selectedAbilities: [],
@@ -24,6 +28,17 @@
     },
     updateSelectAll() {
         this.selectAll = this.selectedAbilities.length === this.allAbilities.length;
+    },
+    openScopesModal(tokenName, userName, userEmail, abilities) {
+        this.viewingToken = { name: tokenName, user_name: userName, user_email: userEmail };
+        this.viewingAbilities = abilities || ['*'];
+        this.showScopesModal = true;
+    },
+    getGrantedEndpoints() {
+        if (!this.viewingAbilities || this.viewingAbilities.includes('*')) {
+            return this.allEndpoints;
+        }
+        return this.allEndpoints.filter(ep => this.viewingAbilities.includes(ep.ability));
     }
 }" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
     <div class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -102,13 +117,31 @@
                         </td>
                         <td class="px-6 py-4">
                             @if(empty($token->abilities) || in_array('*', $token->abilities))
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                                    Full Access (*)
-                                </span>
+                                <button 
+                                    type="button"
+                                    @click="openScopesModal('{{ addslashes($token->name) }}', '{{ addslashes($user->name) }}', '{{ addslashes($user->email) }}', {{ json_encode($token->abilities ?? ['*']) }})"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition cursor-pointer"
+                                    title="Click to view all accessible endpoints"
+                                >
+                                    <span>Full Access (*)</span>
+                                    <svg class="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300" title="{{ implode(', ', $token->abilities) }}">
-                                    {{ count($token->abilities) }} Endpoints
-                                </span>
+                                <button 
+                                    type="button"
+                                    @click="openScopesModal('{{ addslashes($token->name) }}', '{{ addslashes($user->name) }}', '{{ addslashes($user->email) }}', {{ json_encode($token->abilities) }})"
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition cursor-pointer"
+                                    title="Click to view all accessible endpoints"
+                                >
+                                    <span>{{ count($token->abilities) }} Endpoints</span>
+                                    <svg class="w-3 h-3 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
                             @endif
                         </td>
                         <td class="px-6 py-4">
@@ -293,6 +326,78 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- View Scopes Inspection Modal -->
+    <div 
+        x-show="showScopesModal" 
+        x-cloak 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
+    >
+        <div 
+            @click.away="showScopesModal = false"
+            class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800 max-h-[90vh] flex flex-col"
+        >
+            <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Token Permissions: <span class="text-brand-500" x-text="viewingToken?.name"></span>
+                    </h3>
+                    <p class="text-xs text-gray-500">
+                        Service Account: <span x-text="viewingToken?.user_name"></span> (<span x-text="viewingToken?.user_email"></span>)
+                    </p>
+                </div>
+                <button @click="showScopesModal = false" class="text-gray-400 hover:text-gray-500">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mb-3 flex items-center justify-between">
+                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Accessible Endpoints (<span x-text="getGrantedEndpoints().length"></span>)
+                </span>
+                <template x-if="viewingAbilities && viewingAbilities.includes('*')">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                        Full Platform Access
+                    </span>
+                </template>
+            </div>
+
+            <div class="overflow-y-auto pr-1 space-y-2 flex-1 max-h-72 rounded-lg border border-gray-200 p-3 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+                <template x-for="ep in getGrantedEndpoints()" :key="ep.ability">
+                    <div class="flex items-center justify-between p-2 rounded bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300" x-text="ep.method"></span>
+                            <code class="text-xs font-mono font-medium text-gray-800 dark:text-gray-200 truncate" x-text="ep.path"></code>
+                            <span class="text-xs text-gray-400 hidden sm:inline truncate" x-text="'— ' + ep.label"></span>
+                        </div>
+                        <a 
+                            :href="'{{ url('/docs/api') }}#/operations/' + (ep.doc_anchor || '')" 
+                            target="_blank" 
+                            class="ml-2 text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 hover:underline flex-shrink-0 inline-flex items-center gap-1 font-medium"
+                            title="View OpenAPI documentation reference for this endpoint"
+                        >
+                            Docs
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                        </a>
+                    </div>
+                </template>
+            </div>
+
+            <div class="flex justify-end mt-5 pt-4 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+                <button 
+                    type="button" 
+                    @click="showScopesModal = false"
+                    class="rounded-lg bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                >
+                    Close
+                </button>
+            </div>
         </div>
     </div>
 </div>
