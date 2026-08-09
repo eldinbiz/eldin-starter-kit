@@ -91,13 +91,23 @@ Pending ──→ Approved
 
 ---
 
-### 4. API Layer ⏳ In Progress
+### 4. API Layer ✅ Done
 
-- REST/JSON API with Laravel Sanctum token-based authentication
-- Eloquent API Resources for consistent response structure
-- Versioned: `/api/v1/...`
-- Multi-tenant aware: all queries scoped to the authenticated user's active company
-- Rate limiting on auth endpoints and all API routes
+REST/JSON API architecture with centralized token governance, per-endpoint abilities, interactive documentation, and multi-tenant scoping.
+
+**Key Deliverables:**
+- **System Service Account Separation**: Tokens are bound to isolated System Bots (`is_system = true` on `users` table), cleanly segregated from human directory listings (`User::human()` scope).
+- **API Token Governance UI**: Bespoke management panel (`/admin/api-tokens`) built on the reusable server-rendered DataTable engine (`ApiTokensDataTable`) with sorting, live search, status filters (`Active`, `Expiring Soon`, `Expired`, `Never`), and responsive mobile card layout.
+- **Granular Per-Endpoint Abilities**: 1-checkbox-per-endpoint permissions in the token generator modal mapped to Sanctum route abilities (e.g., `approval:read`, `purchase:read`, `user:read`, `role:read`, `company:read`, `notification:read`, `audit:read`).
+- **Interactive Scopes Inspection**: Clickable token scopes badges opening an interactive modal detailing all granted endpoints with deep links (`[Docs ↗]`) to the exact OpenAPI operation card.
+- **Token Expiration & Lifecycle Governance**: Presets (`30d`, `60d`, `90d`, `1yr`, `Never`) with automated daily cleanup via scheduled `sanctum:prune-expired --hours=24`.
+- **Dedicated Access Control**: Protected by dedicated `'manage-api-tokens'` permission under System Administration with strict active-role gate enforcement.
+- **Multi-Tenant Company Scoping**: Stateless context resolution via `ApiSetActiveCompany` middleware and `X-Company-ID` HTTP header, with platform-admin cross-company overrides.
+- **Versioned Endpoints (`/api/v1/...`) & Eloquent API Resources**: Standardized JSON schemas across Auth, Companies, Users, Roles, Approvals, Purchase Requests, Notifications, and Audit Logs.
+- **Interactive OpenAPI 3.1 Documentation**: Powered by `dedoc/scramble` and Stoplight Elements at `/docs/api` with Bearer auth schema and operationId deep-linking.
+- **Bruno API Collection**: Complete ready-to-use collection scaffolded in `bruno/` with environments and pre-configured Bearer Auth.
+- **Developer Guide & AI Skill**: Comprehensive standards in `docs/API_LAYER_GUIDE.md` and AI workflow automation in `.agents/skills/api-layer-integration/SKILL.md`.
+- **Automated Test Suite**: 100% Pest test coverage covering token lifecycle, permissions, scopes enforcement, multi-tenancy, and API endpoints.
 
 ---
 
@@ -168,7 +178,7 @@ Dynamic 2-step flow: User enters email → system looks up user → reads `auth_
 | 6 | Approval Module | P0 | ✅ Done |
 | 7 | Notification Module | P0 | ✅ Done |
 | 8 | Audit Trail | P1 | ✅ Done |
-| 9 | API Layer | P1 | ⏳ In Progress |
+| 9 | API Layer | P1 | ✅ Done |
 | 10 | Authentication Overhaul | P1 | ✅ Done |
 | 11 | User Impersonation | P1 | ✅ Done |
 | 12 | System Configuration | P2 | ☐ To Do |
