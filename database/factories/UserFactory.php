@@ -60,8 +60,11 @@ class UserFactory extends Factory
     {
         return $this->afterCreating(function (User $user) {
             $company = \App\Models\Company::factory()->create();
-            $user->companies()->attach($company->id);
-            $role = \App\Models\Role::firstOrCreate(['name' => 'platform-admin', 'is_system_role' => true, 'company_id' => null]);
+            $user->companies()->attach($company->id, ['status' => 'active']);
+            $role = \App\Models\Role::firstOrCreate(
+                ['name' => 'platform-admin'],
+                ['permissions' => ['*'], 'is_active' => true]
+            );
             $user->companyRoles()->attach($role->id, ['company_id' => $company->id]);
         });
     }

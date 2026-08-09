@@ -74,7 +74,7 @@ class DatabaseSeeder extends Seeder
         $adminRole = Role::create([
             'name' => 'admin',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-roles', 'manage-org-chart'],
+                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-api-tokens'],
                 $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
@@ -97,7 +97,7 @@ class DatabaseSeeder extends Seeder
         $platformAdminRole = Role::create([
             'name' => 'platform-admin',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform'],
+                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform', 'manage-api-tokens'],
                 $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),

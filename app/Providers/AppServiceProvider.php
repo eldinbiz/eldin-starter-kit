@@ -53,7 +53,7 @@ class AppServiceProvider extends ServiceProvider
         // Register a Gate for each permission defined in config/permissions.php
         foreach (config('permissions.list', []) as $key => $definition) {
             Gate::define($key, function (User $user) use ($key): bool {
-                return $user->hasPlatformAccess() || ($user->getActiveRole()?->hasPermission($key) ?? false);
+                return $user->getActiveRole()?->hasPermission($key) ?? false;
             });
         }
 
