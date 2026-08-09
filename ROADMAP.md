@@ -142,27 +142,31 @@ Dynamic 2-step flow: User enters email → system looks up user → reads `auth_
 
 ## P2 — Future (v1.2+)
 
-### 7. System Configuration Module
+### 7. System Configuration Module 🔄 In Progress
 
-**App-Level Settings** (platform admin only):
-- Application name, logo, favicon
-- Default timezone, date format, locale
-- Mail driver and SMTP configuration
+Unified system configuration architecture spanning application-level platform administration, per-company tenant preferences, customizable email notification templates, and dynamic feature toggles.
 
-**Per-Company Settings:**
-- Currency, date/time format preferences
-- Branding (company logo, primary color)
-- Approval-related thresholds (future use)
+**1. App-Level Settings (Platform Admin only):**
+- **General Branding:** Application name, logo, favicon, dark mode defaults.
+- **Localization:** Default system timezone, date/time format, locale.
+- **Mail & Transport:** Mail driver, SMTP host/port/credentials (securely encrypted), sender identity, and live test email dispatch.
 
-**Email Templates:**
-- Editable HTML templates per notification type
-- Variable placeholders: `{{ user_name }}`, `{{ company_name }}`, `{{ approval_link }}`, etc.
+**2. Per-Company Settings (Tenant Admin & Platform Admin):**
+- **Tenant Preferences:** Base currency, timezone override, custom date format preferences.
+- **Company Branding:** Custom company logo, accent/primary color theme.
+- **Workflow & Operational Rules:** Approval threshold amounts, escalation defaults.
 
-**Authentication Providers:**
-- Managed by the [Authentication Overhaul](#5-authentication-overhaul) module (P1). Per-user `auth_method` column + system-level provider configuration for LDAP, Google, Microsoft, Auth0, and SAML 2.0.
+**3. Editable Email Templates:**
+- Visual template editor/manager for system and notification event triggers (approval requested, step completed, rejection, welcome, etc.).
+- Dynamic placeholder tokens: `{{ user_name }}`, `{{ company_name }}`, `{{ approval_link }}`, `{{ app_name }}`, `{{ action_url }}`.
+- Live test send and preview rendering.
 
-**Feature Toggles:**
-- Enable/disable modules per company
+**4. Feature Toggles & Module Management:**
+- Granular enable/disable toggles for platform modules per company (e.g., Approvals, Purchase Requests, Audit Logs, API Access).
+- Middleware enforcement and responsive sidebar/navigation visibility adapting to enabled features.
+
+**5. Authentication Providers:**
+- Managed by the [Authentication Overhaul](#5-authentication-overhaul) module (P1). Per-user `auth_method` column + system-level provider configuration for LDAP, Google, Microsoft, Auth0, and SAML 2.0 under `/admin/settings/auth-providers`.
 
 ---
 
@@ -181,4 +185,4 @@ Dynamic 2-step flow: User enters email → system looks up user → reads `auth_
 | 9 | API Layer | P1 | ✅ Done |
 | 10 | Authentication Overhaul | P1 | ✅ Done |
 | 11 | User Impersonation | P1 | ✅ Done |
-| 12 | System Configuration | P2 | ☐ To Do |
+| 12 | System Configuration | P2 | 🔄 In Progress |
