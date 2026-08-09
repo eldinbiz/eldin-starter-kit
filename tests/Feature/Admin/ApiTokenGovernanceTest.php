@@ -25,6 +25,51 @@ it('prevents regular users from viewing api tokens governance page', function ()
         ->assertForbidden();
 });
 
+it('allows company admin with manage-api-tokens permission to view api tokens governance page', function () {
+    $company = \App\Models\Company::factory()->create(['is_active' => true]);
+    $role = \App\Models\Role::factory()->create([
+        'name' => 'admin',
+        'permissions' => ['manage-api-tokens'],
+    ]);
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, [
+        'job_title' => 'API Manager',
+        'status' => 'active',
+    ]);
+    $user->companyRoles()->attach($role->id, [
+        'company_id' => $company->id,
+    ]);
+
+    session(['active_company_id' => $company->id]);
+
+    $this->actingAs($user)
+        ->get(route('admin.api-tokens.index'))
+        ->assertOk()
+        ->assertSee('System API Tokens');
+});
+
+it('prevents company admin without manage-api-tokens permission from viewing api tokens governance page', function () {
+    $company = \App\Models\Company::factory()->create(['is_active' => true]);
+    $role = \App\Models\Role::factory()->create([
+        'name' => 'admin',
+        'permissions' => ['manage-users'],
+    ]);
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, [
+        'job_title' => 'Company Admin',
+        'status' => 'active',
+    ]);
+    $user->companyRoles()->attach($role->id, [
+        'company_id' => $company->id,
+    ]);
+
+    session(['active_company_id' => $company->id]);
+
+    $this->actingAs($user)
+        ->get(route('admin.api-tokens.index'))
+        ->assertForbidden();
+});
+
 it('generates a new api token and creates a system bot', function () {
     $admin = User::factory()->platformAdmin()->create();
 

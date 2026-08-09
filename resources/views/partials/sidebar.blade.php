@@ -272,7 +272,7 @@
                     @endcan
 
                     <!-- API Tokens -->
-                    @can('manage-platform')
+                    @can('manage-api-tokens')
                     <li>
                         <a
                             href="{{ route('admin.api-tokens.index') }}"

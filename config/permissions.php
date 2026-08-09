@@ -48,6 +48,10 @@ return [
             'label' => 'Manage Platform',
             'group' => 'System Administration',
         ],
+        'manage-api-tokens' => [
+            'label' => 'Manage API Tokens: Generate, inspect, and revoke REST API tokens and endpoint abilities',
+            'group' => 'System Administration',
+        ],
         'view-audit-logs' => [
             'label' => 'View Audit Logs: Access system audit trail and change history logs',
             'group' => 'System Administration',

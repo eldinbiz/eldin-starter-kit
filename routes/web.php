@@ -118,7 +118,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 
     // API Token Governance
-    Route::middleware('can:manage-platform')->group(function () {
+    Route::middleware('can:manage-api-tokens')->group(function () {
         Route::resource('api-tokens', ApiTokenController::class)->only(['index', 'store', 'destroy']);
     });
 });
