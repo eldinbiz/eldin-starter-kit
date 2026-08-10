@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\ApiSetActiveCompany;
+use App\Http\Middleware\EnsureFeatureEnabled;
 use App\Http\Middleware\SetActiveCompany;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,9 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'active.company' => SetActiveCompany::class,
-            'api.company' => \App\Http\Middleware\ApiSetActiveCompany::class,
-            'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
-            'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+            'api.company' => ApiSetActiveCompany::class,
+            'ability' => CheckForAnyAbility::class,
+            'abilities' => CheckAbilities::class,
+            'feature' => EnsureFeatureEnabled::class,
         ]);
 
         $middleware->web(append: [

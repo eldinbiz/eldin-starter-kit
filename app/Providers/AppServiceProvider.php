@@ -9,13 +9,18 @@ use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalRejected;
 use App\Listeners\Approval\UpdateApprovableStatus;
 use App\Models\User;
+use App\Services\FeatureService;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
 use Lab404\Impersonate\Events\LeaveImpersonation;
 use Lab404\Impersonate\Events\TakeImpersonation;
 use SocialiteProviders\Auth0\Auth0ExtendSocialite;
@@ -56,6 +61,9 @@ class AppServiceProvider extends ServiceProvider
                 return $user->getActiveRole()?->hasPermission($key) ?? false;
             });
         }
+
+        // Blade directive @feature('approvals') ... @endfeature
+        Blade::if('feature', fn (string $key): bool => app(FeatureService::class)->isEnabled($key));
 
         // Register approval event listeners
         Event::listen(ApprovalCompleted::class, UpdateApprovableStatus::class);
@@ -129,10 +137,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Scramble OpenAPI Configuration & Security
-        if (class_exists(\Dedoc\Scramble\Scramble::class)) {
-            \Dedoc\Scramble\Scramble::afterOpenApiGenerated(function (\Dedoc\Scramble\Support\Generator\OpenApi $openApi): void {
+        if (class_exists(Scramble::class)) {
+            Scramble::afterOpenApiGenerated(function (OpenApi $openApi): void {
                 $openApi->secure(
-                    \Dedoc\Scramble\Support\Generator\SecurityScheme::http('bearer')
+                    SecurityScheme::http('bearer')
                 );
             });
 

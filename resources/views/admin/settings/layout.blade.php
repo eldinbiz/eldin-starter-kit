@@ -72,6 +72,15 @@
             </a>
             @endcan
 
+            @can('manage-platform')
+            <a
+                href="{{ route('admin.settings.features') }}"
+                class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.features*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
+            >
+                🧩 Feature Toggles
+            </a>
+            @endcan
+
             @can('manage-company-settings')
             <a
                 href="{{ route('admin.settings.company') }}"

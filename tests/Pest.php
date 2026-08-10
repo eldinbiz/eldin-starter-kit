@@ -25,6 +25,8 @@ foreach (['APP_ENV' => 'testing', 'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => 
     $_SERVER[$key] = $value;
 }
 
+ini_set('memory_limit', '1024M');
+
 $app = require __DIR__.'/../bootstrap/app.php';
 
 $app->bootstrapWith([

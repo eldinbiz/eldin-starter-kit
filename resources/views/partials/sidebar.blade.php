@@ -72,6 +72,7 @@
             </div>
 
             <!-- Group 2: APPROVALS -->
+            @feature('approvals')
             @canany(['view-approval-inbox', 'view-approval-history', 'view-approval-requests', 'manage-approvals', 'manage-approval-workflows'])
             <div class="mb-6">
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
@@ -169,6 +170,7 @@
                 </ul>
             </div>
             @endcanany
+            @endfeature
 
             <!-- Group 3: SYSTEM ADMINISTRATION -->
             <div>
@@ -290,6 +292,7 @@
                     @endcan
 
                     <!-- API Tokens -->
+                    @feature('api_access')
                     @can('manage-api-tokens')
                     <li>
                         <a
@@ -326,8 +329,10 @@
                         </a>
                     </li>
                     @endcan
+                    @endfeature
 
                     <!-- Audit Trail -->
+                    @feature('audit_logs')
                     @can('viewAuditLog')
                     <li>
                         <a
@@ -344,6 +349,7 @@
                         </a>
                     </li>
                     @endcan
+                    @endfeature
 
                     <!-- System Variables (Placeholder) -->
                     <li>

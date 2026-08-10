@@ -59,7 +59,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // System Audit Trail
     Route::get('/audit-trail', [AuditTrailController::class, 'index'])
         ->name('audit-trail.index')
-        ->middleware('can:viewAuditLog');
+        ->middleware(['can:viewAuditLog', 'feature:audit_logs']);
 
     // System Auth Provider Settings
     Route::middleware('can:manage-auth-providers')->group(function () {
@@ -96,6 +96,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::put('/settings/company', [SystemSettingController::class, 'updateCompany'])->name('settings.company.update');
     });
 
+    // Feature Toggles (Platform Admin only)
+    Route::middleware('can:manage-platform')->group(function () {
+        Route::get('/settings/features', [SystemSettingController::class, 'features'])->name('settings.features');
+        Route::put('/settings/features', [SystemSettingController::class, 'updateFeatures'])->name('settings.features.update');
+    });
+
     Route::resource('users', UserController::class);
     Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
     Route::post('roles/{role}/restore', [App\Http\Controllers\Admin\RoleController::class, 'restore'])->name('roles.restore')->withTrashed();
@@ -128,7 +134,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
 
     // Approval Management
-    Route::middleware('can:manage-approvals')->group(function () {
+    Route::middleware(['can:manage-approvals', 'feature:approvals'])->group(function () {
         Route::get('/approval-management', [ApprovalManagementController::class, 'index'])
             ->name('approval-management.index');
         Route::post('/approval-management/{step}/delegate', [ApprovalManagementController::class, 'delegate'])
@@ -138,7 +144,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 
     // Approval Workflow Templates
-    Route::middleware('can:manage-approval-workflows')->group(function () {
+    Route::middleware(['can:manage-approval-workflows', 'feature:approvals'])->group(function () {
         Route::resource('approval-workflows', ApprovalWorkflowController::class)->parameters([
             'approval-workflows' => 'workflow',
         ]);
@@ -148,13 +154,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 
     // API Token Governance
-    Route::middleware('can:manage-api-tokens')->group(function () {
+    Route::middleware(['can:manage-api-tokens', 'feature:api_access'])->group(function () {
         Route::resource('api-tokens', ApiTokenController::class)->only(['index', 'store', 'destroy']);
     });
 });
 
 // Approval Routes (authenticated users)
-Route::middleware('auth')->prefix('approvals')->name('approvals.')->group(function () {
+Route::middleware(['auth', 'feature:approvals'])->prefix('approvals')->name('approvals.')->group(function () {
     Route::get('/inbox', [ApprovalController::class, 'inbox'])->name('inbox')->middleware('can:view-approval-inbox');
     Route::get('/history', [ApprovalController::class, 'history'])->name('history')->middleware('can:view-approval-history');
     Route::get('/requests', [ApprovalController::class, 'requests'])->name('requests')->middleware('can:view-approval-requests');

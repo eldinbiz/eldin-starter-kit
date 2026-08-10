@@ -1,3 +1,4 @@
 #!/bin/sh
 mkdir -p .pest
-composer test --compact 2>&1 | tee ".pest/test_$(date +%Y%m%d_%H%M%S).log"
+php artisan config:clear
+php -d memory_limit=1024M vendor/pestphp/pest/bin/pest 2>&1 | tee ".pest/test_$(date +%Y%m%d_%H%M%S).log"

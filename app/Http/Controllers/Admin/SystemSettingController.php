@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\TestEmail;
 use App\Models\Company;
 use App\Models\SystemSetting;
+use App\Services\FeatureService;
 use App\Services\SettingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,8 @@ use Throwable;
 class SystemSettingController extends Controller
 {
     public function __construct(
-        private readonly SettingService $settingService
+        private readonly SettingService $settingService,
+        private readonly FeatureService $featureService
     ) {}
 
     /**
@@ -398,5 +400,88 @@ class SystemSettingController extends Controller
 
         return redirect()->route('admin.settings.company', ['company_id' => $companyId])
             ->with('success', __('Company preferences updated successfully.'));
+    }
+
+    /**
+     * Display feature toggles page (global defaults and per-company overrides).
+     */
+    public function features(Request $request): View
+    {
+        $companies = Company::orderBy('name')->get();
+        $selectedCompanyId = $request->has('company_id') && $request->query('company_id') !== ''
+            ? (int) $request->query('company_id')
+            : null;
+
+        $features = $this->featureService->all();
+
+        $globalValues = [];
+        foreach ($features as $key => $definition) {
+            $globalValues[$key] = $this->settingService->get(
+                $definition['setting_key'],
+                null,
+                $definition['default_enabled'],
+            );
+        }
+
+        $companyOverrides = $selectedCompanyId !== null
+            ? SystemSetting::forGroup('feature')
+                ->forCompany($selectedCompanyId)
+                ->get()
+                ->keyBy('key')
+            : collect();
+
+        $companyValues = [];
+        foreach ($features as $key => $definition) {
+            $override = $companyOverrides->get($definition['setting_key']);
+
+            $companyValues[$key] = $override?->typed_value;
+        }
+
+        return view('admin.settings.features', [
+            'features' => $features,
+            'companies' => $companies,
+            'selectedCompanyId' => $selectedCompanyId,
+            'globalValues' => $globalValues,
+            'companyValues' => $companyValues,
+        ]);
+    }
+
+    /**
+     * Update feature toggles (platform admin only).
+     */
+    public function updateFeatures(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'features' => ['required', 'array'],
+            'features.*' => ['nullable', 'in:0,1'],
+        ]);
+
+        $companyId = ! empty($validated['company_id']) ? (int) $validated['company_id'] : null;
+
+        foreach ($this->featureService->all() as $key => $definition) {
+            $value = (string) ($validated['features'][$key] ?? '');
+
+            if ($value === '') {
+                // "Use Global" — delete the override row so the cascade resumes.
+                $this->settingService->delete($definition['setting_key'], $companyId);
+
+                continue;
+            }
+
+            $this->settingService->set(
+                $definition['setting_key'],
+                (bool) $value,
+                'boolean',
+                'feature',
+                $companyId,
+                $definition['description'],
+            );
+        }
+
+        $this->featureService->flush();
+
+        return redirect()->route('admin.settings.features', $companyId !== null ? ['company_id' => $companyId] : [])
+            ->with('success', __('Feature toggles updated successfully.'));
     }
 }
