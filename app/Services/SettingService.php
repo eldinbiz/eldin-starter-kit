@@ -121,7 +121,7 @@ class SettingService
             $query->whereNull('company_id');
         }
 
-        return $query->orderBy('key')->get();
+        return $query->with('company')->orderBy('key')->get();
     }
 
     /**

@@ -40,7 +40,7 @@ class EmailTemplateController extends Controller
             $query->whereNull('company_id');
         }
 
-        $templates = $query->orderBy('event')->get();
+        $templates = $query->with('company')->orderBy('event')->get();
 
         return view('admin.settings.email-templates.index', [
             'templates' => $templates,

@@ -21,7 +21,7 @@
             this.previewHtml = data.html;
         } catch (e) {
             this.previewSubject = 'Error';
-            this.previewHtml = '<p class=\"text-error-500\">Failed to generate preview.</p>';
+            this.previewHtml = '<p class=&quot;text-error-500&quot;>Failed to generate preview.</p>';
         } finally {
             this.previewLoading = false;
         }
@@ -79,7 +79,7 @@
                     class="inline-flex items-center gap-1 rounded-md border border-brand-200 bg-white px-2.5 py-1 font-mono text-xs text-brand-700 shadow-theme-xs hover:bg-brand-50 dark:border-brand-800 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-brand-500/10"
                 >
                     <span>+</span>
-                    <span>@{{ {{ $tok }} }}</span>
+                    <span>&#123;&#123; {{ $tok }} &#125;&#125;</span>
                 </button>
             @endforeach
         </div>

@@ -32,7 +32,7 @@
             this.previewHtml = data.html;
         } catch (e) {
             this.previewSubject = 'Error';
-            this.previewHtml = '<p class=\"text-error-500\">Failed to generate template preview.</p>';
+            this.previewHtml = '<p class=&quot;text-error-500&quot;>Failed to generate template preview.</p>';
         } finally {
             this.previewLoading = false;
         }

@@ -164,12 +164,16 @@ test('admin can view, edit, and preview email templates', function (): void {
     // Index
     $this->get(route('admin.settings.email-templates.index'))
         ->assertOk()
-        ->assertSee('Rejection Notice');
+        ->assertSee('Rejection Notice')
+        ->assertDontSee('class=\"text-error-500', false);
 
     // Edit view
     $this->get(route('admin.settings.email-templates.edit', $template->id))
         ->assertOk()
-        ->assertSee('approval_rejected');
+        ->assertSee('approval_rejected')
+        ->assertDontSee('class=\"text-error-500', false)
+        ->assertDontSee('{{ {{ $tok }} }}', false)
+        ->assertSee('&#123;&#123; user_name &#125;&#125;', false);
 
     // Update
     $updateRes = $this->put(route('admin.settings.email-templates.update', $template->id), [
