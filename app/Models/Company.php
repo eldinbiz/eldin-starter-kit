@@ -179,6 +179,26 @@ class Company extends Model
     }
 
     /**
+     * Get system settings for this company.
+     *
+     * @return HasMany<SystemSetting, $this>
+     */
+    public function systemSettings(): HasMany
+    {
+        return $this->hasMany(SystemSetting::class, 'company_id');
+    }
+
+    /**
+     * Get email templates for this company.
+     *
+     * @return HasMany<EmailTemplate, $this>
+     */
+    public function emailTemplates(): HasMany
+    {
+        return $this->hasMany(EmailTemplate::class, 'company_id');
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

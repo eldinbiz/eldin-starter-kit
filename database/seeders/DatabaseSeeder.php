@@ -74,7 +74,7 @@ class DatabaseSeeder extends Seeder
         $adminRole = Role::create([
             'name' => 'admin',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-api-tokens'],
+                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-api-tokens', 'manage-system-settings', 'manage-company-settings'],
                 $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
         $managerRole = Role::create([
             'name' => 'manager',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-org-chart'],
+                ['manage-users', 'manage-org-chart', 'manage-company-settings'],
                 $userApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
@@ -97,7 +97,7 @@ class DatabaseSeeder extends Seeder
         $platformAdminRole = Role::create([
             'name' => 'platform-admin',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform', 'manage-api-tokens'],
+                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform', 'manage-api-tokens', 'manage-system-settings', 'manage-company-settings'],
                 $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
@@ -386,5 +386,8 @@ class DatabaseSeeder extends Seeder
                 $companyUserIds[] = $user->id;
             }
         }
+
+        // 5. Seed System Settings & Email Templates
+        $this->call(SystemSettingSeeder::class);
     }
 }

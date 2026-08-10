@@ -48,6 +48,14 @@ return [
             'label' => 'Manage Platform',
             'group' => 'System Administration',
         ],
+        'manage-system-settings' => [
+            'label' => 'Manage System Settings: Configure platform-wide branding, mail transport, custom variables, and email templates',
+            'group' => 'System Administration',
+        ],
+        'manage-company-settings' => [
+            'label' => 'Manage Company Settings: Configure company-level branding, logo, timezone, and date format preferences',
+            'group' => 'System Administration',
+        ],
         'manage-api-tokens' => [
             'label' => 'Manage API Tokens: Generate, inspect, and revoke REST API tokens and endpoint abilities',
             'group' => 'System Administration',

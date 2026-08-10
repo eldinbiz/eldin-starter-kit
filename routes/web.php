@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\ApprovalManagementController;
 use App\Http\Controllers\Admin\ApprovalWorkflowController;
-use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\AuditTrailController;
 use App\Http\Controllers\Admin\AuthProviderSettingController;
+use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\OrgChartController;
+use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
@@ -64,6 +66,34 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/settings/auth-providers', [AuthProviderSettingController::class, 'index'])->name('settings.auth-providers.index');
         Route::put('/settings/auth-providers/{provider}', [AuthProviderSettingController::class, 'update'])->name('settings.auth-providers.update');
         Route::post('/settings/auth-providers/{provider}/test', [AuthProviderSettingController::class, 'test'])->name('settings.auth-providers.test');
+    });
+
+    // System Settings (Platform-Wide & Custom Variables & Email Templates)
+    Route::middleware('can:manage-system-settings')->group(function () {
+        Route::get('/settings', fn () => redirect()->route('admin.settings.general'))->name('settings.index');
+        Route::get('/settings/general', [SystemSettingController::class, 'general'])->name('settings.general');
+        Route::put('/settings/general', [SystemSettingController::class, 'updateGeneral'])->name('settings.general.update');
+
+        Route::get('/settings/mail', [SystemSettingController::class, 'mail'])->name('settings.mail');
+        Route::put('/settings/mail', [SystemSettingController::class, 'updateMail'])->name('settings.mail.update');
+        Route::post('/settings/mail/test', [SystemSettingController::class, 'testMail'])->name('settings.mail.test');
+
+        Route::get('/settings/custom-variables', [SystemSettingController::class, 'customVariables'])->name('settings.custom-variables');
+        Route::post('/settings/custom-variables', [SystemSettingController::class, 'storeCustomVariable'])->name('settings.custom-variables.store');
+        Route::put('/settings/custom-variables/{id}', [SystemSettingController::class, 'updateCustomVariable'])->name('settings.custom-variables.update');
+        Route::delete('/settings/custom-variables/{id}', [SystemSettingController::class, 'destroyCustomVariable'])->name('settings.custom-variables.destroy');
+
+        Route::get('/settings/email-templates', [EmailTemplateController::class, 'index'])->name('settings.email-templates.index');
+        Route::get('/settings/email-templates/{emailTemplate}/edit', [EmailTemplateController::class, 'edit'])->name('settings.email-templates.edit');
+        Route::put('/settings/email-templates/{emailTemplate}', [EmailTemplateController::class, 'update'])->name('settings.email-templates.update');
+        Route::get('/settings/email-templates/{emailTemplate}/preview', [EmailTemplateController::class, 'preview'])->name('settings.email-templates.preview');
+        Route::post('/settings/email-templates/{emailTemplate}/test', [EmailTemplateController::class, 'test'])->name('settings.email-templates.test');
+    });
+
+    // Company Settings (Tenant Preferences)
+    Route::middleware('can:manage-company-settings')->group(function () {
+        Route::get('/settings/company', [SystemSettingController::class, 'company'])->name('settings.company');
+        Route::put('/settings/company', [SystemSettingController::class, 'updateCompany'])->name('settings.company.update');
     });
 
     Route::resource('users', UserController::class);

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Services\EmailTemplateService;
+use App\Services\SettingService;
 use App\ValueObjects\NotificationPayload;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 class AppNotification extends Notification implements ShouldQueue
 {
@@ -28,6 +31,38 @@ class AppNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $templateService = app(EmailTemplateService::class);
+        $settingService = app(SettingService::class);
+        $settingService->applyRuntimeMailConfig();
+
+        $event = $this->payload->type;
+        $companyId = $this->payload->companyId;
+
+        $template = $templateService->resolveTemplate($event, $companyId);
+
+        if ($template) {
+            $variables = [
+                'user_name' => $notifiable->name ?? 'User',
+                'user_email' => $notifiable->email ?? '',
+                'company_name' => $this->payload->companyName ?? '',
+                'title' => $this->payload->title,
+                'request_title' => $this->payload->title,
+                'message' => $this->payload->message,
+                'action_url' => $this->payload->url ?? '',
+                'approval_link' => $this->payload->url ?? '',
+                'action_text' => $this->payload->actionText ?? 'View Details',
+            ];
+
+            $rendered = $templateService->render($event, $variables, $companyId);
+
+            return (new MailMessage)
+                ->subject($rendered['subject'])
+                ->view([
+                    'html' => new HtmlString($rendered['html']),
+                    'text' => $rendered['text'] ?? null,
+                ]);
+        }
+
         $companyPrefix = $this->payload->companyName
             ? "[{$this->payload->companyName}] "
             : '';
