@@ -118,15 +118,32 @@ test('admin can view and update mail settings and send test email', function ():
     expect($settingService->get('mail_host'))->toBe('smtp.custom-provider.com')
         ->and($settingService->get('mail_password'))->toBe('secret_smtp_password');
 
-    // Test live test mail endpoint
-    $testMailResponse = $this->postJson(route('admin.settings.mail.test'), [
-        'recipient_email' => 'admin.test@example.com',
-    ]);
+    // Test live test mail endpoint (auto-targets logged-in user email)
+    $testMailResponse = $this->postJson(route('admin.settings.mail.test'));
 
     $testMailResponse->assertOk()
-        ->assertJson(['success' => true]);
+        ->assertJsonPath('success', true);
 
     Mail::assertSentCount(1);
+
+    // Update to OAuth (Microsoft 365 Exchange)
+    $oauthResponse = $this->put(route('admin.settings.mail.update'), [
+        'mail_mailer' => 'oauth',
+        'mail_oauth_provider' => 'microsoft365',
+        'mail_oauth_tenant_id' => '00000000-0000-0000-0000-000000000000',
+        'mail_oauth_client_id' => '11111111-1111-1111-1111-111111111111',
+        'mail_oauth_client_secret' => 'super_secret_oauth_secret',
+        'mail_from_address' => 'm365@enterprise.test',
+        'mail_from_name' => 'Enterprise Office 365',
+    ]);
+
+    $oauthResponse->assertRedirect(route('admin.settings.mail'))
+        ->assertSessionHas('success');
+
+    expect($settingService->get('mail_mailer'))->toBe('oauth')
+        ->and($settingService->get('mail_oauth_provider'))->toBe('microsoft365')
+        ->and($settingService->get('mail_oauth_client_id'))->toBe('11111111-1111-1111-1111-111111111111')
+        ->and($settingService->get('mail_oauth_client_secret'))->toBe('super_secret_oauth_secret');
 });
 
 test('admin can update company branding and timezone preferences', function (): void {

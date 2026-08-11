@@ -132,3 +132,20 @@ test('it dynamically applies runtime mail configuration overrides', function ():
         ->and(Config::get('mail.from.address'))->toBe('system@custom-domain.com')
         ->and(Config::get('mail.from.name'))->toBe('Custom System Mailer');
 });
+
+test('it dynamically applies runtime OAuth mail configuration overrides', function (): void {
+    $this->settingService->set('mail_mailer', 'oauth', 'text', 'mail');
+    $this->settingService->set('mail_oauth_provider', 'microsoft365', 'text', 'mail');
+    $this->settingService->set('mail_oauth_tenant_id', 'tenant-123', 'text', 'mail');
+    $this->settingService->set('mail_oauth_client_id', 'client-456', 'text', 'mail');
+    $this->settingService->set('mail_oauth_client_secret', 'secret-789', 'encrypted', 'mail');
+    $this->settingService->set('mail_from_address', 'oauth@domain.com', 'text', 'mail');
+    $this->settingService->set('mail_from_name', 'OAuth Mailer', 'text', 'mail');
+
+    $this->settingService->applyRuntimeMailConfig();
+
+    expect(Config::get('mail.default'))->toBe('oauth')
+        ->and(Config::get('mail.mailers.oauth.transport'))->toBe('oauth')
+        ->and(Config::get('mail.from.address'))->toBe('oauth@domain.com')
+        ->and(Config::get('mail.from.name'))->toBe('OAuth Mailer');
+});

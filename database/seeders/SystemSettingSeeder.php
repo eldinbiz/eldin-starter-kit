@@ -26,6 +26,9 @@ class SystemSettingSeeder extends Seeder
             ['key' => 'mail_mailer', 'value' => 'smtp', 'type' => 'text', 'group' => 'mail', 'description' => 'Default mail transport driver'],
             ['key' => 'mail_from_address', 'value' => 'noreply@scaffolding.test', 'type' => 'text', 'group' => 'mail', 'description' => 'Default mail from email address'],
             ['key' => 'mail_from_name', 'value' => 'Scaffolding App', 'type' => 'text', 'group' => 'mail', 'description' => 'Default mail from sender name'],
+            ['key' => 'mail_oauth_provider', 'value' => 'microsoft365', 'type' => 'text', 'group' => 'mail', 'description' => 'Default OAuth mail provider'],
+            ['key' => 'mail_oauth_tenant_id', 'value' => 'common', 'type' => 'text', 'group' => 'mail', 'description' => 'Default Azure AD tenant ID'],
+            ['key' => 'mail_oauth_client_id', 'value' => '', 'type' => 'text', 'group' => 'mail', 'description' => 'OAuth application client ID'],
         ];
 
         foreach ($generalSettings as $s) {

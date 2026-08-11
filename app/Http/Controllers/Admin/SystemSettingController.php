@@ -121,6 +121,12 @@ class SystemSettingController extends Controller
             'mail_encryption' => (string) $this->settingService->get('mail_encryption', null, (string) config('mail.mailers.smtp.encryption', 'tls')),
             'mail_from_address' => (string) $this->settingService->get('mail_from_address', null, (string) config('mail.from.address', 'noreply@scaffolding.test')),
             'mail_from_name' => (string) $this->settingService->get('mail_from_name', null, (string) config('mail.from.name', 'Scaffolding App')),
+            'mail_oauth_provider' => (string) $this->settingService->get('mail_oauth_provider', null, 'microsoft365'),
+            'mail_oauth_tenant_id' => (string) $this->settingService->get('mail_oauth_tenant_id', null, ''),
+            'mail_oauth_client_id' => (string) $this->settingService->get('mail_oauth_client_id', null, ''),
+            'mail_oauth_client_secret' => (string) $this->settingService->get('mail_oauth_client_secret', null, ''),
+            'mail_oauth_refresh_token' => (string) $this->settingService->get('mail_oauth_refresh_token', null, ''),
+            'mail_oauth_token_url' => (string) $this->settingService->get('mail_oauth_token_url', null, ''),
         ];
 
         return view('admin.settings.mail', [
@@ -134,7 +140,7 @@ class SystemSettingController extends Controller
     public function updateMail(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'mail_mailer' => ['required', 'in:smtp,sendmail,mailgun,ses,postmark,log,array'],
+            'mail_mailer' => ['required', 'in:smtp,oauth,sendmail,mailgun,ses,postmark,log,array'],
             'mail_host' => ['required_if:mail_mailer,smtp', 'nullable', 'string', 'max:255'],
             'mail_port' => ['required_if:mail_mailer,smtp', 'nullable', 'numeric', 'between:1,65535'],
             'mail_username' => ['nullable', 'string', 'max:255'],
@@ -142,6 +148,12 @@ class SystemSettingController extends Controller
             'mail_encryption' => ['nullable', 'in:tls,ssl,none'],
             'mail_from_address' => ['required', 'email', 'max:255'],
             'mail_from_name' => ['required', 'string', 'max:255'],
+            'mail_oauth_provider' => ['required_if:mail_mailer,oauth', 'nullable', 'in:microsoft365,google,generic'],
+            'mail_oauth_tenant_id' => ['nullable', 'string', 'max:255'],
+            'mail_oauth_client_id' => ['required_if:mail_mailer,oauth', 'nullable', 'string', 'max:255'],
+            'mail_oauth_client_secret' => ['nullable', 'string', 'max:255'],
+            'mail_oauth_refresh_token' => ['nullable', 'string', 'max:1000'],
+            'mail_oauth_token_url' => ['nullable', 'url', 'max:255'],
         ]);
 
         $this->settingService->set('mail_mailer', $validated['mail_mailer'], 'text', 'mail');
@@ -149,7 +161,6 @@ class SystemSettingController extends Controller
         $this->settingService->set('mail_port', (string) ($validated['mail_port'] ?? '587'), 'numeric', 'mail');
         $this->settingService->set('mail_username', $validated['mail_username'] ?? '', 'text', 'mail');
 
-        // Only update password if non-empty string provided
         if (! empty($validated['mail_password'])) {
             $this->settingService->set('mail_password', $validated['mail_password'], 'encrypted', 'mail');
         }
@@ -158,36 +169,65 @@ class SystemSettingController extends Controller
         $this->settingService->set('mail_from_address', $validated['mail_from_address'], 'text', 'mail');
         $this->settingService->set('mail_from_name', $validated['mail_from_name'], 'text', 'mail');
 
+        $this->settingService->set('mail_oauth_provider', $validated['mail_oauth_provider'] ?? 'microsoft365', 'text', 'mail');
+        $this->settingService->set('mail_oauth_tenant_id', $validated['mail_oauth_tenant_id'] ?? '', 'text', 'mail');
+        $this->settingService->set('mail_oauth_client_id', $validated['mail_oauth_client_id'] ?? '', 'text', 'mail');
+        $this->settingService->set('mail_oauth_token_url', $validated['mail_oauth_token_url'] ?? '', 'text', 'mail');
+
+        if (! empty($validated['mail_oauth_client_secret'])) {
+            $this->settingService->set('mail_oauth_client_secret', $validated['mail_oauth_client_secret'], 'encrypted', 'mail');
+        }
+
+        if (! empty($validated['mail_oauth_refresh_token'])) {
+            $this->settingService->set('mail_oauth_refresh_token', $validated['mail_oauth_refresh_token'], 'encrypted', 'mail');
+        }
+
         return redirect()->route('admin.settings.mail')->with('success', __('Mail & transport settings updated successfully.'));
     }
 
     /**
-     * Dispatch live test email.
+     * Dispatch live test email directly to the logged-in user.
      */
     public function testMail(Request $request): JsonResponse|RedirectResponse
     {
-        $validated = $request->validate([
-            'recipient_email' => ['required', 'email', 'max:255'],
-        ]);
+        $recipientEmail = $request->user()?->email ?? $request->input('recipient_email');
 
-        $recipientEmail = $validated['recipient_email'];
+        if (! is_string($recipientEmail) || $recipientEmail === '') {
+            $recipientEmail = 'admin@example.com';
+        }
 
         try {
             $this->settingService->applyRuntimeMailConfig();
 
+            $activeDriver = (string) config('mail.default');
+            $details = match ($activeDriver) {
+                'oauth' => (string) $this->settingService->get('mail_oauth_provider', null, 'microsoft365') === 'microsoft365'
+                    ? 'OAuth2 (Microsoft 365 Exchange Graph API Tenant: '.($this->settingService->get('mail_oauth_tenant_id', null, 'common') ?: 'common').')'
+                    : ((string) $this->settingService->get('mail_oauth_provider', null, '') === 'google'
+                        ? 'OAuth2 (Google Workspace XOAUTH2)'
+                        : 'OAuth2 (Generic XOAUTH2 SMTP)'),
+                'smtp' => 'SMTP ('.config('mail.mailers.smtp.host').':'.config('mail.mailers.smtp.port').' '.strtoupper((string) (config('mail.mailers.smtp.encryption') ?? 'plain')).')',
+                default => strtoupper($activeDriver),
+            };
+
             Mail::to($recipientEmail)->send(new TestEmail(
                 'Scaffolding App — Mailer Connection Test',
-                'This is a live test email sent from the Scaffolding App System Settings module.',
+                "This is a live test email sent using the {$details} transport driver.",
             ));
+
+            $message = __('Test email successfully dispatched to :email using the :details transport driver.', [
+                'email' => $recipientEmail,
+                'details' => $details,
+            ]);
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __('Test email successfully sent to :email', ['email' => $recipientEmail]),
+                    'message' => $message,
                 ]);
             }
 
-            return redirect()->route('admin.settings.mail')->with('success', __('Test email successfully sent to :email', ['email' => $recipientEmail]));
+            return redirect()->route('admin.settings.mail')->with('success', $message);
         } catch (Throwable $e) {
             if ($request->wantsJson()) {
                 return response()->json([

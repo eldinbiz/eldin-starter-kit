@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\SystemSetting;
+use App\Services\Mail\MicrosoftGraphTransport;
+use App\Services\Mail\XOauth2SmtpTransport;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class SettingService
@@ -155,28 +158,82 @@ class SettingService
             $fromAddress = (string) $this->get('mail_from_address', null, Config::get('mail.from.address'));
             $fromName = (string) $this->get('mail_from_name', null, Config::get('mail.from.name'));
 
-            Config::set('mail.default', $mailer);
-
-            if ($host) {
-                Config::set('mail.mailers.smtp.host', $host);
-            }
-            if ($port) {
-                Config::set('mail.mailers.smtp.port', (int) $port);
-            }
-            if ($username) {
-                Config::set('mail.mailers.smtp.username', $username);
-            }
-            if ($password) {
-                Config::set('mail.mailers.smtp.password', $password);
-            }
-            if ($encryption !== '') {
-                Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
-            }
-            if ($fromAddress) {
+            if ($fromAddress !== '') {
                 Config::set('mail.from.address', $fromAddress);
             }
-            if ($fromName) {
+            if ($fromName !== '') {
                 Config::set('mail.from.name', $fromName);
+            }
+
+            if ($mailer === 'oauth') {
+                $provider = (string) $this->get('mail_oauth_provider', null, 'microsoft365');
+                $tenantId = (string) $this->get('mail_oauth_tenant_id', null, '');
+                $clientId = (string) $this->get('mail_oauth_client_id', null, '');
+                $clientSecret = (string) $this->get('mail_oauth_client_secret', null, '');
+                $refreshToken = (string) $this->get('mail_oauth_refresh_token', null, '');
+                $tokenUrl = (string) $this->get('mail_oauth_token_url', null, '');
+
+                Mail::extend('oauth', function () use (
+                    $provider,
+                    $tenantId,
+                    $clientId,
+                    $clientSecret,
+                    $refreshToken,
+                    $tokenUrl,
+                    $fromAddress,
+                    $host,
+                    $port,
+                    $encryption
+                ) {
+                    if ($provider === 'microsoft365') {
+                        return new MicrosoftGraphTransport($tenantId, $clientId, $clientSecret, $fromAddress);
+                    }
+
+                    if ($provider === 'google') {
+                        return new XOauth2SmtpTransport(
+                            'smtp.gmail.com',
+                            587,
+                            true,
+                            $clientId,
+                            $clientSecret,
+                            $refreshToken,
+                            'https://oauth2.googleapis.com/token',
+                            $fromAddress
+                        );
+                    }
+
+                    return new XOauth2SmtpTransport(
+                        $host ?: 'localhost',
+                        (int) ($port ?: 587),
+                        $encryption !== 'none',
+                        $clientId,
+                        $clientSecret,
+                        $refreshToken,
+                        $tokenUrl,
+                        $fromAddress
+                    );
+                });
+
+                Config::set('mail.default', 'oauth');
+                Config::set('mail.mailers.oauth.transport', 'oauth');
+            } else {
+                Config::set('mail.default', $mailer);
+
+                if ($host !== '') {
+                    Config::set('mail.mailers.smtp.host', $host);
+                }
+                if ($port !== null && $port !== '') {
+                    Config::set('mail.mailers.smtp.port', (int) $port);
+                }
+                if ($username !== '') {
+                    Config::set('mail.mailers.smtp.username', $username);
+                }
+                if ($password !== '') {
+                    Config::set('mail.mailers.smtp.password', $password);
+                }
+                if ($encryption !== '') {
+                    Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
+                }
             }
         } catch (Throwable) {
             // Ignore when database is not migrated yet
