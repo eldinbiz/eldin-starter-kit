@@ -27,7 +27,7 @@
                     Active
                 </span>
             @endif
-            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $template->created_at->format('M d, Y') }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">@formatDate($template->created_at)</span>
         </div>
         <div class="flex items-center gap-2">
             @if ($template->trashed())

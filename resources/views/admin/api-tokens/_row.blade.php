@@ -73,7 +73,7 @@
         {{ $token->last_used_at ? $token->last_used_at->diffForHumans() : 'Never' }}
     </td>
     <td class="py-3.5 text-xs text-gray-500 dark:text-gray-400">
-        {{ $token->created_at->format('M d, Y') }}
+        @formatDate($token->created_at)
     </td>
     <td class="py-3.5 text-right">
         <form action="{{ route('admin.api-tokens.destroy', $token->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to revoke this API token? Any integrations using it will immediately stop working.');" class="inline">

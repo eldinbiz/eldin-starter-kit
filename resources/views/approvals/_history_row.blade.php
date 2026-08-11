@@ -42,7 +42,7 @@
         </p>
     </td>
     <td class="py-3.5">
-        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ $request->created_at->format('M d, Y') }}</p>
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">@formatDate($request->created_at)</p>
     </td>
     <td class="py-3.5 text-right">
         <a href="{{ route('approvals.show', $request->id) }}"

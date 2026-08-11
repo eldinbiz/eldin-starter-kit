@@ -33,7 +33,7 @@
         @endif
     </td>
     <td class="py-3.5">
-        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ $user->created_at->format('M d, Y') }}</p>
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">@formatDate($user->created_at)</p>
     </td>
     <td class="py-3.5 text-right">
         <div class="flex items-center justify-end gap-2">

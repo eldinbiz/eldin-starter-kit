@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalRejected;
+use App\Helpers\DateFormatter;
 use App\Listeners\Approval\UpdateApprovableStatus;
 use App\Models\User;
 use App\Services\FeatureService;
@@ -67,6 +68,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Blade directive @feature('approvals') ... @endfeature
         Blade::if('feature', fn (string $key): bool => app(FeatureService::class)->isEnabled($key));
+
+        // Date and Time Formatting Blade Directives
+        Blade::directive('formatDate', fn ($expression): string => "<?php echo \App\Helpers\DateFormatter::formatDate({$expression}); ?>");
+        Blade::directive('formatDateTime', fn ($expression): string => "<?php echo \App\Helpers\DateFormatter::formatDateTime({$expression}); ?>");
 
         // Register approval event listeners
         Event::listen(ApprovalCompleted::class, UpdateApprovableStatus::class);

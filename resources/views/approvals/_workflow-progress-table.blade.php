@@ -75,7 +75,7 @@
                                     @endif
                                     </td>
                                     <td class="py-2 pr-3 text-gray-500 dark:text-gray-400">
-                                        {{ $step->action_at?->format('M d, h:i A') ?: '—' }}
+                                        @formatDateTime($step->action_at)
                                     </td>
                                     <td class="py-2 text-gray-500 dark:text-gray-400">
                                         {{ $step->notes ? '"' . \Illuminate\Support\Str::limit($step->notes, 60) . '"' : '—' }}

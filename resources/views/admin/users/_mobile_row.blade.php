@@ -32,7 +32,7 @@
 
     {{-- Footer: Joined Date + Actions --}}
     <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-        <span class="text-xs text-gray-500 dark:text-gray-400">Joined {{ $user->created_at->format('M d, Y') }}</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">Joined @formatDate($user->created_at)</span>
         <div class="flex items-center gap-2">
             @canImpersonate
                 @canBeImpersonated($user)

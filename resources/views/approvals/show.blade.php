@@ -41,7 +41,7 @@
             </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">
                 Requested by {{ $approvalRequest->requestor->name }}
-                &middot; {{ $approvalRequest->submitted_at?->format('M d, Y h:i A') }}
+                &middot; @formatDateTime($approvalRequest->submitted_at)
             </p>
         </div>
         <div class="flex items-center gap-3">

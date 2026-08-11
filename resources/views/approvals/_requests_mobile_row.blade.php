@@ -50,7 +50,7 @@
     @endif
 
     <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-        <span class="text-xs text-gray-500 dark:text-gray-400">Submitted {{ $request->submitted_at?->format('M d, Y') }}</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">Submitted @formatDate($request->submitted_at)</span>
         <a href="{{ route('approvals.show', $request->id) }}"
             class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
             View

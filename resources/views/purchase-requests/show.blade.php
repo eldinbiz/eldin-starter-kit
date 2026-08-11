@@ -34,7 +34,7 @@
                     </h2>
                 </div>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Requested by <span class="font-medium text-gray-800 dark:text-gray-200">{{ $purchaseRequest->requester?->name }}</span> on {{ $purchaseRequest->created_at->format('F d, Y') }}
+                    Requested by <span class="font-medium text-gray-800 dark:text-gray-200">{{ $purchaseRequest->requester?->name }}</span> on @formatDate($purchaseRequest->created_at)
                 </p>
             </div>
 

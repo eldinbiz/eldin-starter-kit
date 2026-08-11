@@ -26,7 +26,7 @@
     </div>
 
     <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-        <span class="text-xs text-gray-500 dark:text-gray-400">Submitted {{ $step->request->submitted_at?->format('M d, Y') }}</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">Submitted @formatDate($step->request->submitted_at)</span>
         <a href="{{ route('approvals.show', $step->request->id) }}"
             class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
             Review

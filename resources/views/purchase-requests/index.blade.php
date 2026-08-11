@@ -83,7 +83,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3.5 text-gray-500 dark:text-gray-400">
-                                {{ $pr->created_at->format('M d, Y') }}
+                                @formatDate($pr->created_at)
                             </td>
                             <td class="px-4 py-3.5 text-right">
                                 <a href="{{ route('purchase-requests.show', $pr->id) }}" class="font-medium text-brand-500 hover:text-brand-600 dark:text-brand-400">

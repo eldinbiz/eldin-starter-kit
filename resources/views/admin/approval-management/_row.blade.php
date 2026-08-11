@@ -45,7 +45,7 @@ $canSkip = $isActionable;
         @endif
     </td>
     <td class="py-3.5">
-        <p class="text-gray-500 text-theme-sm dark:text-gray-400">{{ $step->created_at?->format('M d, Y') }}</p>
+        <p class="text-gray-500 text-theme-sm dark:text-gray-400">@formatDate($step->created_at)</p>
     </td>
     <td class="py-3.5 text-right">
         @if ($canDelegate || $canSkip)
