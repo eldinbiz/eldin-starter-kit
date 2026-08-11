@@ -22,11 +22,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body
-    x-data="{ page: 'auth', loaded: true, darkMode: false }"
-    x-init="
-        darkMode = JSON.parse(localStorage.getItem('darkMode')) || false;
-        $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))
-    "
+    x-data="{
+        page: 'auth',
+        loaded: true,
+        darkMode: (function() {
+            const override = localStorage.getItem('user_theme_override');
+            if (override !== null) return override === 'dark';
+            const defTheme = '{{ $defaultTheme }}';
+            if (defTheme === 'dark') return true;
+            if (defTheme === 'light') return false;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        })(),
+        toggleTheme() {
+            this.darkMode = !this.darkMode;
+            localStorage.setItem('user_theme_override', this.darkMode ? 'dark' : 'light');
+        }
+    }"
     :class="{'dark bg-gray-900': darkMode === true, 'bg-gray-50': darkMode === false}"
 >
     <!-- Preloader Start -->

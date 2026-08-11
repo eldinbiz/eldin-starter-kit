@@ -166,10 +166,12 @@ class AppServiceProvider extends ServiceProvider
             $settingService = app(SettingService::class);
             $appLogo = (string) $settingService->get('app_logo', null, '');
             $appFavicon = (string) $settingService->get('app_favicon', null, '');
+            $defaultTheme = (string) $settingService->get('default_theme', null, 'system');
 
             $data = [
                 'appLogo' => $appLogo,
                 'appFavicon' => $appFavicon,
+                'defaultTheme' => $defaultTheme,
             ];
 
             if (auth()->check()) {

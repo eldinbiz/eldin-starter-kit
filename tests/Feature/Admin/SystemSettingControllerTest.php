@@ -88,7 +88,8 @@ test('admin can view and update general settings with branding logo and favicon'
         ->assertSee('Custom Enterprise Platform')
         ->assertSee('<span>Custom Enterprise Platform</span>', false)
         ->assertSee('custom_logo.png', false)
-        ->assertSee('custom_fav.png', false);
+        ->assertSee('custom_fav.png', false)
+        ->assertSee("const defTheme = 'dark';", false);
 });
 
 test('admin can view and update mail settings and send test email', function (): void {

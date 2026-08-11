@@ -24,9 +24,25 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body
-    x-data="{ page: 'dashboard', loaded: true, darkMode: false, stickyMenu: false, sidebarToggle: true, scrollTop: false }"
-    x-init="darkMode = JSON.parse(localStorage.getItem('darkMode')) || false"
-    x-effect="localStorage.setItem('darkMode', JSON.stringify(darkMode))"
+    x-data="{
+        page: 'dashboard',
+        loaded: true,
+        darkMode: (function() {
+            const override = localStorage.getItem('user_theme_override');
+            if (override !== null) return override === 'dark';
+            const defTheme = '{{ $defaultTheme }}';
+            if (defTheme === 'dark') return true;
+            if (defTheme === 'light') return false;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        })(),
+        toggleTheme() {
+            this.darkMode = !this.darkMode;
+            localStorage.setItem('user_theme_override', this.darkMode ? 'dark' : 'light');
+        },
+        stickyMenu: false,
+        sidebarToggle: true,
+        scrollTop: false
+    }"
     :class="{'dark bg-gray-900': darkMode === true}"
 >
     <!-- Preloader -->

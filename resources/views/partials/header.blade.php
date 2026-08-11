@@ -61,7 +61,7 @@
                 <!-- 1. Dark Mode Switcher -->
                 <button
                     class="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
-                    @click="darkMode = !darkMode"
+                    @click="toggleTheme()"
                 >
                     <!-- Sun Icon (shows in dark mode) -->
                     <svg x-show="darkMode" x-cloak class="fill-current text-warning-500" width="22" height="22" viewBox="0 0 24 24" fill="none">
