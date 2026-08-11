@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Auth') | TailAdmin Laravel</title>
+    <title>@yield('title', 'Auth') | {{ config('app.name', 'Scaffolding App') }}</title>
+    @if (!empty($appFavicon))
+        <link rel="icon" href="{{ $appFavicon }}">
+    @endif
     <!-- Outfit Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +38,14 @@
     </div>
     <!-- Preloader End -->
 
-    <main class="min-h-screen flex items-center justify-center p-4">
+    <main class="min-h-screen flex flex-col items-center justify-center p-4">
+        @if (!empty($appLogo))
+            <div class="mb-6 flex justify-center">
+                <a href="{{ url('/') }}">
+                    <img src="{{ $appLogo }}" alt="{{ config('app.name', 'Scaffolding App') }}" class="h-12 max-w-[200px] object-contain" />
+                </a>
+            </div>
+        @endif
         @yield('content')
     </main>
 </body>

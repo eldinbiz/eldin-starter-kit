@@ -146,21 +146,6 @@
             </div>
         </div>
 
-        <!-- Default Locale -->
-        <div>
-            <label for="default_locale" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Default System Locale
-            </label>
-            <select
-                id="default_locale"
-                name="default_locale"
-                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-            >
-                <option value="en" {{ old('default_locale', $settings['default_locale']) === 'en' ? 'selected' : '' }}>English (en)</option>
-                <option value="id" {{ old('default_locale', $settings['default_locale']) === 'id' ? 'selected' : '' }}>Bahasa Indonesia (id)</option>
-            </select>
-        </div>
-
         <!-- Default Theme Mode -->
         <div class="md:col-span-2">
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">

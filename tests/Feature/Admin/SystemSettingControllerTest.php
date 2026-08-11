@@ -65,7 +65,6 @@ test('admin can view and update general settings with branding logo and favicon'
         'default_timezone' => 'Asia/Jakarta',
         'date_format' => 'd/m/Y',
         'time_format' => '12h',
-        'default_locale' => 'en',
         'default_theme' => 'dark',
         'app_logo' => $logo,
         'app_favicon' => $favicon,
@@ -76,12 +75,20 @@ test('admin can view and update general settings with branding logo and favicon'
 
     $settingService = app(SettingService::class);
     expect($settingService->get('app_name'))->toBe('Custom Enterprise Platform')
+        ->and(config('app.name'))->toBe('Custom Enterprise Platform')
         ->and($settingService->get('default_timezone'))->toBe('Asia/Jakarta')
         ->and($settingService->get('date_format'))->toBe('d/m/Y')
         ->and($settingService->get('time_format'))->toBe('12h')
         ->and($settingService->get('default_theme'))->toBe('dark')
         ->and($settingService->get('app_logo'))->toContain('custom_logo.png')
         ->and($settingService->get('app_favicon'))->toContain('custom_fav.png');
+
+    $this->get(route('admin.settings.general'))
+        ->assertOk()
+        ->assertSee('Custom Enterprise Platform')
+        ->assertSee('<span>Custom Enterprise Platform</span>', false)
+        ->assertSee('custom_logo.png', false)
+        ->assertSee('custom_fav.png', false);
 });
 
 test('admin can view and update mail settings and send test email', function (): void {

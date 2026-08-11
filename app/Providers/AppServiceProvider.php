@@ -10,6 +10,7 @@ use App\Events\Approval\ApprovalRejected;
 use App\Listeners\Approval\UpdateApprovableStatus;
 use App\Models\User;
 use App\Services\FeatureService;
+use App\Services\SettingService;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -44,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app(SettingService::class)->applyRuntimeAppConfig();
+
         // Catch N+1 lazy loading violations loudly during development
         Model::preventLazyLoading(! app()->isProduction());
 
@@ -153,27 +156,28 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        // Share company context with all views — memoized, single-query per request
+        // Share company context, appLogo, and appFavicon with all views
         view()->composer('*', function ($view): void {
-            if (! auth()->check()) {
-                return;
+            $settingService = app(SettingService::class);
+            $appLogo = (string) $settingService->get('app_logo', null, '');
+            $appFavicon = (string) $settingService->get('app_favicon', null, '');
+
+            $data = [
+                'appLogo' => $appLogo,
+                'appFavicon' => $appFavicon,
+            ];
+
+            if (auth()->check()) {
+                $user = auth()->user();
+                $activeCompany = $user->getActiveCompany();
+                $activeRole = $activeCompany ? $user->getActiveRole($activeCompany) : null;
+
+                $data['activeCompany'] = $activeCompany;
+                $data['activeRole'] = $activeRole;
+                $data['userCompanies'] = $user->companies;
             }
 
-            $user = auth()->user();
-
-            // Memoized via HasCompanyContext trait
-            $activeCompany = $user->getActiveCompany();
-
-            // Only resolve role if there's active company context
-            $activeRole = $activeCompany
-                ? $user->getActiveRole($activeCompany)
-                : null;
-
-            $view->with([
-                'activeCompany' => $activeCompany,
-                'activeRole' => $activeRole,
-                'userCompanies' => $user->companies,
-            ]);
+            $view->with($data);
         });
     }
 }

@@ -12,17 +12,24 @@
     >
         <a href="{{ url('/') }}" class="flex items-center gap-3">
             <span class="logo flex items-center gap-2 font-bold text-xl text-gray-800 dark:text-white" x-show="!sidebarToggle || sidebarHover" x-cloak>
-                <!-- Mini SVG logo -->
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                @if (!empty($appLogo))
+                    <img src="{{ $appLogo }}" alt="{{ config('app.name', 'Scaffolding App') }}" class="h-8 max-w-[140px] object-contain" />
+                @else
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="32" height="32" rx="8" fill="#465FFF"/>
+                        <path d="M9 16L13.5 20.5L23 11" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                @endif
+                <span>{{ config('app.name', 'Scaffolding App') }}</span>
+            </span>
+            @if (!empty($appLogo))
+                <img class="logo-icon h-8 w-8 object-contain" x-show="sidebarToggle && !sidebarHover" x-cloak src="{{ $appLogo }}" alt="Logo" />
+            @else
+                <svg class="logo-icon" x-show="sidebarToggle && !sidebarHover" x-cloak width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="32" height="32" rx="8" fill="#465FFF"/>
                     <path d="M9 16L13.5 20.5L23 11" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span>TailAdmin</span>
-            </span>
-            <svg class="logo-icon" x-show="sidebarToggle && !sidebarHover" x-cloak width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="32" height="32" rx="8" fill="#465FFF"/>
-                <path d="M9 16L13.5 20.5L23 11" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            @endif
         </a>
 
         <!-- Hamburger toggle button (visible on mobile only) -->

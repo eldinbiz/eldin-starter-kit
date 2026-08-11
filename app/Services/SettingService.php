@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Crypt;
+use Throwable;
 
 class SettingService
 {
@@ -125,41 +126,60 @@ class SettingService
     }
 
     /**
+     * Apply runtime application configuration overrides from database settings.
+     */
+    public function applyRuntimeAppConfig(): void
+    {
+        try {
+            $appName = (string) $this->get('app_name', null, Config::get('app.name', 'Scaffolding App'));
+            if ($appName !== '') {
+                Config::set('app.name', $appName);
+            }
+        } catch (Throwable) {
+            // Ignore when database is not migrated yet
+        }
+    }
+
+    /**
      * Apply runtime mail configuration overrides from database settings.
      */
     public function applyRuntimeMailConfig(): void
     {
-        $mailer = (string) $this->get('mail_mailer', null, Config::get('mail.default', 'smtp'));
-        $host = (string) $this->get('mail_host', null, Config::get('mail.mailers.smtp.host'));
-        $port = $this->get('mail_port', null, Config::get('mail.mailers.smtp.port'));
-        $username = (string) $this->get('mail_username', null, Config::get('mail.mailers.smtp.username'));
-        $password = (string) $this->get('mail_password', null, Config::get('mail.mailers.smtp.password'));
-        $encryption = (string) $this->get('mail_encryption', null, Config::get('mail.mailers.smtp.encryption'));
-        $fromAddress = (string) $this->get('mail_from_address', null, Config::get('mail.from.address'));
-        $fromName = (string) $this->get('mail_from_name', null, Config::get('mail.from.name'));
+        try {
+            $mailer = (string) $this->get('mail_mailer', null, Config::get('mail.default', 'smtp'));
+            $host = (string) $this->get('mail_host', null, Config::get('mail.mailers.smtp.host'));
+            $port = $this->get('mail_port', null, Config::get('mail.mailers.smtp.port'));
+            $username = (string) $this->get('mail_username', null, Config::get('mail.mailers.smtp.username'));
+            $password = (string) $this->get('mail_password', null, Config::get('mail.mailers.smtp.password'));
+            $encryption = (string) $this->get('mail_encryption', null, Config::get('mail.mailers.smtp.encryption'));
+            $fromAddress = (string) $this->get('mail_from_address', null, Config::get('mail.from.address'));
+            $fromName = (string) $this->get('mail_from_name', null, Config::get('mail.from.name'));
 
-        Config::set('mail.default', $mailer);
+            Config::set('mail.default', $mailer);
 
-        if ($host) {
-            Config::set('mail.mailers.smtp.host', $host);
-        }
-        if ($port) {
-            Config::set('mail.mailers.smtp.port', (int) $port);
-        }
-        if ($username) {
-            Config::set('mail.mailers.smtp.username', $username);
-        }
-        if ($password) {
-            Config::set('mail.mailers.smtp.password', $password);
-        }
-        if ($encryption !== '') {
-            Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
-        }
-        if ($fromAddress) {
-            Config::set('mail.from.address', $fromAddress);
-        }
-        if ($fromName) {
-            Config::set('mail.from.name', $fromName);
+            if ($host) {
+                Config::set('mail.mailers.smtp.host', $host);
+            }
+            if ($port) {
+                Config::set('mail.mailers.smtp.port', (int) $port);
+            }
+            if ($username) {
+                Config::set('mail.mailers.smtp.username', $username);
+            }
+            if ($password) {
+                Config::set('mail.mailers.smtp.password', $password);
+            }
+            if ($encryption !== '') {
+                Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
+            }
+            if ($fromAddress) {
+                Config::set('mail.from.address', $fromAddress);
+            }
+            if ($fromName) {
+                Config::set('mail.from.name', $fromName);
+            }
+        } catch (Throwable) {
+            // Ignore when database is not migrated yet
         }
     }
 
@@ -171,11 +191,15 @@ class SettingService
         $cacheKey = $this->cacheKey($key, $companyId);
 
         return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($key, $companyId): mixed {
-            $setting = SystemSetting::where('company_id', $companyId)
-                ->where('key', $key)
-                ->first();
+            try {
+                $setting = SystemSetting::where('company_id', $companyId)
+                    ->where('key', $key)
+                    ->first();
 
-            return $setting?->typed_value;
+                return $setting?->typed_value;
+            } catch (Throwable) {
+                return null;
+            }
         });
     }
 

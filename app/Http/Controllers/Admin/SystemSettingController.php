@@ -37,7 +37,6 @@ class SystemSettingController extends Controller
             'default_timezone' => (string) $this->settingService->get('default_timezone', null, config('app.timezone', 'UTC')),
             'date_format' => (string) $this->settingService->get('date_format', null, 'Y-m-d'),
             'time_format' => (string) $this->settingService->get('time_format', null, '24h'),
-            'default_locale' => (string) $this->settingService->get('default_locale', null, config('app.locale', 'en')),
             'default_theme' => (string) $this->settingService->get('default_theme', null, 'system'),
         ];
 
@@ -80,7 +79,6 @@ class SystemSettingController extends Controller
             'default_timezone' => ['required', 'string', 'max:100'],
             'date_format' => ['required', 'string', 'max:30'],
             'time_format' => ['required', 'in:12h,24h'],
-            'default_locale' => ['required', 'string', 'max:10'],
             'default_theme' => ['required', 'in:light,dark,system'],
             'app_logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'app_favicon' => ['nullable', 'image', 'mimes:ico,png,svg', 'max:1024'],
@@ -90,8 +88,9 @@ class SystemSettingController extends Controller
         $this->settingService->set('default_timezone', $validated['default_timezone'], 'text', 'localization');
         $this->settingService->set('date_format', $validated['date_format'], 'text', 'localization');
         $this->settingService->set('time_format', $validated['time_format'], 'text', 'localization');
-        $this->settingService->set('default_locale', $validated['default_locale'], 'text', 'localization');
         $this->settingService->set('default_theme', $validated['default_theme'], 'text', 'general');
+
+        $this->settingService->applyRuntimeAppConfig();
 
         if ($request->hasFile('app_logo')) {
             $file = $request->file('app_logo');
