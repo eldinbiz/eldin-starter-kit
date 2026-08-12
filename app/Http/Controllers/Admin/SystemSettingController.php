@@ -157,22 +157,45 @@ class SystemSettingController extends Controller
         ]);
 
         $this->settingService->set('mail_mailer', $validated['mail_mailer'], 'text', 'mail');
-        $this->settingService->set('mail_host', $validated['mail_host'] ?? '', 'text', 'mail');
-        $this->settingService->set('mail_port', (string) ($validated['mail_port'] ?? '587'), 'numeric', 'mail');
-        $this->settingService->set('mail_username', $validated['mail_username'] ?? '', 'text', 'mail');
+
+        if ($request->has('mail_host')) {
+            $this->settingService->set('mail_host', $validated['mail_host'] ?? '', 'text', 'mail');
+        }
+
+        if ($request->has('mail_port')) {
+            $this->settingService->set('mail_port', (string) ($validated['mail_port'] ?? '587'), 'numeric', 'mail');
+        }
+
+        if ($request->has('mail_username')) {
+            $this->settingService->set('mail_username', $validated['mail_username'] ?? '', 'text', 'mail');
+        }
 
         if (! empty($validated['mail_password'])) {
             $this->settingService->set('mail_password', $validated['mail_password'], 'encrypted', 'mail');
         }
 
-        $this->settingService->set('mail_encryption', $validated['mail_encryption'] ?? 'tls', 'text', 'mail');
+        if ($request->has('mail_encryption')) {
+            $this->settingService->set('mail_encryption', $validated['mail_encryption'] ?? 'tls', 'text', 'mail');
+        }
+
         $this->settingService->set('mail_from_address', $validated['mail_from_address'], 'text', 'mail');
         $this->settingService->set('mail_from_name', $validated['mail_from_name'], 'text', 'mail');
 
-        $this->settingService->set('mail_oauth_provider', $validated['mail_oauth_provider'] ?? 'microsoft365', 'text', 'mail');
-        $this->settingService->set('mail_oauth_tenant_id', $validated['mail_oauth_tenant_id'] ?? '', 'text', 'mail');
-        $this->settingService->set('mail_oauth_client_id', $validated['mail_oauth_client_id'] ?? '', 'text', 'mail');
-        $this->settingService->set('mail_oauth_token_url', $validated['mail_oauth_token_url'] ?? '', 'text', 'mail');
+        if ($request->has('mail_oauth_provider')) {
+            $this->settingService->set('mail_oauth_provider', $validated['mail_oauth_provider'] ?? 'microsoft365', 'text', 'mail');
+        }
+
+        if ($request->has('mail_oauth_tenant_id')) {
+            $this->settingService->set('mail_oauth_tenant_id', $validated['mail_oauth_tenant_id'] ?? '', 'text', 'mail');
+        }
+
+        if ($request->has('mail_oauth_client_id')) {
+            $this->settingService->set('mail_oauth_client_id', $validated['mail_oauth_client_id'] ?? '', 'text', 'mail');
+        }
+
+        if ($request->has('mail_oauth_token_url')) {
+            $this->settingService->set('mail_oauth_token_url', $validated['mail_oauth_token_url'] ?? '', 'text', 'mail');
+        }
 
         if (! empty($validated['mail_oauth_client_secret'])) {
             $this->settingService->set('mail_oauth_client_secret', $validated['mail_oauth_client_secret'], 'encrypted', 'mail');

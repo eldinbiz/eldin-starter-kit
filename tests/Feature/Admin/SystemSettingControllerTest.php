@@ -143,7 +143,9 @@ test('admin can view and update mail settings and send test email', function ():
     expect($settingService->get('mail_mailer'))->toBe('oauth')
         ->and($settingService->get('mail_oauth_provider'))->toBe('microsoft365')
         ->and($settingService->get('mail_oauth_client_id'))->toBe('11111111-1111-1111-1111-111111111111')
-        ->and($settingService->get('mail_oauth_client_secret'))->toBe('super_secret_oauth_secret');
+        ->and($settingService->get('mail_oauth_client_secret'))->toBe('super_secret_oauth_secret')
+        ->and($settingService->get('mail_host'))->toBe('smtp.custom-provider.com')
+        ->and($settingService->get('mail_password'))->toBe('secret_smtp_password');
 });
 
 test('admin can update company branding and timezone preferences', function (): void {
