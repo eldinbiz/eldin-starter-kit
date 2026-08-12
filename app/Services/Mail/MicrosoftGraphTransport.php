@@ -48,6 +48,7 @@ class MicrosoftGraphTransport extends AbstractTransport
 
         $response = Http::withToken($accessToken)
             ->acceptJson()
+            ->when(app()->isLocal(), static fn ($client) => $client->withoutVerifying())
             ->post($sendMailUrl, $payload);
 
         if (! $response->successful()) {
@@ -66,12 +67,14 @@ class MicrosoftGraphTransport extends AbstractTransport
         $tenant = $this->tenantId !== '' ? $this->tenantId : 'common';
         $tokenUrl = "https://login.microsoftonline.com/{$tenant}/oauth2/v2.0/token";
 
-        $response = Http::asForm()->post($tokenUrl, [
-            'client_id' => $this->clientId,
-            'client_secret' => $this->clientSecret,
-            'scope' => 'https://graph.microsoft.com/.default',
-            'grant_type' => 'client_credentials',
-        ]);
+        $response = Http::asForm()
+            ->when(app()->isLocal(), static fn ($client) => $client->withoutVerifying())
+            ->post($tokenUrl, [
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+                'scope' => 'https://graph.microsoft.com/.default',
+                'grant_type' => 'client_credentials',
+            ]);
 
         if (! $response->successful()) {
             throw new RuntimeException(

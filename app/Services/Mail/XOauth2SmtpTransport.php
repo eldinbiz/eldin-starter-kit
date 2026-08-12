@@ -57,7 +57,9 @@ class XOauth2SmtpTransport extends AbstractTransport
             $params['grant_type'] = 'client_credentials';
         }
 
-        $response = Http::asForm()->post($url, $params);
+        $response = Http::asForm()
+            ->when(app()->isLocal(), static fn ($client) => $client->withoutVerifying())
+            ->post($url, $params);
 
         if (! $response->successful()) {
             throw new RuntimeException(
