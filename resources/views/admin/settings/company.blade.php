@@ -6,7 +6,7 @@
 
 @section('settings-content')
 <div>
-    <!-- Company Selector Bar -->
+    {{-- Company Selector Bar --}}
     <div class="mb-6 rounded-xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-gray-900/50">
         <form method="GET" action="{{ route('admin.settings.company') }}" class="flex flex-col gap-2 sm:flex-row sm:items-center">
             <label for="company_id_select" class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -34,7 +34,7 @@
             <input type="hidden" name="company_id" value="{{ $selectedCompany->id }}" />
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <!-- Company Logo -->
+                {{-- Company Logo --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Company Logo
@@ -60,7 +60,7 @@
                     </div>
                 </div>
 
-                <!-- Primary Accent Color -->
+                {{-- Primary Accent Color --}}
                 <div x-data="{ color: '{{ old('accent_color', $settings['accent_color']) }}' }">
                     <label for="accent_color" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Primary / Accent Brand Color <span class="text-error-500">*</span>
@@ -88,7 +88,7 @@
                     </p>
                 </div>
 
-                <!-- Company Timezone Override -->
+                {{-- Company Timezone Override --}}
                 <div>
                     <label for="company_timezone" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Company Timezone Override
@@ -107,7 +107,7 @@
                     <p class="mt-1 text-xs text-gray-500">Leave as default to inherit the system-wide timezone.</p>
                 </div>
 
-                <!-- Company Date Format Override -->
+                {{-- Company Date Format Override --}}
                 <div>
                     <label for="company_date_format" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Company Date Format Override
@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- Submit Button -->
+            {{-- Submit Button --}}
             <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
                 <button
                     type="submit"

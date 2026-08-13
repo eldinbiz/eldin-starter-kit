@@ -23,7 +23,7 @@
 
 @section('content')
 <div x-data="companyHierarchy()" x-init="init()" class="space-y-6">
-    <!-- Page Header -->
+    {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Company Hierarchy</h2>
@@ -32,7 +32,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Search -->
+            {{-- Search --}}
             <div class="relative">
                 <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                     <svg class="fill-current" width="16" height="16" viewBox="0 0 20 20" fill="none">
@@ -43,7 +43,7 @@
                     x-on:input.debounce.300ms="doSearch()"
                     class="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500" />
             </div>
-            <!-- Reset View -->
+            {{-- Reset View --}}
             <button @click="resetView()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    <!-- Flash Messages -->
+    {{-- Flash Messages --}}
     <div x-show="flashMessage" x-cloak x-transition class="rounded-lg px-4 py-3 text-sm" :class="flashType === 'success' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'">
         <span x-text="flashMessage"></span>
     </div>
@@ -80,9 +80,9 @@
     </div>
     @endif
 
-    <!-- Hierarchy Tree Canvas -->
+    {{-- Hierarchy Tree Canvas --}}
     <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
-        <!-- Loading State -->
+        {{-- Loading State --}}
         <div x-show="loading" class="flex items-center justify-center py-20">
             <div class="flex flex-col items-center gap-3">
                 <svg class="animate-spin h-8 w-8 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@
             </div>
         </div>
 
-        <!-- Empty State -->
+        {{-- Empty State --}}
         <div x-show="!loading && isEmpty" x-cloak class="flex flex-col items-center justify-center py-20">
             <svg class="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" fill="none" viewBox="0 0 24 24">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -102,17 +102,17 @@
             <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">Create your first company to build the hierarchy.</p>
         </div>
 
-        <!-- D3 Org Chart Container -->
+        {{-- D3 Org Chart Container --}}
         <div x-show="!loading && !isEmpty" x-cloak id="org-chart-container" class="org-chart-container overflow-auto"></div>
     </div>
 </div>
 
-<!-- D3 & Org Chart CDN Scripts -->
+{{-- D3 & Org Chart CDN Scripts --}}
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3"></script>
 
-<!-- Company Hierarchy Initialization -->
+{{-- Company Hierarchy Initialization --}}
 <script>
 function companyHierarchy() {
     return {

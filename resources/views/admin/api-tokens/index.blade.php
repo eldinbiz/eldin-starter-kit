@@ -93,7 +93,7 @@
 
     <x-data-table :datatable="$dataTable" />
 
-    <!-- Create Modal -->
+    {{-- Create Modal --}}
     <div 
         x-show="showCreateModal" 
         x-cloak 
@@ -118,7 +118,7 @@
             <form action="{{ route('admin.api-tokens.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
                 @csrf
                 <div class="overflow-y-auto pr-1 space-y-4 flex-1">
-                    <!-- Token Name -->
+                    {{-- Token Name --}}
                     <div>
                         <label class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-white/90">
                             Token / Integration Name
@@ -132,7 +132,7 @@
                         />
                     </div>
 
-                    <!-- Expiration Selector -->
+                    {{-- Expiration Selector --}}
                     <div>
                         <label class="mb-1.5 block text-sm font-medium text-gray-800 dark:text-white/90">
                             Token Expiration
@@ -149,7 +149,7 @@
                         </select>
                     </div>
 
-                    <!-- Endpoint Permissions -->
+                    {{-- Endpoint Permissions --}}
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <label class="text-sm font-medium text-gray-800 dark:text-white/90">
@@ -226,7 +226,7 @@
         </div>
     </div>
 
-    <!-- View Scopes Inspection Modal -->
+    {{-- View Scopes Inspection Modal --}}
     <div 
         x-show="showScopesModal" 
         x-cloak 

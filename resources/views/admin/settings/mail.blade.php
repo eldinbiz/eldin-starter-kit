@@ -44,7 +44,7 @@
         }
     }
 }">
-    <!-- Status Alert Banner -->
+    {{-- Status Alert Banner --}}
     <div
         x-show="testStatus === 'success'"
         x-cloak
@@ -71,7 +71,7 @@
         @csrf
         @method('PUT')
 
-        <!-- Active Driver Selector Card -->
+        {{-- Active Driver Selector Card --}}
         <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="mb-4">
                 <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">
@@ -83,7 +83,7 @@
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <!-- SMTP Option Card -->
+                {{-- SMTP Option Card --}}
                 <label
                     @click="selectDriver('smtp')"
                     :class="mailer === 'smtp' ? 'border-brand-500 bg-brand-50/50 ring-2 ring-brand-500/20 dark:border-brand-500/80 dark:bg-brand-500/10' : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-gray-700'"
@@ -113,7 +113,7 @@
                     </div>
                 </label>
 
-                <!-- OAuth Option Card -->
+                {{-- OAuth Option Card --}}
                 <label
                     @click="selectDriver('oauth')"
                     :class="mailer === 'oauth' ? 'border-brand-500 bg-brand-50/50 ring-2 ring-brand-500/20 dark:border-brand-500/80 dark:bg-brand-500/10' : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-gray-700'"
@@ -145,9 +145,9 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- SMTP COLLAPSIBLE PROFILE CARD              -->
-        <!-- ========================================== -->
+        {{-- ========================================== --}}
+        {{-- SMTP COLLAPSIBLE PROFILE CARD              --}}
+        {{-- ========================================== --}}
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div
                 @click="smtpOpen = !smtpOpen"
@@ -206,7 +206,7 @@
                 class="border-t border-gray-100 p-6 dark:border-gray-800"
             >
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <!-- SMTP Host -->
+                    {{-- SMTP Host --}}
                     <div>
                         <label for="mail_host" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             SMTP Server Host
@@ -221,7 +221,7 @@
                         />
                     </div>
 
-                    <!-- SMTP Port -->
+                    {{-- SMTP Port --}}
                     <div>
                         <label for="mail_port" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             SMTP Port
@@ -236,7 +236,7 @@
                         />
                     </div>
 
-                    <!-- Encryption Protocol -->
+                    {{-- Encryption Protocol --}}
                     <div>
                         <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             Encryption Protocol
@@ -275,7 +275,7 @@
                         </div>
                     </div>
 
-                    <!-- SMTP Username -->
+                    {{-- SMTP Username --}}
                     <div>
                         <label for="mail_username" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             SMTP Username
@@ -291,7 +291,7 @@
                         />
                     </div>
 
-                    <!-- SMTP Password -->
+                    {{-- SMTP Password --}}
                     <div class="md:col-span-2">
                         <label for="mail_password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             SMTP Password
@@ -312,9 +312,9 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- OAUTH2 COLLAPSIBLE PROFILE CARD            -->
-        <!-- ========================================== -->
+        {{-- ========================================== --}}
+        {{-- OAUTH2 COLLAPSIBLE PROFILE CARD            --}}
+        {{-- ========================================== --}}
         <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
             <div
                 @click="oauthOpen = !oauthOpen"
@@ -373,7 +373,7 @@
                 class="border-t border-gray-100 p-6 dark:border-gray-800"
             >
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <!-- OAuth Provider -->
+                    {{-- OAuth Provider --}}
                     <div class="md:col-span-2">
                         <label for="mail_oauth_provider" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             OAuth Provider <span class="text-error-500">*</span>
@@ -390,7 +390,7 @@
                         </select>
                     </div>
 
-                    <!-- Tenant ID (Microsoft 365) -->
+                    {{-- Tenant ID (Microsoft 365) --}}
                     <div x-show="oauthProvider === 'microsoft365'">
                         <label for="mail_oauth_tenant_id" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             Directory (Tenant) ID
@@ -405,7 +405,7 @@
                         />
                     </div>
 
-                    <!-- Client ID (Both) -->
+                    {{-- Client ID (Both) --}}
                     <div>
                         <label for="mail_oauth_client_id" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             Application (Client) ID <span class="text-error-500">*</span>
@@ -420,7 +420,7 @@
                         />
                     </div>
 
-                    <!-- Client Secret (Both) -->
+                    {{-- Client Secret (Both) --}}
                     <div>
                         <label for="mail_oauth_client_secret" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             Client Secret
@@ -438,7 +438,7 @@
                         </p>
                     </div>
 
-                    <!-- Refresh Token (Google / Generic) -->
+                    {{-- Refresh Token (Google / Generic) --}}
                     <div x-show="oauthProvider === 'google' || oauthProvider === 'generic'">
                         <label for="mail_oauth_refresh_token" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             OAuth2 Refresh Token
@@ -453,7 +453,7 @@
                         />
                     </div>
 
-                    <!-- Custom Token URL (Generic) -->
+                    {{-- Custom Token URL (Generic) --}}
                     <div x-show="oauthProvider === 'generic'">
                         <label for="mail_oauth_token_url" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                             OAuth Token Endpoint URL
@@ -471,9 +471,9 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- GLOBAL SENDER DEFAULTS                     -->
-        <!-- ========================================== -->
+        {{-- ========================================== --}}
+        {{-- GLOBAL SENDER DEFAULTS                     --}}
+        {{-- ========================================== --}}
         <div class="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
             <div class="mb-4">
                 <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">
@@ -485,7 +485,7 @@
             </div>
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <!-- From Address -->
+                {{-- From Address --}}
                 <div>
                     <label for="mail_from_address" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Sender Email Address (From) <span class="text-error-500">*</span>
@@ -501,7 +501,7 @@
                     />
                 </div>
 
-                <!-- From Name -->
+                {{-- From Name --}}
                 <div>
                     <label for="mail_from_name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Sender Display Name (From) <span class="text-error-500">*</span>
@@ -519,7 +519,7 @@
             </div>
         </div>
 
-        <!-- Action Bar -->
+        {{-- Action Bar --}}
         <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
             <button
                 type="button"

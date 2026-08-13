@@ -73,7 +73,7 @@
         }
     }
 }">
-    <!-- Scope Selector Filter -->
+    {{-- Scope Selector Filter --}}
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <form method="GET" action="{{ route('admin.settings.email-templates.index') }}" class="flex items-center gap-3">
             <label for="company_filter" class="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -95,7 +95,7 @@
         </form>
     </div>
 
-    <!-- Templates Table -->
+    {{-- Templates Table --}}
     <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
         <table class="w-full text-left text-sm text-gray-700 dark:text-gray-300">
             <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:bg-gray-900/50 dark:text-gray-400">
@@ -179,7 +179,7 @@
         </table>
     </div>
 
-    <!-- Live Preview Modal -->
+    {{-- Live Preview Modal --}}
     <div
         x-show="previewModalOpen"
         x-cloak
@@ -227,7 +227,7 @@
         </div>
     </div>
 
-    <!-- Test Email Dispatch Modal -->
+    {{-- Test Email Dispatch Modal --}}
     <div
         x-show="testModalOpen"
         x-cloak

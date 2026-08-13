@@ -27,7 +27,7 @@
         <form action="{{ route('register') }}" method="POST">
             @csrf
             <div class="space-y-5">
-                <!-- Full Name -->
+                {{-- Full Name --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Full Name <span class="text-error-500">*</span>
@@ -44,7 +44,7 @@
                     />
                 </div>
 
-                <!-- Email -->
+                {{-- Email --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Email Address <span class="text-error-500">*</span>
@@ -60,7 +60,7 @@
                     />
                 </div>
 
-                <!-- Password -->
+                {{-- Password --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Password <span class="text-error-500">*</span>
@@ -90,7 +90,7 @@
                     </div>
                 </div>
 
-                <!-- Confirm Password -->
+                {{-- Confirm Password --}}
                 <div>
                     <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Confirm Password <span class="text-error-500">*</span>
@@ -120,7 +120,7 @@
                     </div>
                 </div>
 
-                <!-- Submit Button -->
+                {{-- Submit Button --}}
                 <div>
                     <button
                         type="submit"

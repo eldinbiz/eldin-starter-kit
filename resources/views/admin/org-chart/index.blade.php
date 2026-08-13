@@ -24,7 +24,7 @@
 
 @section('content')
 <div x-data="orgChart()" x-init="init()" class="space-y-6">
-    <!-- Page Header -->
+    {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Organization Chart</h2>
@@ -33,7 +33,7 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Search -->
+            {{-- Search --}}
             <div class="relative">
                 <span class="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400">
                     <svg class="fill-current" width="16" height="16" viewBox="0 0 20 20" fill="none">
@@ -48,7 +48,7 @@
                     class="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500"
                 />
             </div>
-            <!-- Reset View -->
+            {{-- Reset View --}}
             <button @click="resetView()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
@@ -58,9 +58,9 @@
         </div>
     </div>
 
-    <!-- Org Chart Canvas -->
+    {{-- Org Chart Canvas --}}
     <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
-        <!-- Loading State -->
+        {{-- Loading State --}}
         <div x-show="loading" class="flex items-center justify-center py-20">
             <div class="flex flex-col items-center gap-3">
                 <svg class="animate-spin h-8 w-8 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <!-- Empty State -->
+        {{-- Empty State --}}
         <div x-show="!loading && isEmpty" x-cloak class="flex flex-col items-center justify-center py-20">
             <svg class="w-16 h-16 text-gray-300 dark:text-gray-700 mb-4" fill="none" viewBox="0 0 24 24">
                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -80,11 +80,11 @@
             <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">Assign users to this company and set reporting lines to build the chart.</p>
         </div>
 
-        <!-- D3 Org Chart Container -->
+        {{-- D3 Org Chart Container --}}
         <div x-show="!loading && !isEmpty" x-cloak id="org-chart-container" class="org-chart-container overflow-auto"></div>
     </div>
 
-    <!-- Reassign Parent Modal (proper centered dialog) -->
+    {{-- Reassign Parent Modal (proper centered dialog) --}}
     <div x-show="showEditParent" x-transition.opacity
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
          @click.self="closeEditParent()">
@@ -101,11 +101,11 @@
                 Editing: <strong x-text="editParentUserName"></strong>
                 <span x-show="editParentUserEmail" class="text-gray-400" x-text="' — ' + editParentUserEmail"></span>
             </p>
-            <!-- Job Title -->
+            {{-- Job Title --}}
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
             <input type="text" x-model="editParentJobTitle" placeholder="Enter job title..."
                 class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm outline-hidden focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white mb-3" />
-            <!-- Status -->
+            {{-- Status --}}
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
             <select x-model="editParentStatus"
                 class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm outline-hidden focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white mb-4">
@@ -113,7 +113,7 @@
                 <option value="on_leave">On Leave</option>
                 <option value="inactive">Inactive</option>
             </select>
-            <!-- Change Manager Section -->
+            {{-- Change Manager Section --}}
             <template x-if="editParentCurrentManager">
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
                     Current manager: <strong x-text="editParentCurrentManager"></strong>
@@ -135,7 +135,7 @@
                 <template x-if="parentCandidates.length === 0">
                     <div class="px-3 py-4 text-sm text-gray-400 text-center">No candidates available</div>
                 </template>
-                <!-- Remove Manager option -->
+                {{-- Remove Manager option --}}
                 <div @click="selectManager(null)"
                     :class="{ 'bg-red-50 dark:bg-red-900/20': editParentNewManager === null }"
                     class="px-3 py-2 text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
@@ -151,12 +151,12 @@
     </div>
 </div>
 
-<!-- D3 & Org Chart CDN Scripts -->
+{{-- D3 & Org Chart CDN Scripts --}}
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3"></script>
 
-<!-- Org Chart Initialization -->
+{{-- Org Chart Initialization --}}
 <script>
 function orgChart() {
     return {

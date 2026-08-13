@@ -34,7 +34,7 @@
     <form action="{{ route('admin.users.store') }}" method="POST">
         @csrf
         <div class="space-y-6">
-            <!-- Full Name -->
+            {{-- Full Name --}}
             <div>
                 <label for="name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Full Name <span class="text-error-500">*</span>
@@ -50,7 +50,7 @@
                 />
             </div>
 
-            <!-- Email Address -->
+            {{-- Email Address --}}
             <div>
                 <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Email Address <span class="text-error-500">*</span>
@@ -66,7 +66,7 @@
                 />
             </div>
 
-            <!-- Password -->
+            {{-- Password --}}
             <div>
                 <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Password <span class="text-error-500">*</span>
@@ -81,7 +81,7 @@
                 />
             </div>
 
-            <!-- Authentication Method -->
+            {{-- Authentication Method --}}
             <div>
                 <label for="auth_method" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Authentication Method <span class="text-error-500">*</span>
@@ -100,7 +100,7 @@
                 </select>
             </div>
 
-            <!-- Assign Roles -->
+            {{-- Assign Roles --}}
             <div>
                 <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Assign Roles
@@ -112,7 +112,7 @@
                     <span class="text-error-500">*</span>
                 </label>
                 <div class="flex flex-col gap-3">
-                    <!-- Default User Role (Checked & Disabled) -->
+                    {{-- Default User Role (Checked & Disabled) --}}
                     <label class="flex items-center cursor-not-allowed select-none text-sm text-gray-500 dark:text-gray-400">
                         <div class="relative mr-2.5">
                             <input type="checkbox" checked disabled class="sr-only" />
@@ -124,7 +124,7 @@
                         <span>User (Default Role)</span>
                     </label>
 
-                    <!-- Additional Roles -->
+                    {{-- Additional Roles --}}
                     @foreach($roles->where('name', '!=', 'user') as $role)
                         <label class="flex items-center cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300">
                             <div class="relative mr-2.5" x-data="{ checked: false }">
@@ -149,7 +149,7 @@
                 </div>
             </div>
 
-            <!-- Submit Button -->
+            {{-- Submit Button --}}
             <div class="pt-4">
                 <button
                     type="submit"

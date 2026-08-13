@@ -5,7 +5,7 @@
     :class="sidebarToggle ? 'translate-x-0 lg:w-[90px]' : '-translate-x-full'"
     class="sidebar fixed left-0 top-0 z-9999 flex h-screen w-[290px] flex-col overflow-y-hidden border-r border-gray-200 bg-white px-5 dark:border-gray-800 dark:bg-black lg:static lg:translate-x-0 duration-300 ease-linear"
 >
-    <!-- SIDEBAR HEADER -->
+    {{-- SIDEBAR HEADER --}}
     <div
         :class="sidebarToggle ? (sidebarHover ? 'justify-between' : 'justify-center') : 'justify-between'"
         class="flex items-center gap-2 pt-8 pb-7 sidebar-header"
@@ -32,7 +32,7 @@
             @endif
         </a>
 
-        <!-- Hamburger toggle button (visible on mobile only) -->
+        {{-- Hamburger toggle button (visible on mobile only) --}}
         <button
             @click.stop="sidebarToggle = !sidebarToggle"
             class="block lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
@@ -42,12 +42,12 @@
             </svg>
         </button>
     </div>
-    <!-- SIDEBAR HEADER -->
+    {{-- SIDEBAR HEADER --}}
 
     <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar flex-1">
-        <!-- Sidebar Menu -->
+        {{-- Sidebar Menu --}}
         <nav x-data="{ selectedGroup: 'Menu', selectedItem: 'Dashboard' }">
-            <!-- Group 1: MENU -->
+            {{-- Group 1: MENU --}}
             <div class="mb-6">
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
@@ -62,7 +62,7 @@
                             href="{{ url('/') }}"
                             class="menu-item group {{ Request::is('/') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
-                            <!-- Dashboard Icon -->
+                            {{-- Dashboard Icon --}}
                             <svg
                                 class="{{ Request::is('/') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}"
                                 width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
@@ -78,7 +78,7 @@
                 </ul>
             </div>
 
-            <!-- Group 2: APPROVALS -->
+            {{-- Group 2: APPROVALS --}}
             @feature('approvals')
             @canany(['view-approval-inbox', 'view-approval-history', 'view-approval-requests', 'manage-approvals', 'manage-approval-workflows'])
             <div class="mb-6">
@@ -90,7 +90,7 @@
                 </h3>
 
                 <ul class="flex flex-col gap-1.5">
-                    <!-- Approval Inbox -->
+                    {{-- Approval Inbox --}}
                     @can('view-approval-inbox')
                     <li>
                         <a
@@ -107,7 +107,7 @@
                     </li>
                     @endcan
 
-                    <!-- Approval History -->
+                    {{-- Approval History --}}
                     @can('view-approval-history')
                     <li>
                         <a
@@ -124,7 +124,7 @@
                     </li>
                     @endcan
 
-                    <!-- My Requests -->
+                    {{-- My Requests --}}
                     @can('view-approval-requests')
                     <li>
                         <a
@@ -141,7 +141,7 @@
                     </li>
                     @endcan
 
-                    <!-- Manage Approvals -->
+                    {{-- Manage Approvals --}}
                     @can('manage-approvals')
                     <li>
                         <a
@@ -158,7 +158,7 @@
                     </li>
                     @endcan
 
-                    <!-- Workflow Templates -->
+                    {{-- Workflow Templates --}}
                     @can('manage-approval-workflows')
                     <li>
                         <a
@@ -179,7 +179,7 @@
             @endcanany
             @endfeature
 
-            <!-- Group 3: SYSTEM ADMINISTRATION -->
+            {{-- Group 3: SYSTEM ADMINISTRATION --}}
             <div>
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
@@ -190,7 +190,7 @@
 
                 <ul class="flex flex-col gap-1.5">
 
-                    <!-- User Management -->
+                    {{-- User Management --}}
                     @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <li>
                         <a
@@ -198,7 +198,7 @@
                             class="menu-item group {{ Request::is('admin/users*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Users Icon -->
+                                {{-- Users Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/users*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2ZM8.5 7C8.5 5.067 10.067 3.5 12 3.5C13.933 3.5 15.5 5.067 15.5 7C15.5 8.933 13.933 10.5 12 10.5C10.067 10.5 8.5 8.933 8.5 7ZM12 13.5C7.30558 13.5 3.5 17.3056 3.5 22C3.5 22.4142 3.83579 22.75 4.25 22.75H19.75C20.1642 22.75 20.5 22.4142 20.5 22C20.5 17.3056 16.6944 13.5 12 13.5ZM5.03 21.25C5.46 17.81 8.41 15 12 15C15.59 15 18.54 17.81 18.97 21.25H5.03Z" />
                                 </svg>
@@ -208,7 +208,7 @@
                     </li>
                     @endif
 
-                    <!-- User Roles -->
+                    {{-- User Roles --}}
                     @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <li>
                         <a
@@ -216,7 +216,7 @@
                             class="menu-item group {{ Request::is('admin/roles*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Shield/Roles Icon -->
+                                {{-- Shield/Roles Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/roles*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C12.3039 1.25 12.586 1.43839 12.7022 1.72989L15.8559 9.18614L23.8711 10.4975C24.1956 10.5506 24.4544 10.7884 24.5373 11.1095C24.6202 11.4305 24.5114 11.7712 24.2613 11.975L18.0519 17.0318L20.1071 24.8435C20.195 25.1656 20.069 25.5046 19.7935 25.6782C19.518 25.8518 19.1584 25.8184 18.9187 25.598L12 20.7353L5.08126 25.598C4.84156 25.8184 4.48199 25.8518 4.20649 25.6782C3.93098 25.5046 3.805 25.1656 3.89291 24.8435L5.94813 17.0318L-0.261303 11.975C-0.51142 11.7712 -0.620182 11.4305 -0.537271 11.1095C-0.45436 10.7884 -0.195573 10.5506 0.128901 10.4975L8.14407 9.18614L11.2978 1.72989C11.414 1.43839 11.6961 1.25 12 1.25ZM7.57803 10.0603L12 4.11935L16.422 10.0603C16.5482 10.3439 16.8191 10.5304 17.1259 10.546L23.5819 11.4538L18.5613 15.5152C18.3227 15.7093 18.211 16.0169 18.2693 16.3183L19.8797 22.4354L14.0613 18.0033C13.8244 17.8318 13.516 17.7354 13.1969 17.7379L12 17.75L7.93872 18.0033C7.66284 18.0227 7.38129 17.9259 7.15884 17.7354L1.12031 22.4354L2.73069 16.3183C2.78903 16.0169 2.67733 15.7093 2.43872 15.5152L-2.58191 11.4538L3.87405 10.546C4.18089 10.5304 4.45181 10.3439 4.57803 10.0603Z" />
                                 </svg>
@@ -226,7 +226,7 @@
                     </li>
                     @endif
 
-                    <!-- Company Management -->
+                    {{-- Company Management --}}
                     @if (Auth::user()?->getActiveRole()?->name === 'admin')
                     <li>
                         <a
@@ -234,7 +234,7 @@
                             class="menu-item group {{ Request::is('admin/companies*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Building Icon -->
+                                {{-- Building Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/companies*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M6 2.75C4.75736 2.75 3.75 3.75736 3.75 5V19C3.75 19.4142 4.08579 19.75 4.5 19.75H19.5C19.9142 19.75 20.25 19.4142 20.25 19V5C20.25 3.75736 19.2426 2.75 18 2.75H6ZM5.25 5C5.25 4.58579 5.58579 4.25 6 4.25H18C18.4142 4.25 18.75 4.58579 18.75 5V18.25H5.25V5ZM8.75 8C8.75 7.58579 9.08579 7.25 9.5 7.25H10.5C10.9142 7.25 11.25 7.58579 11.25 8V8.5C11.25 8.9142 10.9142 9.25 10.5 9.25H9.5C9.08579 9.25 8.75 8.9142 8.75 8.5V8ZM9.5 11.25C9.08579 11.25 8.75 11.5858 8.75 12V12.5C8.75 12.9142 9.08579 13.25 9.5 13.25H10.5C10.9142 13.25 11.25 12.9142 11.25 12.5V12C11.25 11.5858 10.9142 11.25 10.5 11.25H9.5ZM13.5 7.25C13.0858 7.25 12.75 7.58579 12.75 8V8.5C12.75 8.9142 13.0858 9.25 13.5 9.25H14.5C14.9142 9.25 15.25 8.9142 15.25 8.5V8C15.25 7.58579 14.9142 7.25 14.5 7.25H13.5ZM13.5 11.25C13.0858 11.25 12.75 11.5858 12.75 12V12.5C12.75 12.9142 13.0858 13.25 13.5 13.25H14.5C14.9142 13.25 15.25 12.9142 15.25 12.5V12C15.25 11.5858 14.9142 11.25 14.5 11.25H13.5Z" />
                                 </svg>
@@ -244,7 +244,7 @@
                     </li>
                     @endif
 
-                    <!-- Org Structure -->
+                    {{-- Org Structure --}}
                     @if (Auth::user()?->getActiveRole()?->name === 'admin' || Gate::allows('manage-org-chart'))
                     <li>
                         <a
@@ -252,7 +252,7 @@
                             class="menu-item group {{ Request::is('admin/org-chart*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Structure Icon -->
+                                {{-- Structure Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/org-chart*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M11 2C9.34315 2 8 3.34315 8 5V7H6C4.89543 7 4 7.89543 4 9V12C4 13.1046 4.89543 14 6 14H8V16C8 17.6569 9.34315 19 11 19H13C14.6569 19 16 17.6569 16 16V14H18C19.1046 14 20 13.1046 20 12V9C20 7.89543 19.1046 7 18 7H16V5C16 3.34315 14.6569 2 13 2H11ZM9.5 5C9.5 4.17157 10.1716 3.5 11 3.5H13C13.8284 3.5 14.5 4.17157 14.5 5V7H9.5V5ZM5.5 9C5.5 8.72386 5.72386 8.5 6 8.5H18C18.2761 8.5 18.5 8.72386 18.5 9V12C18.5 12.2761 18.2761 12.5 18 12.5H6C5.72386 12.5 5.5 12.2761 5.5 12V9ZM11 17.5C10.1716 17.5 9.5 16.8284 9.5 16V14H14.5V16C14.5 16.8284 13.8284 17.5 13 17.5H11Z" />
                                 </svg>
@@ -262,7 +262,7 @@
                     </li>
                     @endif
 
-                    <!-- System Settings -->
+                    {{-- System Settings --}}
                     @can('manage-system-settings')
                     <li>
                         <a
@@ -270,7 +270,7 @@
                             class="menu-item group {{ (Request::is('admin/settings*') && !Request::is('admin/settings/auth-providers*')) ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Cog/Gear Icon -->
+                                {{-- Cog/Gear Icon --}}
                                 <svg class="fill-current {{ (Request::is('admin/settings*') && !Request::is('admin/settings/auth-providers*')) ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C12.4418 2 12.8164 2.29033 12.9463 2.71183L13.3852 4.13781C13.8824 4.3411 14.3486 4.61464 14.7709 4.94902L16.2081 4.50974C16.6335 4.37976 17.0988 4.56847 17.3197 4.96001L18.3197 6.69206C18.5406 7.08361 18.4552 7.57529 18.1154 7.86877L16.9669 8.8606C17.0705 9.39049 17.125 9.93883 17.125 10.5C17.125 11.0612 17.0705 11.6095 16.9669 12.1394L18.1154 13.1312C18.4552 13.4247 18.5406 13.9164 18.3197 14.3079L17.3197 16.04C17.0988 16.4315 16.6335 16.6202 16.2081 16.4903L14.7709 16.051C14.3486 16.3854 13.8824 16.6589 13.3852 16.8622L12.9463 18.2882C12.8164 18.7097 12.4418 19 12 19C11.5582 19 11.1836 18.7097 11.0537 18.2882L10.6148 16.8622C10.1176 16.6589 9.6514 16.3854 9.22912 16.051L7.79188 16.4903C7.36648 16.6202 6.90119 16.4315 6.68032 16.04L5.68032 14.3079C5.45945 13.9164 5.54483 13.4247 5.88456 13.1312L7.03312 12.1394C6.92953 11.6095 6.875 11.0612 6.875 10.5C6.875 9.93883 6.92953 9.39049 7.03312 8.8606L5.88456 7.86877C5.54483 7.57529 5.45945 7.08361 5.68032 6.69206L6.68032 4.96001C6.90119 4.56847 7.36648 4.37976 7.79188 4.50974L9.22912 4.94902C9.6514 4.61464 10.1176 4.3411 10.6148 4.13781L11.0537 2.71183C11.1836 2.29033 11.5582 2 12 2ZM12 7.5C10.3431 7.5 9 8.84315 9 10.5C9 12.1569 10.3431 13.5 12 13.5C13.6569 13.5 15 12.1569 15 10.5C15 8.84315 13.6569 7.5 12 7.5Z" />
                                 </svg>
@@ -280,7 +280,7 @@
                     </li>
                     @endcan
 
-                    <!-- Auth Providers -->
+                    {{-- Auth Providers --}}
                     @can('manage-auth-providers')
                     <li>
                         <a
@@ -288,7 +288,7 @@
                             class="menu-item group {{ Request::is('admin/settings/auth-providers*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Key/Lock Icon -->
+                                {{-- Key/Lock Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/settings/auth-providers*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C8.68629 2 6 4.68629 6 8C6 9.8564 6.8458 11.5152 8.17511 12.6074L3.25 17.5325V20.75C3.25 21.3023 3.69772 21.75 4.25 21.75H7.5V19.5H9.75V17.25H12L13.3926 15.8249C14.4848 17.1542 16.1436 18 18 18C21.3137 18 24 15.3137 24 12C24 8.68629 21.3137 6 18 6C16.1436 6 14.4848 6.8458 13.3926 8.17511L12 2ZM18 10.5C17.1716 10.5 16.5 9.82843 16.5 9C16.5 8.17157 17.1716 7.5 18 7.5C18.8284 7.5 19.5 8.17157 19.5 9C19.5 9.82843 18.8284 10.5 18 10.5Z" />
                                 </svg>
@@ -298,7 +298,7 @@
                     </li>
                     @endcan
 
-                    <!-- API Tokens -->
+                    {{-- API Tokens --}}
                     @feature('api_access')
                     @can('manage-api-tokens')
                     <li>
@@ -307,7 +307,7 @@
                             class="menu-item group {{ Request::is('admin/api-tokens*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Code / Terminal Icon -->
+                                {{-- Code / Terminal Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/api-tokens*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M8.70711 5.29289C8.31658 4.90237 7.68342 4.90237 7.29289 5.29289L2.29289 10.2929C1.90237 10.6834 1.90237 11.3166 2.29289 11.7071L7.29289 16.7071C7.68342 17.0976 8.31658 17.0976 8.70711 16.7071C9.09763 16.3166 9.09763 15.6834 8.70711 15.2929L4.41421 11L8.70711 6.70711C9.09763 6.31658 9.09763 5.68342 8.70711 5.29289ZM15.2929 5.29289C15.6834 4.90237 16.3166 4.90237 16.7071 5.29289L21.7071 10.2929C22.0976 10.6834 22.0976 11.3166 21.7071 11.7071L16.7071 16.7071C16.3166 17.0976 15.6834 17.0976 15.2929 16.7071C14.9024 16.3166 14.9024 15.6834 15.2929 15.2929L19.5858 11L15.2929 6.70711C14.9024 6.31658 14.9024 5.68342 15.2929 5.29289Z" />
                                 </svg>
@@ -316,7 +316,7 @@
                         </a>
                     </li>
 
-                    <!-- API Docs (Scramble) -->
+                    {{-- API Docs (Scramble) --}}
                     <li>
                         <a
                             href="{{ url('/docs/api') }}"
@@ -324,7 +324,7 @@
                             class="menu-item group menu-item-inactive"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Book / Docs Icon -->
+                                {{-- Book / Docs Icon --}}
                                 <svg class="fill-current menu-item-icon-inactive" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C9.79086 4.5 7.72893 3.65961 6.16434 2.27493C5.52044 1.70511 4.5 2.16238 4.5 3.02324V18.1402C4.5 18.7303 4.88764 19.2483 5.45423 19.4147C7.43324 19.9959 9.6192 20.25 12 20.25C14.3808 20.25 16.5668 19.9959 18.5458 19.4147C19.1124 19.2483 19.5 18.7303 19.5 18.1402V3.02324C19.5 2.16238 18.4796 1.70511 17.8357 2.27493C16.2711 3.65961 14.2091 4.5 12 4.5ZM6 4.60098C7.6834 5.56847 9.7564 6 12 6C14.2436 6 16.3166 5.56847 18 4.60098V17.7505C16.208 18.3619 14.1884 18.75 12 18.75C9.81156 18.75 7.79198 18.3619 6 17.7505V4.60098Z" />
                                 </svg>
@@ -338,7 +338,7 @@
                     @endcan
                     @endfeature
 
-                    <!-- Audit Trail -->
+                    {{-- Audit Trail --}}
                     @feature('audit_logs')
                     @can('viewAuditLog')
                     <li>
@@ -347,7 +347,7 @@
                             class="menu-item group {{ Request::is('admin/audit-trail*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Audit Trail / History Icon -->
+                                {{-- Audit Trail / History Icon --}}
                                 <svg class="fill-current {{ Request::is('admin/audit-trail*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12ZM12 6C12.4142 6 12.75 6.33579 12.75 6.75V11.25H16.5C16.9142 11.25 17.25 11.5858 17.25 12C17.25 12.4142 16.9142 12.75 16.5 12.75H12C11.5858 12.75 11.25 12.4142 11.25 12V6.75C11.25 6.33579 11.5858 6 12 6Z" />
                                 </svg>
@@ -358,7 +358,7 @@
                     @endcan
                     @endfeature
 
-                    <!-- System Variables (Placeholder) -->
+                    {{-- System Variables (Placeholder) --}}
                     <li>
                         <a
                             href="#"
@@ -367,7 +367,7 @@
                             title="Coming Soon"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Variables/Settings Icon -->
+                                {{-- Variables/Settings Icon --}}
                                 <svg class="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 4C3.5 3.44772 3.94772 3 4.5 3H19.5C20.0523 3 20.5 3.44772 20.5 4V10C20.5 10.5523 20.0523 11 19.5 11H4.5C3.94772 11 3.5 10.5523 3.5 10V4ZM5 4.5V9.5H19V4.5H5ZM3.5 14C3.5 13.4477 3.94772 13 4.5 13H19.5C20.0523 13 20.5 13.4477 20.5 14V20C20.5 20.5523 20.0523 21 19.5 21H4.5C3.94772 21 3.5 20.5523 3.5 20V14ZM5 14.5V19.5H19V14.5H5Z" />
                                 </svg>
@@ -377,7 +377,7 @@
                         </a>
                     </li>
 
-                    <!-- SMTP Settings (Placeholder) -->
+                    {{-- SMTP Settings (Placeholder) --}}
                     <li>
                         <a
                             href="#"
@@ -386,7 +386,7 @@
                             title="Coming Soon"
                         >
                             <span class="flex items-center gap-3">
-                                <!-- Mail Icon -->
+                                {{-- Mail Icon --}}
                                 <svg class="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M1.75 5C1.75 3.75736 2.75736 2.75 4 2.75H20C21.2426 2.75 22.25 3.75736 22.25 5V19C22.25 20.2426 21.2426 21.25 20 21.25H4C2.75736 21.25 1.75 20.2426 1.75 19V5ZM4 4.25H20C20.4142 4.25 20.75 4.58579 20.75 5V7.89304L12.548 12.9238C12.2125 13.1296 11.7875 13.1296 11.452 12.9238L3.25 7.89304V5C3.25 4.58579 3.58579 4.25 4 4.25ZM3.25 9.6384L10.682 14.1951C11.4883 14.6896 12.5117 14.6896 13.318 14.1951L20.75 9.6384V19C20.75 19.4142 20.4142 19.75 20 19.75H4C3.58579 19.75 3.25 19.4142 3.25 19V9.6384Z" />
                                 </svg>

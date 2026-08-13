@@ -9,18 +9,18 @@
     @if (!empty($appFavicon))
         <link rel="icon" href="{{ $appFavicon }}">
     @endif
-    <!-- Outfit Google Font -->
+    {{-- Outfit Google Font --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
-    <!-- ApexCharts CDN (Loaded before Alpine) -->
+    {{-- ApexCharts CDN (Loaded before Alpine) --}}
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-    <!-- Alpine.js (via CDN, deferred, zero-build) -->
+    {{-- Alpine.js (via CDN, deferred, zero-build) --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Tailwind CSS and custom scripts via Vite -->
+    {{-- Tailwind CSS and custom scripts via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body
@@ -45,17 +45,17 @@
     }"
     :class="{'dark bg-gray-900': darkMode === true}"
 >
-    <!-- Preloader -->
+    {{-- Preloader --}}
     @include('partials.preloader')
 
-    <!-- Page Wrapper -->
+    {{-- Page Wrapper --}}
     <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar -->
+        {{-- Sidebar --}}
         @include('partials.sidebar')
 
-        <!-- Content Area -->
+        {{-- Content Area --}}
         <div class="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden custom-scrollbar bg-gray-50 dark:bg-gray-950">
-            <!-- Small Device Overlay -->
+            {{-- Small Device Overlay --}}
             @include('partials.overlay')
 
             @impersonating
@@ -76,10 +76,10 @@
             </div>
             @endImpersonating
 
-            <!-- Header -->
+            {{-- Header --}}
             @include('partials.header')
 
-            <!-- Main Content -->
+            {{-- Main Content --}}
             <main>
                 <div class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6 2xl:p-10">
                     @yield('content')
@@ -94,7 +94,7 @@
         window.isImpersonationTransition = false;
     </script>
 
-    <!-- Session Expiry Monitor & Modal -->
+    {{-- Session Expiry Monitor & Modal --}}
     @include('partials.session-monitor')
 
     @auth

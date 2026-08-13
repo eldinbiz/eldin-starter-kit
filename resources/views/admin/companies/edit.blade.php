@@ -25,7 +25,7 @@
     </div>
     @endif
 
-    <!-- Company Details Form -->
+    {{-- Company Details Form --}}
     <form action="{{ route('admin.companies.update', $company) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-5">
         @csrf
         @method('PUT')
@@ -101,7 +101,7 @@
         </div>
     </form>
 
-    <!-- Assigned Users Section -->
+    {{-- Assigned Users Section --}}
     <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 space-y-5">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Company Users ({{ $companyUsers->count() }})</h3>
 
@@ -142,7 +142,7 @@
         <p class="text-sm text-gray-400 dark:text-gray-500">No users assigned to this company yet.</p>
         @endif
 
-        <!-- Assign User Form -->
+        {{-- Assign User Form --}}
         @if($availableUsers->count() > 0)
         <div class="border-t border-gray-100 dark:border-gray-800 pt-5 mt-5">
             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Assign a User</h4>

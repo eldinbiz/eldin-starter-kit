@@ -73,7 +73,7 @@
             <p x-text="errorMessage"></p>
         </div>
 
-        <!-- Step 1: Enter Email -->
+        {{-- Step 1: Enter Email --}}
         <form @submit.prevent="checkEmail" x-show="step === 1">
             <div class="space-y-5">
                 <div>
@@ -105,7 +105,7 @@
             </div>
         </form>
 
-        <!-- Step 2: Password / SSO Provider Redirection -->
+        {{-- Step 2: Password / SSO Provider Redirection --}}
         <div x-show="step === 2" x-cloak class="space-y-5">
             <div class="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate" x-text="email"></span>
@@ -114,14 +114,14 @@
                 </button>
             </div>
 
-            <!-- Disabled Provider Warning -->
+            {{-- Disabled Provider Warning --}}
             <template x-if="!isEnabled && authMethod !== 'local'">
                 <div class="rounded-lg bg-warning-50 p-4 text-sm text-warning-600 dark:bg-warning-500/10 dark:text-warning-400">
                     Authentication provider <strong x-text="providerLabel"></strong> is currently disabled by system administrator.
                 </div>
             </template>
 
-            <!-- Password Form for Local & LDAP -->
+            {{-- Password Form for Local & LDAP --}}
             <template x-if="authMethod === 'local' || authMethod === 'ldap'">
                 <form action="{{ route('login') }}" method="POST" class="space-y-5">
                     @csrf
@@ -179,7 +179,7 @@
                 </form>
             </template>
 
-            <!-- SSO / SAML Button for google, microsoft, auth0, saml2 -->
+            {{-- SSO / SAML Button for google, microsoft, auth0, saml2 --}}
             <template x-if="authMethod !== 'local' && authMethod !== 'ldap' && isEnabled">
                 <div class="space-y-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">

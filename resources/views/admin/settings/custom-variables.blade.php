@@ -61,7 +61,7 @@
         }
     }
 }">
-    <!-- Filter & Action Header -->
+    {{-- Filter & Action Header --}}
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <form method="GET" action="{{ route('admin.settings.custom-variables') }}" class="flex items-center gap-3">
             <label for="company_filter" class="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -92,7 +92,7 @@
         </button>
     </div>
 
-    <!-- Table of Variables -->
+    {{-- Table of Variables --}}
     <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
         <table class="w-full text-left text-sm text-gray-700 dark:text-gray-300">
             <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:bg-gray-900/50 dark:text-gray-400">
@@ -187,7 +187,7 @@
         </table>
     </div>
 
-    <!-- Create / Edit Modal (Alpine.js) -->
+    {{-- Create / Edit Modal (Alpine.js) --}}
     <div
         x-show="modalOpen"
         x-cloak
@@ -211,7 +211,7 @@
                     <input type="hidden" name="_method" value="PUT" />
                 </template>
 
-                <!-- Key -->
+                {{-- Key --}}
                 <div>
                     <label for="var_key" class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
                         Variable Key <span class="text-error-500">*</span>
@@ -229,7 +229,7 @@
                     <p class="mt-1 text-[11px] text-gray-400">Alphanumeric, dashes, and underscores only.</p>
                 </div>
 
-                <!-- Scope Company (Only on Create) -->
+                {{-- Scope Company (Only on Create) --}}
                 <div x-show="!editMode">
                     <label for="var_company_id" class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
                         Scope
@@ -247,7 +247,7 @@
                     </select>
                 </div>
 
-                <!-- Type -->
+                {{-- Type --}}
                 <div>
                     <label for="var_type" class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
                         Data Type <span class="text-error-500">*</span>
@@ -265,13 +265,13 @@
                     </select>
                 </div>
 
-                <!-- Value -->
+                {{-- Value --}}
                 <div>
                     <label for="var_value" class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
                         Value
                     </label>
 
-                    <!-- Text input for text -->
+                    {{-- Text input for text --}}
                     <template x-if="varType === 'text'">
                         <textarea
                             id="var_value"
@@ -283,7 +283,7 @@
                         ></textarea>
                     </template>
 
-                    <!-- Number input for numeric -->
+                    {{-- Number input for numeric --}}
                     <template x-if="varType === 'numeric'">
                         <input
                             type="number"
@@ -296,7 +296,7 @@
                         />
                     </template>
 
-                    <!-- Monospace textarea for JSON -->
+                    {{-- Monospace textarea for JSON --}}
                     <template x-if="varType === 'json'">
                         <div>
                             <textarea
@@ -313,7 +313,7 @@
                     </template>
                 </div>
 
-                <!-- Description -->
+                {{-- Description --}}
                 <div>
                     <label for="var_description" class="mb-1.5 block text-xs font-medium text-gray-700 dark:text-gray-300">
                         Description / Notes

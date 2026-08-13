@@ -29,7 +29,7 @@
         </div>
     @endif
 
-    <!-- Nav Tabs -->
+    {{-- Nav Tabs --}}
     <div class="mb-6 border-b border-gray-200 dark:border-gray-800">
         <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Tabs">
             <button
@@ -77,9 +77,9 @@
         </nav>
     </div>
 
-    <!-- Tab Contents -->
+    {{-- Tab Contents --}}
 
-    <!-- Local Tab -->
+    {{-- Local Tab --}}
     <div x-show="activeTab === 'local'" x-cloak x-data="{
         testing: false,
         testResult: null,
@@ -149,7 +149,7 @@
         </div>
     </div>
 
-    <!-- Provider Form Template Component for LDAP, Google, Microsoft, Auth0, SAML2 -->
+    {{-- Provider Form Template Component for LDAP, Google, Microsoft, Auth0, SAML2 --}}
     @foreach (['ldap', 'google', 'microsoft', 'auth0', 'saml2'] as $prov)
         @php
             $setting = $settings->get($prov);
@@ -201,7 +201,7 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Toggles -->
+                {{-- Toggles --}}
                 <div class="space-y-4 rounded-xl border border-gray-200 p-5 dark:border-gray-800">
                     <div class="flex items-center justify-between">
                         <div>
@@ -226,7 +226,7 @@
                     </div>
                 </div>
 
-                <!-- Provider Fields -->
+                {{-- Provider Fields --}}
                 @if ($prov === 'ldap')
                     <div class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -310,7 +310,7 @@
                     </div>
                 @endif
 
-                <!-- Inline Test Result Alert -->
+                {{-- Inline Test Result Alert --}}
                 <div x-show="testResult !== null" x-cloak class="transition-all">
                     <div
                         :class="testResult && testResult.success ? 'bg-success-50 text-success-700 border-success-200 dark:bg-success-500/10 dark:text-success-400 dark:border-success-500/20' : 'bg-error-50 text-error-700 border-error-200 dark:bg-error-500/10 dark:text-error-400 dark:border-error-500/20'"

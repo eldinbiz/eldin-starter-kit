@@ -38,7 +38,7 @@
         textarea.selectionStart = textarea.selectionEnd = start + text.length;
     }
 }">
-    <!-- Header with Back Button -->
+    {{-- Header with Back Button --}}
     <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <a
@@ -62,7 +62,7 @@
         </button>
     </div>
 
-    <!-- Available Variables Token Bar -->
+    {{-- Available Variables Token Bar --}}
     <div class="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/50">
         <h4 class="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400">
             Available Placeholder Tokens (Click to insert into HTML)
@@ -85,12 +85,12 @@
         </div>
     </div>
 
-    <!-- Edit Form -->
+    {{-- Edit Form --}}
     <form action="{{ route('admin.settings.email-templates.update', $template->id) }}" method="POST" class="space-y-6">
         @csrf
         @method('PUT')
 
-        <!-- Subject -->
+        {{-- Subject --}}
         <div>
             <label for="subject" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Email Subject Pattern <span class="text-error-500">*</span>
@@ -106,7 +106,7 @@
             <p class="mt-1 text-xs text-gray-500">Supports variable tokens, e.g. <code>[@{{ company_name }}] Approval Requested: @{{ title }}</code></p>
         </div>
 
-        <!-- HTML Body -->
+        {{-- HTML Body --}}
         <div>
             <label for="body_html" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 HTML Email Body Content <span class="text-error-500">*</span>
@@ -120,7 +120,7 @@
             >{{ old('body_html', $template->body_html) }}</textarea>
         </div>
 
-        <!-- Plain Text Body (Optional) -->
+        {{-- Plain Text Body (Optional) --}}
         <div>
             <label for="body_text" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Plain Text Version (Optional Fallback)
@@ -133,7 +133,7 @@
             >{{ old('body_text', $template->body_text) }}</textarea>
         </div>
 
-        <!-- Active Toggle -->
+        {{-- Active Toggle --}}
         <div>
             <label class="inline-flex items-center gap-2.5 cursor-pointer">
                 <input
@@ -149,7 +149,7 @@
             </label>
         </div>
 
-        <!-- Actions -->
+        {{-- Actions --}}
         <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
             <a
                 href="{{ route('admin.settings.email-templates.index', ['company_id' => $template->company_id]) }}"
@@ -166,7 +166,7 @@
         </div>
     </form>
 
-    <!-- Live Preview Modal -->
+    {{-- Live Preview Modal --}}
     <div
         x-show="previewModalOpen"
         x-cloak

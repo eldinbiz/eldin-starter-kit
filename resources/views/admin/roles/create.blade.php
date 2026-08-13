@@ -41,7 +41,7 @@
             <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Use lowercase with underscores, e.g. "content_editor".</p>
         </div>
 
-        <!-- Permissions Section -->
+        {{-- Permissions Section --}}
         <div class="mb-6">
             <h4 class="mb-4 text-base font-medium text-gray-800 dark:text-white/90">Permissions</h4>
 

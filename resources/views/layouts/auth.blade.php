@@ -10,15 +10,15 @@
     @if (!empty($appFavicon))
         <link rel="icon" href="{{ $appFavicon }}">
     @endif
-    <!-- Outfit Google Font -->
+    {{-- Outfit Google Font --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
     
-    <!-- Alpine.js (via CDN, zero-build) -->
+    {{-- Alpine.js (via CDN, zero-build) --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Tailwind CSS and custom scripts via Vite -->
+    {{-- Tailwind CSS and custom scripts via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body
@@ -40,14 +40,14 @@
     }"
     :class="{'dark bg-gray-900': darkMode === true, 'bg-gray-50': darkMode === false}"
 >
-    <!-- Preloader Start -->
+    {{-- Preloader Start --}}
     <div
         x-show="!loaded"
         class="fixed left-0 top-0 z-999999 flex h-screen w-screen items-center justify-center bg-white dark:bg-black"
     >
         <div class="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-500 border-t-transparent"></div>
     </div>
-    <!-- Preloader End -->
+    {{-- Preloader End --}}
 
     <main class="min-h-screen flex flex-col items-center justify-center p-4">
         @if (!empty($appLogo))

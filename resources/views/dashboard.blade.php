@@ -7,9 +7,9 @@
     @include('partials.breadcrumb')
 </div>
 
-<!-- Row 1: Counters -->
+{{-- Row 1: Counters --}}
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
-    <!-- Counter 1: Unique Views -->
+    {{-- Counter 1: Unique Views --}}
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-500/10">
             <svg class="fill-brand-500 dark:fill-brand-400" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -30,12 +30,12 @@
         </div>
     </div>
 
-    <!-- Counter 2: Total Revenue -->
+    {{-- Counter 2: Total Revenue --}}
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-success-50 dark:bg-success-500/10">
             <svg class="fill-success-600 dark:fill-success-400" width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" class="hidden"/>
-                <!-- Dollar sign vector -->
+                {{-- Dollar sign vector --}}
                 <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1.375 12.875c0 1.25-.875 2-2.125 2.25v1h-1.5v-1c-1.375-.125-2.375-.875-2.5-2.25h1.75c.125.625.625.875 1.25.875.625 0 1-.25 1-.625 0-.375-.25-.625-1-.875l-1-.375c-1.25-.5-1.75-1.125-1.75-2.125 0-1.125.75-1.875 2-2.125v-1h1.5v1c1.125.125 1.875.75 2 1.75h-1.75c-.125-.5-.5-.625-1-.625-.5 0-.875.125-.875.5s.25.5.875.75l1 .375c1.25.5 1.75 1.125 1.75 2.125z" fill="currentColor"/>
             </svg>
         </div>
@@ -53,7 +53,7 @@
         </div>
     </div>
 
-    <!-- Counter 3: Total Orders -->
+    {{-- Counter 3: Total Orders --}}
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-500/10">
             <svg class="fill-orange-500 dark:fill-orange-400" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <!-- Counter 4: Customers -->
+    {{-- Counter 4: Customers --}}
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-light-50 dark:bg-blue-light-500/10">
             <svg class="fill-blue-light-600 dark:fill-blue-light-400" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -96,9 +96,9 @@
     </div>
 </div>
 
-<!-- Row 2: Charts -->
+{{-- Row 2: Charts --}}
 <div class="grid grid-cols-12 gap-4 md:gap-6 mt-6">
-    <!-- Chart 1: Line / Area Chart (Traffic Analytics) -->
+    {{-- Chart 1: Line / Area Chart (Traffic Analytics) --}}
     <div class="col-span-12 xl:col-span-8 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -123,7 +123,7 @@
         </div>
     </div>
 
-    <!-- Chart 2: Donut / Pie Chart (Device Distribution) -->
+    {{-- Chart 2: Donut / Pie Chart (Device Distribution) --}}
     <div class="col-span-12 xl:col-span-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -147,7 +147,7 @@
         </div>
     </div>
 
-    <!-- Chart 3: Bar Chart (Sales Overview) -->
+    {{-- Chart 3: Bar Chart (Sales Overview) --}}
     <div class="col-span-12 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6 mt-2">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -175,7 +175,7 @@
     </div>
 </div>
 
-<!-- Row 3: Recent Transactions -->
+{{-- Row 3: Recent Transactions --}}
 <div class="rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 mt-6">
     <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -206,7 +206,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                <!-- Transaction 1 -->
+                {{-- Transaction 1 --}}
                 <tr>
                     <td class="py-3.5">
                         <p class="font-semibold text-gray-800 text-theme-sm dark:text-white/90">#TXN-1284</p>
@@ -233,7 +233,7 @@
                     </td>
                 </tr>
 
-                <!-- Transaction 2 -->
+                {{-- Transaction 2 --}}
                 <tr>
                     <td class="py-3.5">
                         <p class="font-semibold text-gray-800 text-theme-sm dark:text-white/90">#TXN-1283</p>
@@ -260,7 +260,7 @@
                     </td>
                 </tr>
 
-                <!-- Transaction 3 -->
+                {{-- Transaction 3 --}}
                 <tr>
                     <td class="py-3.5">
                         <p class="font-semibold text-gray-800 text-theme-sm dark:text-white/90">#TXN-1282</p>
@@ -287,7 +287,7 @@
                     </td>
                 </tr>
 
-                <!-- Transaction 4 -->
+                {{-- Transaction 4 --}}
                 <tr>
                     <td class="py-3.5">
                         <p class="font-semibold text-gray-800 text-theme-sm dark:text-white/90">#TXN-1281</p>

@@ -8,9 +8,9 @@
 </div>
 
 <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-    <!-- Header Controls & Tabs -->
+    {{-- Header Controls & Tabs --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-5 border-b border-gray-100 dark:border-gray-800">
-        <!-- Filter Tabs -->
+        {{-- Filter Tabs --}}
         <div class="flex items-center gap-2">
             <a
                 href="{{ route('notifications.index', ['filter' => 'all']) }}"
@@ -32,7 +32,7 @@
             </a>
         </div>
 
-        <!-- Bulk Actions -->
+        {{-- Bulk Actions --}}
         @if(auth()->user()->unreadNotifications()->count() > 0)
         <form action="{{ route('notifications.read-all') }}" method="POST">
             @csrf
@@ -49,7 +49,7 @@
         @endif
     </div>
 
-    <!-- Notification Cards List -->
+    {{-- Notification Cards List --}}
     <div class="divide-y divide-gray-100 dark:divide-gray-800 my-2">
         @forelse($notifications as $notification)
             @php
@@ -71,7 +71,7 @@
             @endphp
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 px-2 hover:bg-gray-50/50 dark:hover:bg-white/[0.01] rounded-xl transition-colors {{ !$isRead ? 'bg-brand-50/20 dark:bg-brand-500/5' : '' }}">
                 <div class="flex items-start gap-3">
-                    <!-- Read/Unread Dot -->
+                    {{-- Read/Unread Dot --}}
                     <div class="mt-1 shrink-0">
                         @if(!$isRead)
                             <span class="inline-block h-2.5 w-2.5 rounded-full bg-brand-500 shadow-xs"></span>
@@ -80,7 +80,7 @@
                         @endif
                     </div>
 
-                    <!-- Content Details -->
+                    {{-- Content Details --}}
                     <div class="space-y-1">
                         <div class="flex flex-wrap items-center gap-2">
                             <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
@@ -108,7 +108,7 @@
                     </div>
                 </div>
 
-                <!-- Action Button -->
+                {{-- Action Button --}}
                 <div class="shrink-0 flex items-center gap-2 pl-5 sm:pl-0">
                     <form action="{{ route('notifications.mark-as-read', $notification->id) }}" method="POST">
                         @csrf
@@ -128,7 +128,7 @@
         @endforelse
     </div>
 
-    <!-- Pagination Links -->
+    {{-- Pagination Links --}}
     @if($notifications->hasPages())
     <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
         {{ $notifications->links() }}

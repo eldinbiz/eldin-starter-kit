@@ -48,7 +48,7 @@
         @csrf
         @method('PUT')
         <div class="space-y-6">
-            <!-- Full Name -->
+            {{-- Full Name --}}
             <div>
                 <label for="name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Full Name <span class="text-error-500">*</span>
@@ -64,7 +64,7 @@
                 />
             </div>
 
-            <!-- Email Address -->
+            {{-- Email Address --}}
             <div>
                 <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Email Address <span class="text-error-500">*</span>
@@ -80,7 +80,7 @@
                 />
             </div>
 
-            <!-- Password (Optional) -->
+            {{-- Password (Optional) --}}
             <div>
                 <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Password <span class="text-xs text-gray-400 font-normal">(Leave blank to keep current password)</span>
@@ -94,7 +94,7 @@
                 />
             </div>
 
-            <!-- Authentication Method -->
+            {{-- Authentication Method --}}
             <div>
                 <label for="auth_method" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Authentication Method <span class="text-error-500">*</span>
@@ -113,7 +113,7 @@
                 </select>
             </div>
 
-            <!-- Assign Roles -->
+            {{-- Assign Roles --}}
             <div>
                 <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Assign Roles
@@ -125,7 +125,7 @@
                     <span class="text-error-500">*</span>
                 </label>
                 <div class="flex flex-col gap-3">
-                    <!-- Default User Role (Checked & Disabled) -->
+                    {{-- Default User Role (Checked & Disabled) --}}
                     <label class="flex items-center cursor-not-allowed select-none text-sm text-gray-500 dark:text-gray-400">
                         <div class="relative mr-2.5">
                             <input type="checkbox" checked disabled class="sr-only" />
@@ -137,7 +137,7 @@
                         <span>User (Default Role)</span>
                     </label>
 
-                    <!-- Additional Roles -->
+                    {{-- Additional Roles --}}
                     @foreach($roles->where('name', '!=', 'user') as $role)
                         @php
                             $hasRole = in_array($role->id, $userRoleIds);
@@ -166,7 +166,7 @@
                 </div>
             </div>
 
-            <!-- Submit Button -->
+            {{-- Submit Button --}}
             <div class="pt-4">
                 <button
                     type="submit"
@@ -179,7 +179,7 @@
     </form>
 </div>
 
-    <!-- Company Assignments Section -->
+    {{-- Company Assignments Section --}}
     <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-8">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -277,7 +277,7 @@
             <p class="text-sm text-gray-400 dark:text-gray-500 mb-6">This user is not assigned to any companies yet.</p>
         @endif
 
-        <!-- Assign to Company Form -->
+        {{-- Assign to Company Form --}}
         @if($availableCompanies->isNotEmpty())
             <div class="border-t border-gray-100 dark:border-gray-800 pt-5">
                 <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Assign to a Company</h5>

@@ -10,7 +10,7 @@
     @method('PUT')
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Application Name -->
+        {{-- Application Name --}}
         <div class="md:col-span-2">
             <label for="app_name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Application Name <span class="text-error-500">*</span>
@@ -29,7 +29,7 @@
             </p>
         </div>
 
-        <!-- App Logo Upload -->
+        {{-- App Logo Upload --}}
         <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Application Logo
@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <!-- App Favicon Upload -->
+        {{-- App Favicon Upload --}}
         <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Application Favicon
@@ -81,7 +81,7 @@
             </div>
         </div>
 
-        <!-- Default Timezone -->
+        {{-- Default Timezone --}}
         <div>
             <label for="default_timezone" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Default System Timezone <span class="text-error-500">*</span>
@@ -99,7 +99,7 @@
             </select>
         </div>
 
-        <!-- Default Date Format -->
+        {{-- Default Date Format --}}
         <div>
             <label for="date_format" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 System Date Format <span class="text-error-500">*</span>
@@ -117,7 +117,7 @@
             </select>
         </div>
 
-        <!-- Time Format (12h/24h) -->
+        {{-- Time Format (12h/24h) --}}
         <div>
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Time Display Format
@@ -146,7 +146,7 @@
             </div>
         </div>
 
-        <!-- Default Theme Mode -->
+        {{-- Default Theme Mode --}}
         <div class="md:col-span-2">
             <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                 Default Theme Appearance
@@ -186,7 +186,7 @@
         </div>
     </div>
 
-    <!-- Submit Button -->
+    {{-- Submit Button --}}
     <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-800">
         <button
             type="submit"

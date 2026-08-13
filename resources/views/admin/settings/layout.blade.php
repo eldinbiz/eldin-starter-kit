@@ -39,7 +39,7 @@
         </div>
     @endif
 
-    <!-- Nav Tabs -->
+    {{-- Nav Tabs --}}
     <div class="mb-6 border-b border-gray-200 dark:border-gray-800">
         <nav class="-mb-px flex space-x-6 overflow-x-auto" aria-label="Settings Tabs">
             @can('manage-system-settings')

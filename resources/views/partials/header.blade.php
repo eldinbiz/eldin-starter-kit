@@ -5,18 +5,18 @@
     <div class="flex grow flex-col justify-between lg:flex-row lg:px-6 w-full">
         <div class="flex w-full items-center justify-between gap-2 border-b border-gray-200 px-4 py-3 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4 dark:border-gray-800">
 
-            <!-- Hamburger Menu Toggle (Desktop & Mobile) -->
+            {{-- Hamburger Menu Toggle (Desktop & Mobile) --}}
             <button
                 class="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
                 @click.stop="sidebarToggle = !sidebarToggle"
             >
-                <!-- Hamburger Icon -->
+                {{-- Hamburger Icon --}}
                 <svg class="fill-current" width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M0.583252 1C0.583252 0.585788 0.919038 0.25 1.33325 0.25H14.6666C15.0808 0.25 15.4166 0.585786 15.4166 1C15.4166 1.41421 15.0808 1.75 14.6666 1.75L1.33325 1.75C0.919038 1.75 0.583252 1.41422 0.583252 1ZM0.583252 11C0.583252 10.5858 0.919038 10.25 1.33325 10.25L14.6666 10.25C15.0808 10.25 15.4166 10.5858 15.4166 11C15.4166 11.4142 15.0808 11.75 14.6666 11.75L1.33325 11.75C0.919038 11.75 0.583252 11.4142 0.583252 11ZM1.33325 5.25C0.919038 5.25 0.583252 5.58579 0.583252 6C0.583252 6.41421 0.919038 6.75 1.33325 6.75L7.99992 6.75C8.41413 6.75 8.74992 6.41421 8.74992 6C8.74992 5.58579 8.41413 5.25 7.99992 5.25L1.33325 5.25Z" />
                 </svg>
             </button>
 
-            <!-- Environment Badge -->
+            {{-- Environment Badge --}}
             @unless(app()->environment('production'))
             @php
                 $env = app()->environment();
@@ -38,7 +38,7 @@
             </span>
             @endunless
 
-            <!-- Search Bar -->
+            {{-- Search Bar --}}
             <div class="hidden sm:block ml-4 flex-1 max-w-xs">
                 <form action="#" method="GET">
                     <div class="relative">
@@ -56,24 +56,24 @@
                 </form>
             </div>
 
-            <!-- Toolbar / Profile Area -->
+            {{-- Toolbar / Profile Area --}}
             <div class="flex items-center gap-3.5 ml-auto">
-                <!-- 1. Dark Mode Switcher -->
+                {{-- 1. Dark Mode Switcher --}}
                 <button
                     class="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800"
                     @click="toggleTheme()"
                 >
-                    <!-- Sun Icon (shows in dark mode) -->
+                    {{-- Sun Icon (shows in dark mode) --}}
                     <svg x-show="darkMode" x-cloak class="fill-current text-warning-500" width="22" height="22" viewBox="0 0 24 24" fill="none">
                         <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3zm0-9c.28 0 .5-.22.5-.5V4c0-.28-.22-.5-.5-.5s-.5.22-.5.5v1.5c0 .28.22.5.5.5zm0 12c.28 0 .5-.22.5-.5V20c0-.28-.22-.5-.5-.5s-.5.22-.5.5v1.5c0 .28.22.5.5.5zm8.5-6.5h-1.5c-.28 0-.5.22-.5.5s.22.5.5.5h1.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5zM6 12c0-.28-.22-.5-.5-.5H4c-.28 0-.5.22-.5.5s.22.5.5.5h1.5c.28 0 .5-.22.5-.5zm11.24-5.36c.2-.2.2-.51 0-.71l-1.06-1.06c-.2-.2-.51-.2-.71 0s-.2.51 0 .71l1.06 1.06c.2.2.51.2.71 0zM7.83 16.17c.2-.2.2-.51 0-.71l-1.06-1.06c-.2-.2-.51-.2-.71 0s-.2.51 0 .71l1.06 1.06c.2.2.51.2.71 0zm8.7-1.06c-.2-.2-.51-.2-.71 0l-1.06 1.06c-.2.2-.2.51 0 .71s.51.2.71 0l1.06-1.06c.2-.2.2-.51 0-.71zM7.12 5.12c-.2-.2-.51-.2-.71 0L5.36 6.18c-.2.2-.2.51 0 .71s.51.2.71 0l1.06-1.06c.2-.2.2-.51 0-.71z"/>
                     </svg>
-                    <!-- Moon Icon (shows in light mode) -->
+                    {{-- Moon Icon (shows in light mode) --}}
                     <svg x-show="!darkMode" class="fill-current text-gray-500" width="22" height="22" viewBox="0 0 24 24" fill="none">
                         <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
                     </svg>
                 </button>
 
-                <!-- Notification Bell Dropdown Widget -->
+                {{-- Notification Bell Dropdown Widget --}}
                 @auth
                 <div
                     class="relative"
@@ -161,7 +161,7 @@
                             <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16ZM16 17H8V11C8 8.52 9.51 6.5 12 6.5C14.49 6.5 16 8.52 16 11V17Z"/>
                         </svg>
 
-                        <!-- Unread Count Badge -->
+                        {{-- Unread Count Badge --}}
                         <span
                             x-show="unreadCount > 0"
                             x-cloak
@@ -170,13 +170,13 @@
                         ></span>
                     </button>
 
-                    <!-- Notification Dropdown Popover -->
+                    {{-- Notification Dropdown Popover --}}
                     <div
                         x-show="open"
                         x-cloak
                         class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 z-9999 text-gray-800 dark:text-gray-200"
                     >
-                        <!-- Popover Header -->
+                        {{-- Popover Header --}}
                         <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
                             <div class="flex items-center gap-2">
                                 <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h4>
@@ -206,7 +206,7 @@
                             </div>
                         </div>
 
-                        <!-- Notification List -->
+                        {{-- Notification List --}}
                         <div class="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800 my-1">
                             <template x-if="notifications.length === 0">
                                 <div class="py-6 text-center text-xs text-gray-400 dark:text-gray-500">
@@ -240,7 +240,7 @@
                             </template>
                         </div>
 
-                        <!-- Popover Footer -->
+                        {{-- Popover Footer --}}
                         <div class="pt-2 border-t border-gray-100 dark:border-gray-800 text-center">
                             <a
                                 href="{{ route('notifications.index') }}"
@@ -253,7 +253,7 @@
                 </div>
                 @endif
 
-                <!-- Company Selector Dropdown -->
+                {{-- Company Selector Dropdown --}}
                 @auth
                 @if($userCompanies->count() > 0)
                 <div class="relative" x-data="{ companyDropdown: false }" @click.outside="companyDropdown = false">
@@ -288,7 +288,7 @@
                 @endif
                 @endauth
 
-                <!-- Role Selector Dropdown -->
+                {{-- Role Selector Dropdown --}}
                 @auth
                 @if($activeCompany)
                 <div class="relative" x-data="{ roleDropdown: false }" @click.outside="roleDropdown = false">
@@ -301,7 +301,7 @@
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M1.41 0.589966L6 5.17997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" />
                         </svg>
                     </button>
-                    <!-- Dropdown Panel -->
+                    {{-- Dropdown Panel --}}
                     <div
                         x-show="roleDropdown"
                         x-cloak
@@ -321,7 +321,7 @@
                 @endif
                 @endauth
 
-                <!-- 2. User Profile Dropdown -->
+                {{-- 2. User Profile Dropdown --}}
                 @auth
                 <div class="relative" @click.outside="userDropdown = false">
                     <button
@@ -341,13 +341,13 @@
                             {{ substr(Auth::user()->name, 0, 1) }}
                         </span>
 
-                        <!-- Arrow Down -->
+                        {{-- Arrow Down --}}
                         <svg class="fill-current text-gray-500 hidden sm:block" width="12" height="8" viewBox="0 0 12 8" fill="none">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M1.41 0.589966L6 5.17997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" />
                         </svg>
                     </button>
 
-                    <!-- Dropdown Panel -->
+                    {{-- Dropdown Panel --}}
                     <div
                         x-show="userDropdown"
                         x-cloak

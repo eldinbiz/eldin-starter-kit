@@ -6,7 +6,7 @@
 
 @section('settings-content')
 <div class="space-y-6">
-    <!-- GLOBAL DEFAULTS -->
+    {{-- GLOBAL DEFAULTS --}}
     <form action="{{ route('admin.settings.features.update') }}" method="POST" class="space-y-6">
         @csrf
         @method('PUT')
@@ -52,7 +52,7 @@
         </div>
     </form>
 
-    <!-- PER-COMPANY OVERRIDES -->
+    {{-- PER-COMPANY OVERRIDES --}}
     <div class="rounded-xl border border-gray-200 p-5 dark:border-gray-800">
         <div class="mb-4 flex flex-col gap-3">
             <div>
