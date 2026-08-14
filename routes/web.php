@@ -79,6 +79,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/settings/mail/test', [SystemSettingController::class, 'testMail'])->name('settings.mail.test');
 
         Route::get('/settings/custom-variables', [SystemSettingController::class, 'customVariables'])->name('settings.custom-variables');
+        Route::post('/settings/custom-variables/check', [SystemSettingController::class, 'checkCustomVariableKey'])->name('settings.custom-variables.check');
         Route::post('/settings/custom-variables', [SystemSettingController::class, 'storeCustomVariable'])->name('settings.custom-variables.store');
         Route::put('/settings/custom-variables/{id}', [SystemSettingController::class, 'updateCustomVariable'])->name('settings.custom-variables.update');
         Route::delete('/settings/custom-variables/{id}', [SystemSettingController::class, 'destroyCustomVariable'])->name('settings.custom-variables.destroy');

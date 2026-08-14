@@ -283,6 +283,40 @@ class SystemSettingController extends Controller
     }
 
     /**
+     * Check if a custom variable key already exists in the database for the given scope.
+     */
+    public function checkCustomVariableKey(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'key' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_\-]+$/'],
+            'company_id' => ['nullable', 'exists:companies,id'],
+        ]);
+
+        $companyId = ! empty($validated['company_id']) ? (int) $validated['company_id'] : null;
+
+        $existing = SystemSetting::customVariables()
+            ->where('company_id', $companyId)
+            ->where('key', $validated['key'])
+            ->with('company:id,name')
+            ->first();
+
+        if (! $existing) {
+            return response()->json(['exists' => false]);
+        }
+
+        return response()->json([
+            'exists' => true,
+            'id' => $existing->id,
+            'key' => $existing->key,
+            'type' => $existing->type,
+            'value' => (string) ($existing->getRawOriginal('value') ?? ''),
+            'company_id' => $existing->company_id,
+            'company_name' => $existing->company?->name ?? __('Global System Defaults'),
+            'description' => $existing->description,
+        ]);
+    }
+
+    /**
      * Store new custom variable.
      */
     public function storeCustomVariable(Request $request): RedirectResponse
@@ -311,6 +345,11 @@ class SystemSettingController extends Controller
             }
         }
 
+        $existing = SystemSetting::customVariables()
+            ->where('company_id', $companyId)
+            ->where('key', $validated['key'])
+            ->exists();
+
         $this->settingService->set(
             key: $validated['key'],
             value: $value,
@@ -320,8 +359,12 @@ class SystemSettingController extends Controller
             description: $validated['description'] ?? null
         );
 
+        $flashMessage = $existing
+            ? __("Custom variable ':key' was updated with the new value.", ['key' => $validated['key']])
+            : __("Custom variable ':key' created successfully.", ['key' => $validated['key']]);
+
         return redirect()->route('admin.settings.custom-variables', ['company_id' => $companyId])
-            ->with('success', __("Custom variable ':key' saved successfully.", ['key' => $validated['key']]));
+            ->with('success', $flashMessage);
     }
 
     /**

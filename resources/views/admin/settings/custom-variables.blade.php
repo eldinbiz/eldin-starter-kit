@@ -17,6 +17,9 @@
     varValue: '',
     varDescription: '',
     jsonError: '',
+    isChecking: false,
+    confirmOverwriteOpen: false,
+    existingVariable: null,
 
     openCreate() {
         this.editMode = false;
@@ -29,6 +32,9 @@
         this.varValue = '';
         this.varDescription = '';
         this.jsonError = '';
+        this.isChecking = false;
+        this.confirmOverwriteOpen = false;
+        this.existingVariable = null;
         this.modalOpen = true;
     },
 
@@ -43,6 +49,9 @@
         this.varValue = item.raw_value || '';
         this.varDescription = item.description || '';
         this.jsonError = '';
+        this.isChecking = false;
+        this.confirmOverwriteOpen = false;
+        this.existingVariable = null;
         this.modalOpen = true;
     },
 
@@ -59,6 +68,58 @@
             this.jsonError = 'Invalid JSON: ' + e.message;
             return false;
         }
+    },
+
+    async handleSubmit(e) {
+        if (!this.validateJson()) {
+            return;
+        }
+
+        {{-- If editing an existing variable directly, submit immediately --}}
+        if (this.editMode) {
+            this.$refs.customVarForm.submit();
+            return;
+        }
+
+        {{-- Add mode: perform live DB check for key existence in the selected scope --}}
+        this.isChecking = true;
+        try {
+            const response = await fetch('{{ route('admin.settings.custom-variables.check') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    key: this.varKey,
+                    company_id: this.varScopeCompanyId ? this.varScopeCompanyId : null
+                })
+            });
+
+            if (!response.ok) {
+                this.$refs.customVarForm.submit();
+                return;
+            }
+
+            const data = await response.json();
+            if (data.exists) {
+                this.existingVariable = data;
+                this.confirmOverwriteOpen = true;
+                return;
+            }
+
+            this.$refs.customVarForm.submit();
+        } catch (err) {
+            this.$refs.customVarForm.submit();
+        } finally {
+            this.isChecking = false;
+        }
+    },
+
+    confirmOverwrite() {
+        this.confirmOverwriteOpen = false;
+        this.$refs.customVarForm.submit();
     }
 }">
     {{-- Filter & Action Header --}}
@@ -192,12 +253,91 @@
         x-show="modalOpen"
         x-cloak
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-xs"
-        @keydown.escape.window="modalOpen = false"
+        @keydown.escape.window="if (confirmOverwriteOpen) { confirmOverwriteOpen = false; } else { modalOpen = false; }"
     >
         <div
-            @click.outside="modalOpen = false"
-            class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xl dark:border-gray-800 dark:bg-gray-900"
+            @click.outside="if (!confirmOverwriteOpen) modalOpen = false"
+            class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-xl dark:border-gray-800 dark:bg-gray-900"
         >
+            {{-- In-Modal Overwrite Confirmation Overlay --}}
+            <div
+                x-show="confirmOverwriteOpen"
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="absolute inset-0 z-20 flex flex-col justify-between bg-white p-6 dark:bg-gray-900 overflow-y-auto"
+            >
+                <div>
+                    <div class="mb-4 flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning-50 text-warning-600 dark:bg-warning-500/10 dark:text-warning-400">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-base font-semibold text-gray-900 dark:text-white">
+                                {{ __('Variable Key Already Exists') }}
+                            </h4>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ __('A variable with this key already exists in the database.') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3.5 text-xs dark:border-gray-800 dark:bg-white/[0.02]">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">{{ __('Key') }}:</span>
+                            <span class="font-mono font-semibold text-gray-800 dark:text-gray-200" x-text="existingVariable?.key"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500 dark:text-gray-400">{{ __('Scope') }}:</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200" x-text="existingVariable?.company_name"></span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-2 dark:border-gray-800">
+                            <div class="text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                {{ __('Current Database Value') }} (<span x-text="existingVariable?.type"></span>):
+                            </div>
+                            <div class="max-h-20 overflow-y-auto rounded bg-white p-2 font-mono text-[11px] text-gray-700 dark:bg-gray-950 dark:text-gray-300">
+                                <span x-text="existingVariable?.value || '({{ __('Empty') }})'"></span>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200 pt-2 dark:border-gray-800">
+                            <div class="text-[11px] font-medium text-brand-600 dark:text-brand-400 mb-1">
+                                {{ __('New Value to Save') }} (<span x-text="varType"></span>):
+                            </div>
+                            <div class="max-h-20 overflow-y-auto rounded bg-white p-2 font-mono text-[11px] text-gray-700 dark:bg-gray-950 dark:text-gray-300">
+                                <span x-text="varValue || '({{ __('Empty') }})'"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-gray-600 dark:text-gray-300">
+                        {{ __('Would you like to update the existing key with this new value?') }}
+                    </p>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-800">
+                    <button
+                        type="button"
+                        @click="confirmOverwriteOpen = false"
+                        class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                    >
+                        {{ __('Keep Editing') }}
+                    </button>
+                    <button
+                        type="button"
+                        @click="confirmOverwrite()"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-xs font-medium text-white hover:bg-brand-600 focus:outline-hidden"
+                    >
+                        <span>{{ __('Yes, Update Variable') }}</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Main Form Header --}}
             <div class="mb-4">
                 <h4 class="text-base font-semibold text-gray-900 dark:text-white" x-text="editMode ? 'Edit Custom Variable' : 'Add New Custom Variable'"></h4>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -205,7 +345,8 @@
                 </p>
             </div>
 
-            <form :action="formAction" method="POST" @submit="validateJson()" class="space-y-4">
+            {{-- Main Form Body --}}
+            <form x-ref="customVarForm" :action="formAction" method="POST" @submit.prevent="handleSubmit($event)" class="space-y-4">
                 @csrf
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT" />
@@ -338,9 +479,14 @@
                     </button>
                     <button
                         type="submit"
-                        class="inline-flex items-center rounded-lg bg-brand-500 px-4 py-2 text-xs font-medium text-white hover:bg-brand-600 focus:outline-hidden"
+                        :disabled="isChecking"
+                        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-xs font-medium text-white hover:bg-brand-600 focus:outline-hidden disabled:opacity-50"
                     >
-                        Save Variable
+                        <svg x-show="isChecking" class="h-3.5 w-3.5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span x-text="isChecking ? 'Checking...' : 'Save Variable'"></span>
                     </button>
                 </div>
             </form>
