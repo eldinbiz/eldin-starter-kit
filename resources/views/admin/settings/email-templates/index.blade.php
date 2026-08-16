@@ -156,7 +156,6 @@
                 <tr>
                     <th scope="col" class="py-3.5 px-4">Trigger Event</th>
                     <th scope="col" class="py-3.5 px-4">Template Name</th>
-                    <th scope="col" class="py-3.5 px-4">Subject Pattern</th>
                     <th scope="col" class="py-3.5 px-4">Scope</th>
                     <th scope="col" class="py-3.5 px-4">Status</th>
                     <th scope="col" class="py-3.5 px-4 text-right">Actions</th>
@@ -174,9 +173,6 @@
                         </td>
                         <td class="py-3.5 px-4 text-xs font-medium text-gray-800 dark:text-gray-200">
                             {{ $tpl->name }}
-                        </td>
-                        <td class="py-3.5 px-4 max-w-xs truncate text-xs text-gray-500 dark:text-gray-400 font-mono">
-                            {{ $tpl->subject }}
                         </td>
                         <td class="py-3.5 px-4 text-xs">
                             @if ($isCompanyOverride)
@@ -267,7 +263,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="py-8 text-center text-xs text-gray-500 dark:text-gray-400">
+                        <td colspan="5" class="py-8 text-center text-xs text-gray-500 dark:text-gray-400">
                             No email templates found matching your criteria.
                         </td>
                     </tr>
