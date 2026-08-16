@@ -31,7 +31,7 @@ class ApprovalNotificationSubscriber
                     payload: new NotificationPayload(
                         title: 'Approval Requested',
                         message: "Approval request #{$request->id} ({$step->step_label}) requires your review.",
-                        type: 'approval',
+                        type: 'approval_requested',
                         url: "/approvals/{$request->id}",
                         actionText: 'Review Request',
                         companyId: $request->company_id,
@@ -59,7 +59,7 @@ class ApprovalNotificationSubscriber
                     payload: new NotificationPayload(
                         title: 'Approval Requested',
                         message: "Approval request #{$request->id} ({$nextStep->step_label}) is ready for your review.",
-                        type: 'approval',
+                        type: 'approval_requested',
                         url: "/approvals/{$request->id}",
                         actionText: 'Review Request',
                         companyId: $request->company_id,
@@ -77,7 +77,7 @@ class ApprovalNotificationSubscriber
                 payload: new NotificationPayload(
                     title: 'Step Approved',
                     message: "Step \"{$step->step_label}\" for approval request #{$request->id} has been approved.",
-                    type: 'approval',
+                    type: 'step_approved',
                     url: "/approvals/{$request->id}",
                     actionText: 'View Status',
                     companyId: $request->company_id,
@@ -99,7 +99,7 @@ class ApprovalNotificationSubscriber
                 payload: new NotificationPayload(
                     title: 'Approval Request Approved',
                     message: "Your approval request #{$request->id} has been fully approved.",
-                    type: 'approval',
+                    type: 'approval_completed',
                     url: "/approvals/{$request->id}",
                     actionText: 'View Details',
                     companyId: $request->company_id,
@@ -122,7 +122,7 @@ class ApprovalNotificationSubscriber
                 payload: new NotificationPayload(
                     title: 'Approval Request Rejected',
                     message: "Your approval request #{$request->id} was rejected at step \"{$step->step_label}\".",
-                    type: 'approval',
+                    type: 'approval_rejected',
                     url: "/approvals/{$request->id}",
                     actionText: 'View Details',
                     companyId: $request->company_id,
@@ -147,7 +147,7 @@ class ApprovalNotificationSubscriber
                     payload: new NotificationPayload(
                         title: 'Approval Request Canceled',
                         message: "Approval request #{$request->id} was canceled by {$event->canceledBy->name}.",
-                        type: 'approval',
+                        type: 'approval_canceled',
                         url: "/approvals/{$request->id}",
                         actionText: 'View Status',
                         companyId: $request->company_id,
@@ -170,7 +170,7 @@ class ApprovalNotificationSubscriber
             payload: new NotificationPayload(
                 title: 'Approval Delegated to You',
                 message: "{$event->delegatedBy->name} delegated step \"{$step->step_label}\" for approval request #{$request->id} to you.",
-                type: 'approval',
+                type: 'approval_delegated',
                 url: "/approvals/{$request->id}",
                 actionText: 'Review Request',
                 companyId: $request->company_id,

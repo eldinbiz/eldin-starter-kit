@@ -24,6 +24,11 @@ class SystemSettingSeeder extends Seeder
             ['key' => 'default_locale', 'value' => 'en', 'type' => 'text', 'group' => 'localization', 'description' => 'Default system language locale'],
             ['key' => 'default_theme', 'value' => 'system', 'type' => 'text', 'group' => 'general', 'description' => 'Default UI color theme (system, light, dark)'],
             ['key' => 'mail_mailer', 'value' => 'smtp', 'type' => 'text', 'group' => 'mail', 'description' => 'Default mail transport driver'],
+            ['key' => 'mail_host', 'value' => 'smtp.freesmtpservers.com', 'type' => 'text', 'group' => 'mail', 'description' => 'Default SMTP server host'],
+            ['key' => 'mail_port', 'value' => '25', 'type' => 'numeric', 'group' => 'mail', 'description' => 'Default SMTP port'],
+            ['key' => 'mail_encryption', 'value' => 'none', 'type' => 'text', 'group' => 'mail', 'description' => 'Default SMTP encryption protocol'],
+            ['key' => 'mail_username', 'value' => '', 'type' => 'text', 'group' => 'mail', 'description' => 'Default SMTP username'],
+            ['key' => 'mail_password', 'value' => '', 'type' => 'text', 'group' => 'mail', 'description' => 'Default SMTP password'],
             ['key' => 'mail_from_address', 'value' => 'noreply@scaffolding.test', 'type' => 'text', 'group' => 'mail', 'description' => 'Default mail from email address'],
             ['key' => 'mail_from_name', 'value' => 'Scaffolding App', 'type' => 'text', 'group' => 'mail', 'description' => 'Default mail from sender name'],
             ['key' => 'mail_oauth_provider', 'value' => 'microsoft365', 'type' => 'text', 'group' => 'mail', 'description' => 'Default OAuth mail provider'],
@@ -150,6 +155,46 @@ class SystemSettingSeeder extends Seeder
                     .'</div>',
                 'body_text' => "Hello {{ user_name }},\n\nYour request '{{ title }}' was rejected.\nView at: {{ approval_link }}",
                 'variables' => ['user_name', 'company_name', 'title', 'approval_link', 'app_name', 'current_year'],
+                'is_active' => true,
+            ],
+            [
+                'event' => 'approval_canceled',
+                'name' => 'Approval Canceled Notification',
+                'subject' => '[{{ company_name }}] Request Canceled: {{ title }}',
+                'body_html' => '<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; rounded-lg: 8px;">'
+                    .'<h2 style="color: #f59e0b; margin-top: 0;">{{ app_name }}</h2>'
+                    .'<p>Hello <strong>{{ user_name }}</strong>,</p>'
+                    .'<p>An approval request has been <strong>canceled</strong> by the requestor or an administrator.</p>'
+                    .'<div style="background: #fffbeb; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #f59e0b;">'
+                    .'<p style="margin: 0; font-weight: bold;">{{ title }}</p>'
+                    .'<p style="margin: 6px 0 0 0; font-size: 14px; color: #b45309;">Status: Canceled</p>'
+                    .'</div>'
+                    .'<p><a href="{{ approval_link }}" style="background: #f59e0b; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">View Details</a></p>'
+                    .'<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />'
+                    .'<p style="font-size: 12px; color: #94a3b8; margin: 0;">&copy; {{ current_year }} {{ app_name }}. All rights reserved.</p>'
+                    .'</div>',
+                'body_text' => "Hello {{ user_name }},\n\nApproval request '{{ title }}' was canceled.\nView at: {{ approval_link }}",
+                'variables' => ['user_name', 'company_name', 'title', 'approval_link', 'app_name', 'current_year'],
+                'is_active' => true,
+            ],
+            [
+                'event' => 'approval_delegated',
+                'name' => 'Approval Delegated Notification',
+                'subject' => '[{{ company_name }}] Action Required: Approval Delegated for {{ title }}',
+                'body_html' => '<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1e293b; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; rounded-lg: 8px;">'
+                    .'<h2 style="color: #6366f1; margin-top: 0;">{{ app_name }}</h2>'
+                    .'<p>Hello <strong>{{ user_name }}</strong>,</p>'
+                    .'<p>An approval step has been <strong>delegated to you</strong> for review:</p>'
+                    .'<div style="background: #eef2ff; padding: 16px; border-radius: 6px; margin: 16px 0; border-left: 4px solid #6366f1;">'
+                    .'<p style="margin: 0; font-weight: bold;">{{ title }}</p>'
+                    .'<p style="margin: 6px 0 0 0; font-size: 14px; color: #4338ca;">{{ message }}</p>'
+                    .'</div>'
+                    .'<p><a href="{{ approval_link }}" style="background: #6366f1; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Review Request</a></p>'
+                    .'<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />'
+                    .'<p style="font-size: 12px; color: #94a3b8; margin: 0;">&copy; {{ current_year }} {{ app_name }}. All rights reserved.</p>'
+                    .'</div>',
+                'body_text' => "Hello {{ user_name }},\n\nAn approval request step was delegated to you: {{ title }}\n{{ message }}\nReview at: {{ approval_link }}",
+                'variables' => ['user_name', 'company_name', 'title', 'message', 'approval_link', 'app_name', 'current_year'],
                 'is_active' => true,
             ],
             [

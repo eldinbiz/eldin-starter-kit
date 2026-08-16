@@ -225,15 +225,9 @@ class SettingService
                 if ($port !== null && $port !== '') {
                     Config::set('mail.mailers.smtp.port', (int) $port);
                 }
-                if ($username !== '') {
-                    Config::set('mail.mailers.smtp.username', $username);
-                }
-                if ($password !== '') {
-                    Config::set('mail.mailers.smtp.password', $password);
-                }
-                if ($encryption !== '') {
-                    Config::set('mail.mailers.smtp.encryption', $encryption === 'none' ? null : $encryption);
-                }
+                Config::set('mail.mailers.smtp.username', $username !== '' ? $username : null);
+                Config::set('mail.mailers.smtp.password', $password !== '' ? $password : null);
+                Config::set('mail.mailers.smtp.encryption', ($encryption === '' || $encryption === 'none') ? null : $encryption);
             }
         } catch (Throwable) {
             // Ignore when database is not migrated yet

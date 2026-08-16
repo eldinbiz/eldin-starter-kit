@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\DataTables\UsersDataTable;
+use App\Events\NotificationRequested;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
+use App\ValueObjects\NotificationPayload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -83,6 +85,20 @@ class UserController extends Controller
 
         // Attach company-scoped roles
         $user->companyRoles()->attach($roleIds, ['company_id' => $activeCompany->id]);
+
+        NotificationRequested::dispatch(
+            recipients: $user,
+            payload: new NotificationPayload(
+                title: 'Welcome to ' . config('app.name', 'Scaffolding App'),
+                message: "Your user account has been created for {$activeCompany->name}.",
+                type: 'user_welcome',
+                url: route('login'),
+                actionText: 'Log In to Your Account',
+                companyId: $activeCompany->id,
+                companyName: $activeCompany->name,
+                level: 'success'
+            )
+        );
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
