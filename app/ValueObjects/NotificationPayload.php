@@ -15,7 +15,8 @@ readonly class NotificationPayload
         public ?int $companyId = null,
         public ?string $companyName = null,
         public ?string $icon = null,
-        public string $level = 'info'
+        public string $level = 'info',
+        public array $variables = []
     ) {}
 
     /**
@@ -33,6 +34,7 @@ readonly class NotificationPayload
             'company_name' => $this->companyName,
             'icon' => $this->icon,
             'level' => $this->level,
+            'variables' => $this->variables,
         ];
     }
 
@@ -50,7 +52,8 @@ readonly class NotificationPayload
             companyId: isset($data['company_id']) ? (int) $data['company_id'] : null,
             companyName: isset($data['company_name']) ? (string) $data['company_name'] : null,
             icon: isset($data['icon']) ? (string) $data['icon'] : null,
-            level: (string) ($data['level'] ?? 'info')
+            level: (string) ($data['level'] ?? 'info'),
+            variables: (array) ($data['variables'] ?? [])
         );
     }
 }

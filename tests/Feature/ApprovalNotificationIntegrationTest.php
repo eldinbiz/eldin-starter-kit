@@ -20,6 +20,7 @@ use App\Models\EmailTemplate;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AppNotification;
+use App\ValueObjects\NotificationPayload;
 use Database\Seeders\SystemSettingSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -302,4 +303,41 @@ test('admin creating user dispatches user_welcome notification with welcome temp
             return true;
         }
     );
+});
+
+test('domain modules can pass arbitrary custom tokens in NotificationPayload and render in templates', function (): void {
+    // 1. Create a custom email template with arbitrary domain tokens
+    EmailTemplate::create([
+        'company_id' => $this->company->id,
+        'event' => 'invoice_generated',
+        'name' => 'Invoice Generated Template',
+        'subject' => '[{{ company_name }}] Invoice #{{ invoice_number }} Ready',
+        'body_html' => '<div class="invoice">Hello {{ user_name }}, your invoice #{{ invoice_number }} for <strong>{{ total_amount }}</strong> is due on {{ due_date }}.</div>',
+        'body_text' => 'Hello {{ user_name }}, invoice #{{ invoice_number }} for {{ total_amount }} is due on {{ due_date }}.',
+        'is_active' => true,
+    ]);
+
+    $recipient = User::factory()->create(['name' => 'Eva Customer', 'email' => 'eva@example.com']);
+
+    // 2. Dispatch payload with arbitrary custom variables
+    $payload = new NotificationPayload(
+        title: 'Invoice Ready',
+        message: 'Your monthly invoice is available.',
+        type: 'invoice_generated',
+        url: 'https://scaffolding.test/invoices/999',
+        actionText: 'View Invoice',
+        companyId: $this->company->id,
+        companyName: 'Acme Global Corp',
+        variables: [
+            'invoice_number' => 'INV-2026-999',
+            'total_amount' => '$3,450.00',
+            'due_date' => '2026-09-15',
+        ]
+    );
+
+    $notification = new AppNotification($payload);
+    $mail = $notification->toMail($recipient);
+
+    expect($mail->subject)->toBe('[Acme Global Corp] Invoice #INV-2026-999 Ready')
+        ->and((string) $mail->render())->toContain('Hello Eva Customer, your invoice #INV-2026-999 for <strong>$3,450.00</strong> is due on 2026-09-15.');
 });

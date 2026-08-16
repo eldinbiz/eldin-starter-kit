@@ -41,7 +41,7 @@ class AppNotification extends Notification implements ShouldQueue
         $template = $templateService->resolveTemplate($event, $companyId);
 
         if ($template) {
-            $variables = [
+            $defaultVariables = [
                 'user_name' => $notifiable->name ?? 'User',
                 'user_email' => $notifiable->email ?? '',
                 'company_name' => $this->payload->companyName ?? '',
@@ -52,6 +52,8 @@ class AppNotification extends Notification implements ShouldQueue
                 'approval_link' => $this->payload->url ?? '',
                 'action_text' => $this->payload->actionText ?? 'View Details',
             ];
+
+            $variables = array_merge($defaultVariables, $this->payload->variables);
 
             $rendered = $templateService->render($event, $variables, $companyId);
 
