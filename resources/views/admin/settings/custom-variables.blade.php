@@ -5,6 +5,12 @@
 ])
 
 @section('settings-content')
+{{-- Ace Editor Assets via jsDelivr CDN --}}
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/ace.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/mode-json.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/theme-tomorrow_night.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/theme-chrome.js"></script>
+
 <div x-data="{
     modalOpen: false,
     editMode: false,
@@ -20,6 +26,85 @@
     isChecking: false,
     confirmOverwriteOpen: false,
     existingVariable: null,
+    aceEditor: null,
+    defaultJsonTemplate: JSON.stringify({
+        enabled: true,
+        sample_key: 'sample_value',
+        items: [
+            'item_1',
+            'item_2'
+        ]
+    }, null, 2),
+
+    initAce() {
+        if (typeof ace === 'undefined') {
+            setTimeout(() => this.initAce(), 50);
+            return;
+        }
+
+        const el = this.$refs.aceEditor;
+        if (!el) return;
+
+        if (!window._customVarAceEditor) {
+            window._customVarAceEditor = ace.edit(el, {
+                mode: 'ace/mode/json',
+                tabSize: 2,
+                useSoftTabs: true,
+                showPrintMargin: false,
+                fontSize: '12px',
+                useWorker: false,
+            });
+
+            window._customVarAceEditor.session.on('change', () => {
+                this.varValue = window._customVarAceEditor.getValue();
+                this.validateJson();
+            });
+        }
+
+        const editor = window._customVarAceEditor;
+        const isDark = document.body.classList.contains('dark') || document.documentElement.classList.contains('dark');
+        editor.setTheme(isDark ? 'ace/theme/tomorrow_night' : 'ace/theme/chrome');
+
+        const currentVal = this.varValue || (this.editMode ? '' : this.defaultJsonTemplate);
+        this.varValue = currentVal;
+        editor.setValue(currentVal, -1);
+        editor.clearSelection();
+
+        setTimeout(() => {
+            editor.resize(true);
+            editor.renderer.updateFull();
+        }, 50);
+
+        this.validateJson();
+    },
+
+    formatJson() {
+        const editor = window._customVarAceEditor;
+        if (!editor) return;
+        try {
+            const raw = editor.getValue();
+            const parsed = JSON.parse(raw);
+            const pretty = JSON.stringify(parsed, null, 2);
+            editor.setValue(pretty, -1);
+            editor.clearSelection();
+            this.varValue = pretty;
+            this.jsonError = '';
+        } catch (e) {
+            this.jsonError = 'Cannot format invalid JSON: ' + e.message;
+        }
+    },
+
+    onTypeChange() {
+        this.validateJson();
+        if (this.varType === 'json') {
+            if (!this.editMode && (!this.varValue || this.varValue.trim() === '')) {
+                this.varValue = this.defaultJsonTemplate;
+            }
+            this.$nextTick(() => {
+                this.initAce();
+            });
+        }
+    },
 
     openCreate() {
         this.editMode = false;
@@ -36,6 +121,13 @@
         this.confirmOverwriteOpen = false;
         this.existingVariable = null;
         this.modalOpen = true;
+
+        if (this.varType === 'json') {
+            this.varValue = this.defaultJsonTemplate;
+            this.$nextTick(() => {
+                this.initAce();
+            });
+        }
     },
 
     openEdit(item) {
@@ -53,6 +145,16 @@
         this.confirmOverwriteOpen = false;
         this.existingVariable = null;
         this.modalOpen = true;
+
+        if (this.varType === 'json') {
+            try {
+                const parsed = JSON.parse(this.varValue);
+                this.varValue = JSON.stringify(parsed, null, 2);
+            } catch (e) {}
+            this.$nextTick(() => {
+                this.initAce();
+            });
+        }
     },
 
     validateJson() {
@@ -397,7 +499,7 @@
                         id="var_type"
                         name="type"
                         x-model="varType"
-                        @change="validateJson()"
+                        @change="onTypeChange()"
                         class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-xs text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:bg-gray-950 dark:text-white/90"
                     >
                         <option value="text">Text (String)</option>
@@ -437,21 +539,37 @@
                         />
                     </template>
 
-                    {{-- Monospace textarea for JSON --}}
-                    <template x-if="varType === 'json'">
-                        <div>
-                            <textarea
-                                id="var_value"
-                                name="value"
-                                x-model="varValue"
-                                @input="validateJson()"
-                                rows="4"
-                                placeholder='{"key": "value", "enabled": true}'
-                                class="w-full rounded-lg border border-gray-300 bg-transparent p-3 font-mono text-xs text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:bg-gray-950 dark:text-white/90"
-                            ></textarea>
-                            <p x-show="jsonError" x-text="jsonError" class="mt-1 text-xs text-error-500"></p>
+                    {{-- Ace Code Editor for JSON --}}
+                    <div x-show="varType === 'json'" x-cloak class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                                JSON Object / Array Editor
+                            </span>
+                            <button
+                                type="button"
+                                @click="formatJson()"
+                                class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                title="Format JSON with 2-space indentation"
+                            >
+                                <span>🧹</span>
+                                <span>Format JSON</span>
+                            </button>
                         </div>
-                    </template>
+                        <div
+                            x-ref="aceEditor"
+                            id="custom_var_ace_editor"
+                            style="height: 220px; min-height: 220px; width: 100%; position: relative;"
+                            class="w-full rounded-lg border border-gray-300 shadow-theme-xs dark:border-gray-700"
+                        ></div>
+                        <input type="hidden" name="value" :value="varValue" :disabled="varType !== 'json'" />
+                        <p x-show="jsonError" x-text="jsonError" class="mt-1 text-xs text-error-500"></p>
+                        <p x-show="!jsonError && varValue" class="mt-1 text-[11px] text-success-600 dark:text-success-400 flex items-center gap-1">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Valid JSON
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Description --}}

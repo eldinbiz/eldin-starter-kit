@@ -213,3 +213,49 @@ test('it updates and deletes custom variables successfully', function (): void {
     expect($this->settingService->custom('timeout_seconds'))->toBeNull();
     expect(SystemSetting::find($variable->id))->toBeNull();
 });
+
+test('it renders ace editor assets and explicit container dimensions in custom variables view', function (): void {
+    $this->actingAs($this->adminUser);
+
+    $response = $this->get(route('admin.settings.custom-variables'));
+    $response->assertOk();
+
+    // 1. Verify Ace CDN scripts are present in the HTML
+    $response->assertSee('https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/ace.js', false);
+    $response->assertSee('https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/mode-json.js', false);
+
+    // 2. Verify container has explicit inline dimensions and identifier
+    $response->assertSee('id="custom_var_ace_editor"', false);
+    $response->assertSee('style="height: 220px; min-height: 220px; width: 100%; position: relative;"', false);
+
+    // 3. Verify Format JSON button and fallback input exist
+    $response->assertSee('Format JSON');
+    $response->assertSee('name="value"', false);
+});
+
+test('it securely handles raw JSON submissions and edge cases when client-side validation is bypassed', function (string $jsonInput, bool $shouldPass): void {
+    $this->actingAs($this->adminUser);
+
+    $response = $this->from(route('admin.settings.custom-variables'))
+        ->post(route('admin.settings.custom-variables.store'), [
+            'key' => 'fallback_json_var',
+            'type' => 'json',
+            'value' => $jsonInput,
+        ]);
+
+    if ($shouldPass) {
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        expect($this->settingService->custom('fallback_json_var'))->toBeArray();
+    } else {
+        $response->assertSessionHasErrors('value');
+    }
+})->with([
+    'valid unformatted single line' => ['{"enabled":true,"limit":10}', true],
+    'valid nested object' => ['{"app":{"env":"prod","debug":false}}', true],
+    'valid empty object' => ['{}', true],
+    'valid empty array' => ['[]', true],
+    'malformed syntax missing key' => ['{ : "value" }', false],
+    'malformed unquoted keys' => ['{ enabled: true }', false],
+    'malformed trailing comma' => ['{"key": "val",}', false],
+]);
