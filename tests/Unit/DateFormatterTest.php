@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use App\Helpers\DateFormatter;
+use App\Models\Company;
 use App\Services\SettingService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,4 +52,24 @@ class DateFormatterTest extends TestCase
         $settingService->set('time_format', '12h', 'text', 'localization');
         $this->assertSame('2026-08-11 03:30 PM', DateFormatter::formatDateTime($utcDate));
     }
+
+    public function test_format_date_respects_tenant_timezone_and_date_format_overrides(): void
+    {
+        $settingService = app(SettingService::class);
+        $settingService->set('date_format', 'Y-m-d', 'text', 'localization');
+        $settingService->set('default_timezone', 'UTC', 'text', 'localization');
+
+        $company = Company::factory()->create();
+        $settingService->set('date_format', 'm/d/Y', 'text', 'localization', $company->id);
+        $settingService->set('default_timezone', 'America/New_York', 'text', 'localization', $company->id);
+
+        $utcDate = Carbon::create(2026, 8, 11, 19, 30, 0, 'UTC');
+
+        // Company override: 19:30 UTC -> 15:30 EDT on 2026-08-11 -> format m/d/Y
+        $this->assertSame('08/11/2026', DateFormatter::formatDate($utcDate, $company->id));
+
+        // Global default without company override -> format Y-m-d
+        $this->assertSame('2026-08-11', DateFormatter::formatDate($utcDate));
+    }
 }
+

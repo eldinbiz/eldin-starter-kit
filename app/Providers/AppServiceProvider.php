@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Enums\BrandTheme;
 use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalRejected;
@@ -168,6 +169,9 @@ class AppServiceProvider extends ServiceProvider
             $appFavicon = (string) $settingService->get('app_favicon', null, '');
             $defaultTheme = (string) $settingService->get('default_theme', null, 'system');
 
+            $activeCompanyThemeVariables = [];
+            $activeCompanyLogo = $appLogo;
+
             $data = [
                 'appLogo' => $appLogo,
                 'appFavicon' => $appFavicon,
@@ -179,10 +183,24 @@ class AppServiceProvider extends ServiceProvider
                 $activeCompany = $user->getActiveCompany();
                 $activeRole = $activeCompany ? $user->getActiveRole($activeCompany) : null;
 
+                if ($activeCompany) {
+                    $themeKey = (string) $settingService->get('brand_theme', $activeCompany->id, 'brand');
+                    $brandTheme = BrandTheme::tryFrom($themeKey) ?? BrandTheme::Brand;
+                    if ($brandTheme !== BrandTheme::Brand) {
+                        $activeCompanyThemeVariables = $brandTheme->cssVariables();
+                    }
+                    if (!empty($activeCompany->logo)) {
+                        $activeCompanyLogo = $activeCompany->logo;
+                    }
+                }
+
                 $data['activeCompany'] = $activeCompany;
                 $data['activeRole'] = $activeRole;
                 $data['userCompanies'] = $user->companies;
             }
+
+            $data['activeCompanyThemeVariables'] = $activeCompanyThemeVariables;
+            $data['activeCompanyLogo'] = $activeCompanyLogo;
 
             $view->with($data);
         });

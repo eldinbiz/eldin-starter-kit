@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\BrandTheme;
 use App\Http\Controllers\Controller;
 use App\Mail\TestEmail;
 use App\Models\Company;
@@ -15,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
@@ -434,11 +436,14 @@ class SystemSettingController extends Controller
 
         $selectedCompany = $selectedCompanyId ? Company::find($selectedCompanyId) : null;
 
+        $selectedBrandThemeKey = (string) $this->settingService->get('brand_theme', $selectedCompanyId, 'brand');
+        $selectedBrandTheme = BrandTheme::tryFrom($selectedBrandThemeKey) ?? BrandTheme::Brand;
+
         $settings = [
             'company_logo' => (string) $this->settingService->get('company_logo', $selectedCompanyId, ''),
-            'accent_color' => (string) $this->settingService->get('accent_color', $selectedCompanyId, '#465fff'),
-            'company_timezone' => (string) $this->settingService->get('company_timezone', $selectedCompanyId, ''),
-            'company_date_format' => (string) $this->settingService->get('company_date_format', $selectedCompanyId, ''),
+            'brand_theme' => $selectedBrandTheme->value,
+            'default_timezone' => (string) $this->settingService->get('default_timezone', $selectedCompanyId, ''),
+            'date_format' => (string) $this->settingService->get('date_format', $selectedCompanyId, ''),
         ];
 
         $timezones = [
@@ -471,6 +476,8 @@ class SystemSettingController extends Controller
             'settings' => $settings,
             'timezones' => $timezones,
             'dateFormats' => $dateFormats,
+            'brandThemes' => BrandTheme::cases(),
+            'brandThemeOptions' => BrandTheme::options(),
         ]);
     }
 
@@ -481,17 +488,17 @@ class SystemSettingController extends Controller
     {
         $validated = $request->validate([
             'company_id' => ['required', 'exists:companies,id'],
-            'accent_color' => ['required', 'regex:/^#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$/'],
-            'company_timezone' => ['nullable', 'string', 'max:100'],
-            'company_date_format' => ['nullable', 'string', 'max:30'],
+            'brand_theme' => ['required', 'string', Rule::enum(BrandTheme::class)],
+            'default_timezone' => ['nullable', 'string', 'max:100'],
+            'date_format' => ['nullable', 'string', 'max:30'],
             'company_logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
         ]);
 
         $companyId = (int) $validated['company_id'];
 
-        $this->settingService->set('accent_color', $validated['accent_color'], 'text', 'company', $companyId);
-        $this->settingService->set('company_timezone', $validated['company_timezone'] ?? '', 'text', 'company', $companyId);
-        $this->settingService->set('company_date_format', $validated['company_date_format'] ?? '', 'text', 'company', $companyId);
+        $this->settingService->set('brand_theme', $validated['brand_theme'], 'text', 'company', $companyId);
+        $this->settingService->set('default_timezone', $validated['default_timezone'] ?? '', 'text', 'localization', $companyId);
+        $this->settingService->set('date_format', $validated['date_format'] ?? '', 'text', 'localization', $companyId);
 
         if ($request->hasFile('company_logo')) {
             $file = $request->file('company_logo');

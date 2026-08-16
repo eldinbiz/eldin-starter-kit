@@ -19,6 +19,8 @@ class DateFormatter
             return '—';
         }
 
+        $companyId ??= auth()->user()?->getActiveCompany()?->id;
+
         $settingService = app(SettingService::class);
         $timezone = (string) $settingService->get('default_timezone', $companyId, config('app.timezone', 'UTC'));
         $dateFormat = (string) $settingService->get('date_format', $companyId, 'Y-m-d');
@@ -36,6 +38,8 @@ class DateFormatter
         if ($date === null) {
             return '—';
         }
+
+        $companyId ??= auth()->user()?->getActiveCompany()?->id;
 
         $settingService = app(SettingService::class);
         $timezone = (string) $settingService->get('default_timezone', $companyId, config('app.timezone', 'UTC'));

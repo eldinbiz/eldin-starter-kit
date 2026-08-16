@@ -22,6 +22,17 @@
 
     {{-- Tailwind CSS and custom scripts via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Dynamic Active Company Brand Theme CSS Variables --}}
+    @if (!empty($activeCompanyThemeVariables))
+        <style>
+            :root {
+                @foreach ($activeCompanyThemeVariables as $cssVarName => $cssVarValue)
+                    {{ $cssVarName }}: {{ $cssVarValue }};
+                @endforeach
+            }
+        </style>
+    @endif
 </head>
 <body
     x-data="{

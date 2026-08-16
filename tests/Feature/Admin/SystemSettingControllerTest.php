@@ -148,21 +148,23 @@ test('admin can view and update mail settings and send test email', function ():
         ->and($settingService->get('mail_password'))->toBe('secret_smtp_password');
 });
 
-test('admin can update company branding and timezone preferences', function (): void {
+test('admin can update company branding with curated theme, timezone, date format, and logo', function (): void {
     Storage::fake('public');
     $this->actingAs($this->adminUser);
 
     $this->get(route('admin.settings.company', ['company_id' => $this->company->id]))
         ->assertOk()
-        ->assertSee('Company Branding &amp; Preferences', false);
+        ->assertSee('Company Branding &amp; Preferences', false)
+        ->assertSee('Emerald Green')
+        ->assertSee('TailAdmin Brand (Default)');
 
     $logo = UploadedFile::fake()->image('company_badge.png', 100, 100);
 
     $response = $this->put(route('admin.settings.company.update'), [
         'company_id' => $this->company->id,
-        'accent_color' => '#10B981',
-        'company_timezone' => 'America/New_York',
-        'company_date_format' => 'm/d/Y',
+        'brand_theme' => 'emerald',
+        'default_timezone' => 'America/New_York',
+        'date_format' => 'm/d/Y',
         'company_logo' => $logo,
     ]);
 
@@ -170,10 +172,22 @@ test('admin can update company branding and timezone preferences', function (): 
         ->assertSessionHas('success');
 
     $settingService = app(SettingService::class);
-    expect($settingService->get('accent_color', $this->company->id))->toBe('#10B981')
-        ->and($settingService->get('company_timezone', $this->company->id))->toBe('America/New_York')
-        ->and($settingService->get('company_date_format', $this->company->id))->toBe('m/d/Y')
-        ->and($settingService->get('company_logo', $this->company->id))->toContain('company_badge.png');
+    expect($settingService->get('brand_theme', $this->company->id))->toBe('emerald')
+        ->and($settingService->get('default_timezone', $this->company->id))->toBe('America/New_York')
+        ->and($settingService->get('date_format', $this->company->id))->toBe('m/d/Y')
+        ->and($settingService->get('company_logo', $this->company->id))->toContain('company_badge.png')
+        ->and($this->company->fresh()->logo)->toContain('company_badge.png');
+});
+
+test('it rejects invalid brand theme values', function (): void {
+    $this->actingAs($this->adminUser);
+
+    $response = $this->put(route('admin.settings.company.update'), [
+        'company_id' => $this->company->id,
+        'brand_theme' => 'non_existent_neon_theme',
+    ]);
+
+    $response->assertSessionHasErrors(['brand_theme']);
 });
 
 test('admin can view, edit, and preview email templates', function (): void {
