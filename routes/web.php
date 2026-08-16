@@ -85,8 +85,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('/settings/custom-variables/{id}', [SystemSettingController::class, 'destroyCustomVariable'])->name('settings.custom-variables.destroy');
 
         Route::get('/settings/email-templates', [EmailTemplateController::class, 'index'])->name('settings.email-templates.index');
+        Route::get('/settings/email-templates/create', [EmailTemplateController::class, 'create'])->name('settings.email-templates.create');
+        Route::post('/settings/email-templates', [EmailTemplateController::class, 'store'])->name('settings.email-templates.store');
+        Route::post('/settings/email-templates/preview-draft', [EmailTemplateController::class, 'previewDraft'])->name('settings.email-templates.preview-draft');
         Route::get('/settings/email-templates/{emailTemplate}/edit', [EmailTemplateController::class, 'edit'])->name('settings.email-templates.edit');
         Route::put('/settings/email-templates/{emailTemplate}', [EmailTemplateController::class, 'update'])->name('settings.email-templates.update');
+        Route::delete('/settings/email-templates/{emailTemplate}', [EmailTemplateController::class, 'destroy'])->name('settings.email-templates.destroy');
         Route::get('/settings/email-templates/{emailTemplate}/preview', [EmailTemplateController::class, 'preview'])->name('settings.email-templates.preview');
         Route::post('/settings/email-templates/{emailTemplate}/test', [EmailTemplateController::class, 'test'])->name('settings.email-templates.test');
     });

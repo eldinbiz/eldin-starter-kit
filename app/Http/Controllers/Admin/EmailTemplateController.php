@@ -29,6 +29,9 @@ class EmailTemplateController extends Controller
         $selectedCompanyId = $request->has('company_id') && $request->query('company_id') !== ''
             ? (int) $request->query('company_id')
             : null;
+        $search = $request->has('search') && $request->query('search') !== ''
+            ? trim((string) $request->query('search'))
+            : null;
 
         $query = EmailTemplate::query();
 
@@ -36,17 +39,119 @@ class EmailTemplateController extends Controller
             $query->where(function ($q) use ($selectedCompanyId): void {
                 $q->where('company_id', $selectedCompanyId)->orWhereNull('company_id');
             });
-        } else {
+        } elseif ($search === null) {
             $query->whereNull('company_id');
         }
 
+        if ($search !== null) {
+            $query->where(function ($q) use ($search): void {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('event', 'like', "%{$search}%")
+                    ->orWhere('subject', 'like', "%{$search}%");
+            });
+        }
+
         $templates = $query->with('company')->orderBy('event')->get();
+
+        // If a specific company is selected, collect existing override event keys for quick action buttons
+        $companyOverrideEvents = $selectedCompanyId !== null
+            ? EmailTemplate::where('company_id', $selectedCompanyId)->pluck('event')->toArray()
+            : [];
 
         return view('admin.settings.email-templates.index', [
             'templates' => $templates,
             'companies' => $companies,
             'selectedCompanyId' => $selectedCompanyId,
+            'search' => $search,
+            'companyOverrideEvents' => $companyOverrideEvents,
         ]);
+    }
+
+    /**
+     * Show form to create a new template or company override.
+     */
+    public function create(Request $request): View
+    {
+        $companies = Company::orderBy('name')->get();
+        $targetEvent = $request->query('event');
+        $targetCompanyId = $request->filled('company_id') ? (int) $request->query('company_id') : null;
+
+        $template = new EmailTemplate([
+            'is_active' => true,
+            'company_id' => $targetCompanyId,
+            'event' => $targetEvent ?? '',
+            'variables' => ['user_name', 'user_email', 'company_name', 'title', 'approval_link', 'action_url', 'action_text', 'message', 'app_name', 'current_year'],
+        ]);
+
+        // If target event & company provided, clone from global template
+        if ($targetEvent && $targetCompanyId) {
+            $globalTemplate = EmailTemplate::global()->where('event', $targetEvent)->first();
+            $targetCompany = Company::find($targetCompanyId);
+            if ($globalTemplate && $targetCompany) {
+                $template->name = "{$globalTemplate->name} ({$targetCompany->name} Override)";
+                $template->subject = $globalTemplate->subject;
+                $template->body_html = $globalTemplate->body_html;
+                $template->body_text = $globalTemplate->body_text;
+                $template->variables = $globalTemplate->variables ?? $template->variables;
+            }
+        }
+
+        return view('admin.settings.email-templates.create', [
+            'template' => $template,
+            'companies' => $companies,
+            'selectedCompanyId' => $targetCompanyId,
+        ]);
+    }
+
+    /**
+     * Store a newly created template or company override.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'event' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9_\-]+$/'],
+            'name' => ['required', 'string', 'max:255'],
+            'subject' => ['required', 'string', 'max:255'],
+            'body_html' => ['required', 'string'],
+            'body_text' => ['nullable', 'string'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $companyId = $request->filled('company_id') ? (int) $validated['company_id'] : null;
+        $event = $validated['event'];
+
+        // Prevent duplicate (company_id, event)
+        $exists = EmailTemplate::where('company_id', $companyId)->where('event', $event)->exists();
+        if ($exists) {
+            $message = $companyId
+                ? __('A template override for event ":event" already exists for this company.', ['event' => $event])
+                : __('A global template for event ":event" already exists.', ['event' => $event]);
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['event' => $message]);
+        }
+
+        $defaultVariables = ['user_name', 'user_email', 'company_name', 'title', 'approval_link', 'action_url', 'action_text', 'message', 'app_name', 'current_year'];
+
+        $template = EmailTemplate::create([
+            'company_id' => $companyId,
+            'event' => $event,
+            'name' => $validated['name'],
+            'subject' => $validated['subject'],
+            'body_html' => $validated['body_html'],
+            'body_text' => $validated['body_text'] ?? null,
+            'variables' => $defaultVariables,
+            'is_active' => $request->boolean('is_active', true),
+        ]);
+
+        $successMsg = $companyId
+            ? __("Company override for ':name' created successfully.", ['name' => $template->name])
+            : __("Email template ':name' created successfully.", ['name' => $template->name]);
+
+        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $companyId])
+            ->with('success', $successMsg);
     }
 
     /**
@@ -65,6 +170,7 @@ class EmailTemplateController extends Controller
     public function update(Request $request, EmailTemplate $emailTemplate): RedirectResponse
     {
         $validated = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
             'subject' => ['required', 'string', 'max:255'],
             'body_html' => ['required', 'string'],
             'body_text' => ['nullable', 'string'],
@@ -72,6 +178,7 @@ class EmailTemplateController extends Controller
         ]);
 
         $emailTemplate->update([
+            'name' => $validated['name'] ?? $emailTemplate->name,
             'subject' => $validated['subject'],
             'body_html' => $validated['body_html'],
             'body_text' => $validated['body_text'] ?? null,
@@ -83,7 +190,70 @@ class EmailTemplateController extends Controller
     }
 
     /**
-     * Live preview of rendered template.
+     * Delete custom template or reset company override to system default.
+     */
+    public function destroy(EmailTemplate $emailTemplate): RedirectResponse
+    {
+        $companyId = $emailTemplate->company_id;
+        $isOverride = $companyId !== null;
+        $templateName = $emailTemplate->name;
+
+        $emailTemplate->delete();
+
+        $message = $isOverride
+            ? __("Company override ':name' has been reset to the system default.", ['name' => $templateName])
+            : __("Email template ':name' deleted successfully.", ['name' => $templateName]);
+
+        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $companyId])
+            ->with('success', $message);
+    }
+
+    /**
+     * Live preview of rendered unsaved draft template.
+     */
+    public function previewDraft(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'subject' => ['required', 'string'],
+            'body_html' => ['required', 'string'],
+            'company_id' => ['nullable', 'integer'],
+        ]);
+
+        $companyId = ! empty($validated['company_id']) ? (int) $validated['company_id'] : null;
+        $companyName = 'Acme Corporation';
+        if ($companyId !== null) {
+            $company = Company::find($companyId);
+            if ($company) {
+                $companyName = $company->name;
+            }
+        }
+
+        $dummyData = [
+            'user_name' => 'Jane Doe',
+            'user_email' => 'jane.doe@example.com',
+            'company_name' => $companyName,
+            'title' => 'Purchase Request PR-2026-0042',
+            'request_title' => 'Office Workstation Hardware Upgrade',
+            'approval_link' => url('/approvals/inbox'),
+            'action_url' => url('/dashboard'),
+            'action_text' => 'Review Request',
+            'message' => 'A new request has been submitted and requires your approval.',
+            'app_name' => (string) config('app.name', 'Scaffolding App'),
+            'app_url' => config('app.url', 'http://localhost'),
+            'current_year' => date('Y'),
+        ];
+
+        $renderedSubject = $this->templateService->interpolate($validated['subject'], $dummyData);
+        $renderedHtml = $this->templateService->interpolate($validated['body_html'], $dummyData);
+
+        return response()->json([
+            'subject' => $renderedSubject,
+            'html' => $renderedHtml,
+        ]);
+    }
+
+    /**
+     * Live preview of rendered saved template.
      */
     public function preview(Request $request, EmailTemplate $emailTemplate): JsonResponse
     {
@@ -98,6 +268,8 @@ class EmailTemplateController extends Controller
             'action_text' => 'Review Request',
             'message' => 'A new request has been submitted and requires your approval.',
             'app_name' => config('app.name', 'Scaffolding App'),
+            'app_url' => config('app.url', 'http://localhost'),
+            'current_year' => date('Y'),
         ];
 
         $rendered = $this->templateService->render(
