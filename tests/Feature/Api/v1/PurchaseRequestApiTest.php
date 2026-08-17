@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Models\User;
 use App\Models\Company;
-use App\Models\PurchaseRequest;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\PurchaseRequests\Models\PurchaseRequest;
 
 uses(RefreshDatabase::class);
 
@@ -13,7 +13,7 @@ it('lists purchase requests for a given company', function () {
     $company = Company::factory()->create();
     $user = User::factory()->system()->create();
     $user->companies()->attach($company->id);
-    
+
     // Create some purchases
     PurchaseRequest::factory()->count(2)->create([
         'company_id' => $company->id,
@@ -22,7 +22,7 @@ it('lists purchase requests for a given company', function () {
     $token = $user->createToken('System API')->plainTextToken;
 
     $response = $this->getJson('/api/v1/purchases', [
-        'Authorization' => 'Bearer ' . $token,
+        'Authorization' => 'Bearer '.$token,
         'X-Company-ID' => (string) $company->id,
     ]);
 

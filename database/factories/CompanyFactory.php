@@ -16,12 +16,12 @@ class CompanyFactory extends Factory
 
     public function definition(): array
     {
-        $name = $this->faker->unique()->company();
+        $name = fake()->unique()->words(2, true).' '.fake()->randomElement(['Corp', 'Inc', 'LLC', 'Holdings', 'Group']);
 
         return [
             'name' => $name,
             'slug' => str()->slug($name),
-            'type' => $this->faker->randomElement(['holding', 'sub-holding', 'operating']),
+            'type' => fake()->randomElement(['holding', 'sub-holding', 'operating']),
             'parent_id' => null,
             'logo' => null,
             'is_active' => true,

@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Company;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -59,9 +61,9 @@ class UserFactory extends Factory
     public function sysadmin(): static
     {
         return $this->afterCreating(function (User $user) {
-            $company = \App\Models\Company::factory()->create();
+            $company = Company::factory()->create();
             $user->companies()->attach($company->id, ['status' => 'active']);
-            $role = \App\Models\Role::firstOrCreate(
+            $role = Role::firstOrCreate(
                 ['name' => 'sysadmin'],
                 ['permissions' => ['*'], 'is_active' => true]
             );
@@ -72,12 +74,12 @@ class UserFactory extends Factory
     /**
      * Give the user the company-admin role.
      */
-    public function companyAdmin(?\App\Models\Company $company = null): static
+    public function companyAdmin(?Company $company = null): static
     {
         return $this->afterCreating(function (User $user) use ($company) {
-            $targetCompany = $company ?? \App\Models\Company::factory()->create();
+            $targetCompany = $company ?? Company::factory()->create();
             $user->companies()->syncWithoutDetaching([$targetCompany->id => ['status' => 'active']]);
-            $role = \App\Models\Role::firstOrCreate(
+            $role = Role::firstOrCreate(
                 ['name' => 'company-admin'],
                 [
                     'permissions' => [
@@ -102,9 +104,9 @@ class UserFactory extends Factory
     public function platformAdmin(): static
     {
         return $this->afterCreating(function (User $user) {
-            $company = \App\Models\Company::factory()->create();
+            $company = Company::factory()->create();
             $user->companies()->attach($company->id, ['status' => 'active']);
-            $role = \App\Models\Role::firstOrCreate(
+            $role = Role::firstOrCreate(
                 ['name' => 'platform-admin'],
                 ['permissions' => ['*'], 'is_active' => true]
             );

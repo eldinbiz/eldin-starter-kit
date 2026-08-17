@@ -24,7 +24,7 @@ it('serves openapi json specification matching api v1 endpoints', function () {
         ->assertHeader('Content-Type', 'application/json');
 
     $data = $response->json();
-    
+
     expect($data)->toHaveKey('openapi')
         ->and($data)->toHaveKey('info')
         ->and($data)->toHaveKey('paths')

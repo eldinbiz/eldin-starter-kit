@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DataTables;
 
 use App\Models\Approval\ApprovalRequestStep;
+use App\Models\Company;
 use Illuminate\Database\Eloquent\Builder;
 
 class ApprovalManagementDataTable extends DataTable
@@ -100,7 +101,7 @@ class ApprovalManagementDataTable extends DataTable
         ];
 
         if (auth()->user()?->hasPlatformAccess()) {
-            $companyOptions = \App\Models\Company::orderBy('name')->pluck('name', 'id')->all();
+            $companyOptions = Company::orderBy('name')->pluck('name', 'id')->all();
             $filters[] = Filter::make('company_id')
                 ->type('select')
                 ->label('Company')

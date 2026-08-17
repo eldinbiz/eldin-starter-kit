@@ -72,4 +72,3 @@ class DateFormatterTest extends TestCase
         $this->assertSame('2026-08-11', DateFormatter::formatDate($utcDate));
     }
 }
-

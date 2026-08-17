@@ -89,7 +89,7 @@ class UserController extends Controller
         NotificationRequested::dispatch(
             recipients: $user,
             payload: new NotificationPayload(
-                title: 'Welcome to ' . config('app.name', 'Scaffolding App'),
+                title: 'Welcome to '.config('app.name', 'Scaffolding App'),
                 message: "Your user account has been created for {$activeCompany->name}.",
                 type: 'user_welcome',
                 url: route('login'),

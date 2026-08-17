@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Resources\Api\v1;
+namespace Modules\PurchaseRequests\Http\Resources\Api\v1;
 
+use App\Http\Resources\Api\v1\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

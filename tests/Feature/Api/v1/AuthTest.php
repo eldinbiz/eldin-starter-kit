@@ -11,11 +11,11 @@ it('returns the authenticated user profile', function () {
     $user = User::factory()->system()->create([
         'name' => 'API Bot',
     ]);
-    
+
     $token = $user->createToken('System API')->plainTextToken;
 
     $response = $this->getJson('/api/v1/me', [
-        'Authorization' => 'Bearer ' . $token,
+        'Authorization' => 'Bearer '.$token,
     ]);
 
     $response->assertOk()
@@ -23,7 +23,7 @@ it('returns the authenticated user profile', function () {
             'data' => [
                 'name' => 'API Bot',
                 'is_system' => true,
-            ]
+            ],
         ]);
 });
 

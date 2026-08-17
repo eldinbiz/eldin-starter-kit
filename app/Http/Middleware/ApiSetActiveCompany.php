@@ -6,8 +6,8 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\App;
+use Symfony\Component\HttpFoundation\Response;
 
 class ApiSetActiveCompany
 {
@@ -28,7 +28,7 @@ class ApiSetActiveCompany
 
         if (! $companyId) {
             return response()->json([
-                'message' => 'The X-Company-ID header is required for this endpoint.'
+                'message' => 'The X-Company-ID header is required for this endpoint.',
             ], 400);
         }
 
@@ -38,7 +38,7 @@ class ApiSetActiveCompany
 
         if (! $isPlatformAdmin && ! $isMember) {
             return response()->json([
-                'message' => "User does not have access to company {$companyId}."
+                'message' => "User does not have access to company {$companyId}.",
             ], 403);
         }
 

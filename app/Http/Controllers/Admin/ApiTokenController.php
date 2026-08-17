@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\DataTables\ApiTokensDataTable;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Role;
@@ -135,7 +136,7 @@ class ApiTokenController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, \App\DataTables\ApiTokensDataTable $dataTable)
+    public function index(Request $request, ApiTokensDataTable $dataTable)
     {
         $dataTable->handle($request);
         $endpoints = self::AVAILABLE_ENDPOINTS;
@@ -172,13 +173,13 @@ class ApiTokenController extends Controller
             : array_values(array_unique($selectedAbilities));
 
         // Create or find a system user for this token
-        // We namespace it to avoid collisions. 
-        $botEmail = 'bot.' . Str::slug($request->name) . '@system.local';
-        
+        // We namespace it to avoid collisions.
+        $botEmail = 'bot.'.Str::slug($request->name).'@system.local';
+
         $bot = User::firstOrCreate(
             ['email' => $botEmail],
             [
-                'name' => $request->name . ' (System Bot)',
+                'name' => $request->name.' (System Bot)',
                 'password' => bcrypt(Str::random(32)),
                 'is_system' => true,
                 'auth_method' => 'local',
@@ -186,7 +187,7 @@ class ApiTokenController extends Controller
         );
 
         // Make sure it's a system bot
-        if (!$bot->is_system) {
+        if (! $bot->is_system) {
             $bot->update(['is_system' => true]);
         }
 
@@ -229,7 +230,7 @@ class ApiTokenController extends Controller
     public function destroy(string $id)
     {
         $token = PersonalAccessToken::findOrFail($id);
-        
+
         // Ensure we are only deleting system tokens for safety, or any token if admin.
         $token->delete();
 

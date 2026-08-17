@@ -8,7 +8,6 @@ use App\Enums\BrandTheme;
 use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
 use App\Events\Approval\ApprovalRejected;
-use App\Helpers\DateFormatter;
 use App\Listeners\Approval\UpdateApprovableStatus;
 use App\Models\User;
 use App\Services\FeatureService;
@@ -18,6 +17,7 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Lab404\Impersonate\Events\LeaveImpersonation;
 use Lab404\Impersonate\Events\TakeImpersonation;
+use Modules\PurchaseRequests\Models\PurchaseRequest;
 use SocialiteProviders\Auth0\Auth0ExtendSocialite;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
@@ -51,6 +52,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Catch N+1 lazy loading violations loudly during development
         Model::preventLazyLoading(! app()->isProduction());
+
+        // Register morph map for approvable models
+        Relation::morphMap([
+            'purchase_request' => PurchaseRequest::class,
+            'App\Models\PurchaseRequest' => PurchaseRequest::class,
+            'Modules\PurchaseRequests\Models\PurchaseRequest' => PurchaseRequest::class,
+        ]);
 
         RateLimiter::for('api.auth', function (Request $request) {
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
@@ -189,7 +197,7 @@ class AppServiceProvider extends ServiceProvider
                     if ($brandTheme !== BrandTheme::Brand) {
                         $activeCompanyThemeVariables = $brandTheme->cssVariables();
                     }
-                    if (!empty($activeCompany->logo)) {
+                    if (! empty($activeCompany->logo)) {
                         $activeCompanyLogo = $activeCompany->logo;
                     }
                 }

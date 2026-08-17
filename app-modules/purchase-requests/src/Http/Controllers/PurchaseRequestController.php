@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace Modules\PurchaseRequests\Http\Controllers;
 
 use App\Models\Approval\WorkflowTemplate;
-use App\Models\PurchaseRequest;
 use App\Models\User;
 use App\Services\ApprovalEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Modules\PurchaseRequests\Models\PurchaseRequest;
 use RuntimeException;
 
 class PurchaseRequestController
@@ -34,14 +34,14 @@ class PurchaseRequestController
             ->latest()
             ->paginate(15);
 
-        return view('purchase-requests.index', [
+        return view('purchase-requests::index', [
             'purchaseRequests' => $purchaseRequests,
         ]);
     }
 
     public function create(): View
     {
-        return view('purchase-requests.create');
+        return view('purchase-requests::create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -97,7 +97,7 @@ class PurchaseRequestController
 
         $latestRequest = $purchaseRequest->approvalRequests->last();
 
-        return view('purchase-requests.show', [
+        return view('purchase-requests::show', [
             'purchaseRequest' => $purchaseRequest,
             'templates' => $templates,
             'latestRequest' => $latestRequest,

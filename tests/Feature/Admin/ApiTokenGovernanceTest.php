@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Models\Company;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\PersonalAccessToken;
 
 uses(RefreshDatabase::class);
 
@@ -26,8 +27,8 @@ it('prevents regular users from viewing api tokens governance page', function ()
 });
 
 it('allows company admin with manage-api-tokens permission to view api tokens governance page', function () {
-    $company = \App\Models\Company::factory()->create(['is_active' => true]);
-    $role = \App\Models\Role::factory()->create([
+    $company = Company::factory()->create(['is_active' => true]);
+    $role = Role::factory()->create([
         'name' => 'admin',
         'permissions' => ['manage-api-tokens'],
     ]);
@@ -49,8 +50,8 @@ it('allows company admin with manage-api-tokens permission to view api tokens go
 });
 
 it('prevents company admin without manage-api-tokens permission from viewing api tokens governance page', function () {
-    $company = \App\Models\Company::factory()->create(['is_active' => true]);
-    $role = \App\Models\Role::factory()->create([
+    $company = Company::factory()->create(['is_active' => true]);
+    $role = Role::factory()->create([
         'name' => 'admin',
         'permissions' => ['manage-users'],
     ]);
@@ -125,7 +126,7 @@ it('generates a token with custom expiration and granular abilities', function (
 
     $bot = User::where('email', 'bot.approvals-webhook@system.local')->first();
     expect($bot->tokens)->toHaveCount(1);
-    
+
     $token = $bot->tokens->first();
     expect($token->abilities)->toEqual(['approvals:index', 'approvals:show']);
     expect($token->expires_at)->not->toBeNull();
@@ -134,28 +135,28 @@ it('generates a token with custom expiration and granular abilities', function (
 
 it('enforces token abilities on api routes allowing authorized abilities and denying unauthorized abilities', function () {
     $bot = User::factory()->system()->create();
-    
+
     // Create token with only 'notifications:index' ability
     $plainToken = $bot->createToken('Limited Token', ['notifications:index'])->plainTextToken;
 
     // Allowed endpoint
-    $this->withHeader('Authorization', 'Bearer ' . $plainToken)
+    $this->withHeader('Authorization', 'Bearer '.$plainToken)
         ->getJson('/api/v1/notifications')
         ->assertOk();
 
     // Unauthorized endpoint (requires 'auth:me')
-    $this->withHeader('Authorization', 'Bearer ' . $plainToken)
+    $this->withHeader('Authorization', 'Bearer '.$plainToken)
         ->getJson('/api/v1/me')
         ->assertForbidden();
 });
 
 it('rejects api requests with expired tokens', function () {
     $bot = User::factory()->system()->create();
-    
+
     // Create already expired token
     $plainToken = $bot->createToken('Expired Token', ['*'], now()->subHour())->plainTextToken;
 
-    $this->withHeader('Authorization', 'Bearer ' . $plainToken)
+    $this->withHeader('Authorization', 'Bearer '.$plainToken)
         ->getJson('/api/v1/me')
         ->assertUnauthorized();
 });
@@ -163,7 +164,7 @@ it('rejects api requests with expired tokens', function () {
 it('filters and searches api tokens in datatable', function () {
     $admin = User::factory()->platformAdmin()->create();
     $bot = User::factory()->system()->create(['name' => 'Custom Bot', 'email' => 'bot.custom@system.local']);
-    
+
     $activeToken = $bot->createToken('Active Sync Token', ['*'], now()->addDays(30));
     $expiredToken = $bot->createToken('Old Expired Token', ['*'], now()->subDay());
 
@@ -181,4 +182,3 @@ it('filters and searches api tokens in datatable', function () {
         ->assertSee('Old Expired Token')
         ->assertDontSee('Active Sync Token');
 });
-

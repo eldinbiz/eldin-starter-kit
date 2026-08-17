@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\PurchaseRequests\Models;
 
 use App\Contracts\Approvable;
 use App\Enums\ApprovalStatus;
 use App\Models\Approval\ApprovalRequest;
-use Database\Factories\PurchaseRequestFactory;
+use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\PurchaseRequests\Database\Factories\PurchaseRequestFactory;
 
 class PurchaseRequest extends Model implements Approvable
 {
@@ -40,6 +42,11 @@ class PurchaseRequest extends Model implements Approvable
         return [
             'total_amount' => 'decimal:2',
         ];
+    }
+
+    protected static function newFactory(): PurchaseRequestFactory
+    {
+        return PurchaseRequestFactory::new();
     }
 
     public function company(): BelongsTo
@@ -77,7 +84,7 @@ class PurchaseRequest extends Model implements Approvable
     public function getApprovalPreview(): ?array
     {
         return [
-            'view' => 'purchase-requests._approval-preview',
+            'view' => 'purchase-requests::_approval-preview',
             'data' => ['purchaseRequest' => $this],
         ];
     }

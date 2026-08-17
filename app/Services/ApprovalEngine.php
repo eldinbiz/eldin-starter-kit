@@ -46,7 +46,7 @@ class ApprovalEngine
                 'company_id' => $company->id,
                 'requestor_id' => $requestor->id,
                 'workflow_template_id' => $template->id,
-                'approvable_type' => $approvable::class,
+                'approvable_type' => $approvable->getMorphClass(),
                 'approvable_id' => $approvable->id,
                 'workflow_snapshot' => $snapshot,
                 'status' => ApprovalStatus::Pending,

@@ -5,7 +5,6 @@ use App\Http\Controllers\Api\v1\AuditLogController;
 use App\Http\Controllers\Api\v1\AuthController;
 use App\Http\Controllers\Api\v1\CompanyController;
 use App\Http\Controllers\Api\v1\NotificationController;
-use App\Http\Controllers\Api\v1\PurchaseRequestController;
 use App\Http\Controllers\Api\v1\RoleController;
 use App\Http\Controllers\Api\v1\UserController;
 use Illuminate\Http\Request;
@@ -41,8 +40,5 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api.v1'])->group(func
     Route::middleware(['api.company', 'feature:api_access'])->group(function () {
         Route::get('approvals', [ApprovalController::class, 'index'])->middleware('ability:approvals:index');
         Route::get('approvals/{approval}', [ApprovalController::class, 'show'])->middleware('ability:approvals:show');
-
-        Route::get('purchases', [PurchaseRequestController::class, 'index'])->middleware('ability:purchases:index');
-        Route::get('purchases/{purchaseRequest}', [PurchaseRequestController::class, 'show'])->middleware('ability:purchases:show');
     });
 });

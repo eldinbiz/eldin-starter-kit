@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -46,8 +45,7 @@ $app->bootstrapWith([
 */
 
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', '../app-modules/*/tests');
 
 /*
 |--------------------------------------------------------------------------

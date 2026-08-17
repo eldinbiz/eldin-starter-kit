@@ -12,11 +12,13 @@
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",
         "dedoc/scramble": "^0.13.39",
+        "internachi/modular": "^3.0",
         "lab404/laravel-impersonate": "^1.7",
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.29",
         "laravel/tinker": "^3.0",
+        "modules/purchase-requests": "*",
         "romalytar/yammi-audit-log-laravel": "^2.2",
         "socialiteproviders/auth0": "^4.2",
         "socialiteproviders/microsoft": "^4.10",
@@ -98,5 +100,14 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }

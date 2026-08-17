@@ -7,6 +7,7 @@ namespace App\DataTables;
 use App\Enums\TemplateScope;
 use App\Helpers\ApprovableTypes;
 use App\Models\Approval\WorkflowTemplate;
+use App\Models\Company;
 use Illuminate\Database\Eloquent\Builder;
 
 class ApprovalWorkflowTemplatesDataTable extends DataTable
@@ -118,7 +119,7 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
         ];
 
         if (auth()->user()?->hasPlatformAccess()) {
-            $companyOptions = \App\Models\Company::orderBy('name')->pluck('name', 'id')->all();
+            $companyOptions = Company::orderBy('name')->pluck('name', 'id')->all();
             $filters[] = Filter::make('company_id')
                 ->type('select')
                 ->label('Company')

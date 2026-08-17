@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\v1\ActivityLogResource;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AuditLogController extends Controller
@@ -19,7 +19,7 @@ class AuditLogController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->hasPlatformAccess()) {
+        if (! $user->hasPlatformAccess()) {
             return response()->json(['message' => 'Unauthorized. Platform Admin required.'], 403);
         }
 

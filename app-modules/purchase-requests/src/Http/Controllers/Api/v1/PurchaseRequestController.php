@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\v1;
+namespace Modules\PurchaseRequests\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\v1\PurchaseRequestResource;
-use App\Models\PurchaseRequest;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Modules\PurchaseRequests\Http\Resources\Api\v1\PurchaseRequestResource;
+use Modules\PurchaseRequests\Models\PurchaseRequest;
 
 class PurchaseRequestController extends Controller
 {

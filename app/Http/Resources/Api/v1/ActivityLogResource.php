@@ -16,8 +16,8 @@ class ActivityLogResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $changes = is_string($this->changes ?? null) 
-            ? json_decode($this->changes, true) 
+        $changes = is_string($this->changes ?? null)
+            ? json_decode($this->changes, true)
             : ($this->changes ?? []);
 
         return [
