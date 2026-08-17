@@ -167,6 +167,7 @@ function orgChart() {
         loading: true,
         isEmpty: false,
         flatData: [],
+        canManage: {{ $canManage ? 'true' : 'false' }},
 
         // Edit Parent state
         showEditParent: false,
@@ -273,6 +274,14 @@ function orgChart() {
                 ? 'background:#ede9fe;color:#7c3aed;'
                 : 'background:#f3f4f6;color:#6b7280;';
 
+            const editBtnHtml = this.canManage ? `
+                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">
+                    <button onclick="event.stopPropagation();event.preventDefault();window.__orgChart.openEditParent('${data.id}');return false;"
+                        style="width:100%;padding:4px 6px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#e0e7ff;color:#4338ca;cursor:pointer;">
+                        Edit
+                    </button>
+                </div>` : '';
+
             return `
             <div data-user-id="${data.id}" data-search-dimmable style="
                 width:100%;height:100%;
@@ -303,12 +312,7 @@ function orgChart() {
                         </div>
                     </div>
                 </div>
-                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">
-                    <button onclick="event.stopPropagation();event.preventDefault();window.__orgChart.openEditParent('${data.id}');return false;"
-                        style="width:100%;padding:4px 6px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#e0e7ff;color:#4338ca;cursor:pointer;">
-                        Edit
-                    </button>
-                </div>
+                ${editBtnHtml}
             </div>`;
         },
 

@@ -142,7 +142,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Gate for Audit Log UI (Yammi audit log checks viewAuditLog gate)
         Gate::define('viewAuditLog', function (User $user): bool {
-            return $user->hasPlatformAccess() || Gate::allows('view-audit-logs');
+            return $user->getActiveRole()?->hasPermission('view-audit-logs') ?? false;
         });
 
         // Scramble OpenAPI Configuration & Security

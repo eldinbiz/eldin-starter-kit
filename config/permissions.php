@@ -36,8 +36,20 @@ return [
             'group' => 'General',
             'always_enabled' => true,
         ],
+        'view-org-chart' => [
+            'label' => 'View Organization Chart: Access and browse organization hierarchy tree',
+            'group' => 'General',
+        ],
         'manage-org-chart' => [
-            'label' => 'Manage Organization Chart',
+            'label' => 'Manage Organization Chart: Reassign reporting managers, edit job titles, and alter employee structure',
+            'group' => 'System Administration',
+        ],
+        'view-companies' => [
+            'label' => 'View Companies: Access and view company hierarchy structure and details',
+            'group' => 'System Administration',
+        ],
+        'manage-companies' => [
+            'label' => 'Manage Companies: Create, edit, reparent, enable/disable companies and manage user company memberships',
             'group' => 'System Administration',
         ],
         'manage-auth-providers' => [

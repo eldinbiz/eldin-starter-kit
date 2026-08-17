@@ -11,10 +11,17 @@ class ApprovalManagementDataTable extends DataTable
 {
     public function query(): Builder
     {
-        $company = auth()->user()?->getActiveCompany();
+        $user = auth()->user();
+        $isSysAdmin = $user?->hasPlatformAccess() ?? false;
+        $company = $user?->getActiveCompany();
 
-        return ApprovalRequestStep::with('request.requestor', 'request.approvable', 'approver')
-            ->whereHas('request', fn ($q) => $q->where('company_id', $company?->id));
+        $query = ApprovalRequestStep::with('request.requestor', 'request.approvable', 'approver', 'request.company');
+
+        if (! $isSysAdmin && $company) {
+            $query->whereHas('request', fn ($q) => $q->where('company_id', $company->id));
+        }
+
+        return $query;
     }
 
     public function columns(): array
@@ -91,6 +98,17 @@ class ApprovalManagementDataTable extends DataTable
                 ->label('Submitted To')
                 ->apply(fn (Builder $q, string $v) => $q->whereHas('request', fn ($sq) => $sq->where('submitted_at', '<=', $v))),
         ];
+
+        if (auth()->user()?->hasPlatformAccess()) {
+            $companyOptions = \App\Models\Company::orderBy('name')->pluck('name', 'id')->all();
+            $filters[] = Filter::make('company_id')
+                ->type('select')
+                ->label('Company')
+                ->options($companyOptions)
+                ->apply(fn (Builder $q, string $v) => $q->whereHas('request', fn ($sq) => $sq->where('company_id', $v)));
+        }
+
+        return $filters;
     }
 
     public function renderRow(mixed $row): string

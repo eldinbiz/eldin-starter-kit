@@ -52,6 +52,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications/latest', [NotificationController::class, 'latest'])->name('notifications.latest');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+
+    // Organization Chart Routes (View for all roles with view-org-chart, Manage for SysAdmin & Company Admin)
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::middleware('can:view-org-chart')->group(function () {
+            Route::get('/org-chart', [OrgChartController::class, 'index'])->name('org-chart.index');
+            Route::get('/org-chart/tree', [OrgChartController::class, 'tree'])->name('org-chart.tree');
+            Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
+        });
+        Route::patch('/org-chart/reassign', [OrgChartController::class, 'updateManager'])
+            ->name('org-chart.reassign')
+            ->middleware('can:manage-org-chart');
+    });
 });
 
 // Administration Routes
@@ -59,7 +71,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // System Audit Trail
     Route::get('/audit-trail', [AuditTrailController::class, 'index'])
         ->name('audit-trail.index')
-        ->middleware(['can:viewAuditLog', 'feature:audit_logs']);
+        ->middleware(['can:view-audit-logs', 'feature:audit_logs']);
 
     // System Auth Provider Settings
     Route::middleware('can:manage-auth-providers')->group(function () {
@@ -107,36 +119,36 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::put('/settings/features', [SystemSettingController::class, 'updateFeatures'])->name('settings.features.update');
     });
 
-    Route::resource('users', UserController::class);
-    Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
-    Route::post('roles/{role}/restore', [App\Http\Controllers\Admin\RoleController::class, 'restore'])->name('roles.restore')->withTrashed();
-    Route::delete('roles/{role}/soft-delete', [App\Http\Controllers\Admin\RoleController::class, 'softDelete'])->name('roles.soft-delete');
+    // Users & Roles Management
+    Route::middleware('can:manage-users')->group(function () {
+        Route::resource('users', UserController::class);
+        Route::post('/users/{user}/assign-company', [UserController::class, 'assignCompany'])->name('users.assign-company');
+        Route::delete('/users/{user}/remove-company/{company}', [UserController::class, 'removeCompany'])->name('users.remove-company');
+    });
 
-    // Company Hierarchy Management (Tree View)
-    Route::get('/companies', [App\Http\Controllers\Admin\CompanyController::class, 'hierarchy'])->name('companies.index');
-    Route::get('/companies/tree', [App\Http\Controllers\Admin\CompanyController::class, 'tree'])->name('companies.tree');
-    Route::patch('/companies/reparent', [App\Http\Controllers\Admin\CompanyController::class, 'reparent'])->name('companies.reparent');
+    Route::middleware('can:manage-roles')->group(function () {
+        Route::resource('roles', App\Http\Controllers\Admin\RoleController::class);
+        Route::post('roles/{role}/restore', [App\Http\Controllers\Admin\RoleController::class, 'restore'])->name('roles.restore')->withTrashed();
+        Route::delete('roles/{role}/soft-delete', [App\Http\Controllers\Admin\RoleController::class, 'softDelete'])->name('roles.soft-delete');
+    });
 
-    // Company CRUD
-    Route::get('/companies/create', [App\Http\Controllers\Admin\CompanyController::class, 'create'])->name('companies.create');
-    Route::post('/companies', [App\Http\Controllers\Admin\CompanyController::class, 'store'])->name('companies.store');
-    Route::get('/companies/{company}/edit', [App\Http\Controllers\Admin\CompanyController::class, 'edit'])->name('companies.edit');
-    Route::put('/companies/{company}', [App\Http\Controllers\Admin\CompanyController::class, 'update'])->name('companies.update');
-    Route::patch('/companies/{company}/toggle', [App\Http\Controllers\Admin\CompanyController::class, 'toggleActive'])->name('companies.toggle');
+    // Company Hierarchy Management (View: SysAdmin & Company Admin)
+    Route::middleware('can:view-companies')->group(function () {
+        Route::get('/companies', [App\Http\Controllers\Admin\CompanyController::class, 'hierarchy'])->name('companies.index');
+        Route::get('/companies/tree', [App\Http\Controllers\Admin\CompanyController::class, 'tree'])->name('companies.tree');
+    });
 
-    // User Assignment within a Company
-    Route::post('/companies/{company}/assign-user', [App\Http\Controllers\Admin\CompanyController::class, 'assignUser'])->name('companies.assign-user');
-    Route::delete('/companies/{company}/remove-user/{user}', [App\Http\Controllers\Admin\CompanyController::class, 'removeUser'])->name('companies.remove-user');
-
-    // Company Assignment from User Management
-    Route::post('/users/{user}/assign-company', [UserController::class, 'assignCompany'])->name('users.assign-company');
-    Route::delete('/users/{user}/remove-company/{company}', [UserController::class, 'removeCompany'])->name('users.remove-company');
-
-    // Organization Chart Routes
-    Route::get('/org-chart', [OrgChartController::class, 'index'])->name('org-chart.index');
-    Route::get('/org-chart/tree', [OrgChartController::class, 'tree'])->name('org-chart.tree');
-    Route::patch('/org-chart/reassign', [OrgChartController::class, 'updateManager'])->name('org-chart.reassign');
-    Route::get('/org-chart/trace/{user}', [OrgChartController::class, 'trace'])->name('org-chart.trace');
+    // Company Management Mutations (Manage: SysAdmin Only)
+    Route::middleware('can:manage-companies')->group(function () {
+        Route::patch('/companies/reparent', [App\Http\Controllers\Admin\CompanyController::class, 'reparent'])->name('companies.reparent');
+        Route::get('/companies/create', [App\Http\Controllers\Admin\CompanyController::class, 'create'])->name('companies.create');
+        Route::post('/companies', [App\Http\Controllers\Admin\CompanyController::class, 'store'])->name('companies.store');
+        Route::get('/companies/{company}/edit', [App\Http\Controllers\Admin\CompanyController::class, 'edit'])->name('companies.edit');
+        Route::put('/companies/{company}', [App\Http\Controllers\Admin\CompanyController::class, 'update'])->name('companies.update');
+        Route::patch('/companies/{company}/toggle', [App\Http\Controllers\Admin\CompanyController::class, 'toggleActive'])->name('companies.toggle');
+        Route::post('/companies/{company}/assign-user', [App\Http\Controllers\Admin\CompanyController::class, 'assignUser'])->name('companies.assign-user');
+        Route::delete('/companies/{company}/remove-user/{user}', [App\Http\Controllers\Admin\CompanyController::class, 'removeUser'])->name('companies.remove-user');
+    });
 
     // Approval Management
     Route::middleware(['can:manage-approvals', 'feature:approvals'])->group(function () {

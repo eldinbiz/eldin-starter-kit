@@ -121,7 +121,9 @@ class User extends Authenticatable
      */
     public function hasPlatformAccess(): bool
     {
-        return $this->companyRoles()->where('name', 'platform-admin')->exists();
+        return $this->companyRoles()
+            ->whereIn('name', ['sysadmin', 'platform-admin'])
+            ->exists();
     }
 
     /**
@@ -177,12 +179,14 @@ class User extends Authenticatable
             return null;
         }
 
-        // Return cached instance if same company context
-        if ($this->cachedActiveRole !== null && $this->cachedActiveRoleCompanyId === $company->id) {
+        $activeRoleName = session("active_role.{$company->id}");
+
+        // Return cached instance if same company context and matching active role name
+        if ($this->cachedActiveRole !== null
+            && $this->cachedActiveRoleCompanyId === $company->id
+            && ($activeRoleName === null || $this->cachedActiveRole->name === $activeRoleName)) {
             return $this->cachedActiveRole;
         }
-
-        $activeRoleName = session("active_role.{$company->id}");
 
         if ($activeRoleName) {
             $this->cachedActiveRole = $this->companyRoles()

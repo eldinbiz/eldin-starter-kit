@@ -28,8 +28,8 @@ class AdminMiddleware
             abort(403, 'No active company selected.');
         }
 
-        // Accept: admin role in active company OR platform-admin role in any company
-        $hasAdminInCompany = $user->hasRole('admin', $company);
+        // Accept: company-admin/admin/sysadmin role in active company OR platform access across any company
+        $hasAdminInCompany = $user->hasAnyRole(['company-admin', 'admin', 'sysadmin'], $company);
         $hasPlatformAccess = $user->hasPlatformAccess();
 
         if (! $hasAdminInCompany && ! $hasPlatformAccess) {

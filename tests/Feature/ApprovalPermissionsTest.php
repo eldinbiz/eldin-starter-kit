@@ -24,6 +24,7 @@ beforeEach(function (): void {
     $this->adminRole = Role::factory()->create([
         'name' => 'admin',
         'permissions' => [
+            'manage-roles',
             'view-approval-inbox',
             'view-approval-history',
             'view-approval-requests',
@@ -149,4 +150,32 @@ it('renders descriptive approval permission labels in role creation page', funct
     $response->assertSee('My Requests: Menu access to track approval requests you submitted');
     $response->assertSee('Manage Approvals: Administrative access to monitor, reassign, skip, or override any approval request');
     $response->assertSee('Workflow Templates: Administrative access to create, edit, and configure approval workflow templates');
+});
+
+it('denies company-admin without view-approval-inbox from accessing personal inbox until switching to user role', function (): void {
+    $companyAdminRole = Role::factory()->companyAdmin()->create();
+    $userRole = $this->userRole;
+
+    $user = User::factory()->create();
+    $user->companies()->attach($this->company->id, ['status' => 'active']);
+    $user->companyRoles()->attach($companyAdminRole->id, ['company_id' => $this->company->id]);
+    $user->companyRoles()->attach($userRole->id, ['company_id' => $this->company->id]);
+
+    // Active as company-admin
+    session([
+        'active_company_id' => $this->company->id,
+        "active_role.{$this->company->id}" => 'company-admin',
+    ]);
+    $this->actingAs($user)
+        ->get(route('approvals.inbox'))
+        ->assertForbidden();
+
+    // Switch to user role
+    session([
+        'active_company_id' => $this->company->id,
+        "active_role.{$this->company->id}" => 'user',
+    ]);
+    $this->actingAs($user)
+        ->get(route('approvals.inbox'))
+        ->assertSuccessful();
 });

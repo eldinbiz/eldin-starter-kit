@@ -23,6 +23,36 @@ class RoleFactory extends Factory
     }
 
     /**
+     * Create a sysadmin role.
+     */
+    public function sysadmin(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'name' => 'sysadmin',
+            'permissions' => ['*'],
+        ]);
+    }
+
+    /**
+     * Create a company-admin role.
+     */
+    public function companyAdmin(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'name' => 'company-admin',
+            'permissions' => [
+                'manage-users',
+                'view-companies',
+                'manage-org-chart',
+                'view-org-chart',
+                'manage-company-settings',
+                'manage-approvals',
+                'manage-approval-workflows',
+            ],
+        ]);
+    }
+
+    /**
      * Create an admin role.
      */
     public function admin(): static
@@ -58,6 +88,7 @@ class RoleFactory extends Factory
         return $this->state(fn (array $attributes): array => [
             'name' => 'user',
             'permissions' => [
+                'view-org-chart',
                 'view-approval-inbox',
                 'view-approval-history',
                 'view-approval-requests',

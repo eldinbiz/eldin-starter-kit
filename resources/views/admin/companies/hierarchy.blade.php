@@ -50,12 +50,14 @@
                 </svg>
                 Reset View
             </button>
+            @if($canManage)
             <a href="{{ route('admin.companies.create') }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 Add Company
             </a>
+            @endif
         </div>
     </div>
 
@@ -124,6 +126,7 @@ function companyHierarchy() {
         flatData: [],
         flashMessage: '',
         flashType: 'success',
+        canManage: {{ $canManage ? 'true' : 'false' }},
 
         async init() {
             window.__companyTree = this;
@@ -309,6 +312,7 @@ function companyHierarchy() {
                         </div>
                     </div>
                 </div>
+                ${this.canManage ? `
                 <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;gap:5px;">
                     <button onclick="event.stopPropagation();event.preventDefault();window.__companyTree.toggleCompanyActive(${data.id});return false;"
                         style="flex:1;padding:3px 5px;font-size:10px;font-weight:500;border-radius:6px;border:none;cursor:pointer;${toggleBtnColor}">${data.is_active ? 'Disable' : 'Enable'}</button>
@@ -316,7 +320,7 @@ function companyHierarchy() {
                         style="flex:1;padding:3px 5px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#f3f4f6;color:#374151;cursor:pointer;text-align:center;text-decoration:none;">Edit</a>
                     <a href="/admin/companies/create?parent_id=${data.id}" onclick="event.stopPropagation();"
                         style="flex:1;padding:3px 5px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#ede9fe;color:#7c3aed;cursor:pointer;text-align:center;text-decoration:none;">+Child</a>
-                </div>
+                </div>` : ''}
             </div>`;
         },
 
@@ -353,6 +357,7 @@ function companyHierarchy() {
 
         // ---- Toggle Company Active ----
         async toggleCompanyActive(companyId) {
+            if (!this.canManage) return;
             try {
                 const resp = await fetch(`/admin/companies/${companyId}/toggle`, {
                     method: 'PATCH',

@@ -63,8 +63,24 @@ it('redirects guests from org chart routes', function (): void {
     $this->get(route('admin.org-chart.trace', 1))->assertRedirect(route('login'));
 });
 
-it('blocks non-admin users from org chart routes', function (): void {
+it('allows regular users with view-org-chart to view org chart and tree but blocks reassignments', function (): void {
     actAsOrgRegularUser($this);
+
+    $this->get(route('admin.org-chart.index'))->assertSuccessful();
+    $this->get(route('admin.org-chart.tree'))->assertSuccessful();
+    $this->patch(route('admin.org-chart.reassign'), ['user_id' => 1])->assertForbidden();
+});
+
+it('blocks users without view-org-chart permission from org chart routes', function (): void {
+    $company = Company::factory()->create(['is_active' => true]);
+    $restrictedRole = Role::factory()->create(['name' => 'restricted', 'permissions' => []]);
+
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, ['status' => 'active']);
+    $user->companyRoles()->attach($restrictedRole->id, ['company_id' => $company->id]);
+
+    $this->actingAs($user);
+    session(['active_company_id' => $company->id]);
 
     $this->get(route('admin.org-chart.index'))->assertForbidden();
     $this->get(route('admin.org-chart.tree'))->assertForbidden();
@@ -76,12 +92,26 @@ it('blocks non-admin users from org chart routes', function (): void {
 // Org Chart Page View
 // ---------------------------------------------------------------------------
 
-it('allows admin to view the org chart page', function (): void {
+it('allows admin to view the org chart page with canManage enabled', function (): void {
     actAsOrgAdmin($this);
 
     $this->get(route('admin.org-chart.index'))
         ->assertSuccessful()
-        ->assertSee('Organization Chart');
+        ->assertViewHas('canManage', true)
+        ->assertSee('canManage: true', false)
+        ->assertSee('Organization Chart')
+        ->assertSee('id="org-chart-container"', false);
+});
+
+it('allows regular user with view-org-chart to view the page with canManage disabled', function (): void {
+    actAsOrgRegularUser($this);
+
+    $this->get(route('admin.org-chart.index'))
+        ->assertSuccessful()
+        ->assertViewHas('canManage', false)
+        ->assertSee('canManage: false', false)
+        ->assertSee('Organization Chart')
+        ->assertSee('id="org-chart-container"', false);
 });
 
 // ---------------------------------------------------------------------------

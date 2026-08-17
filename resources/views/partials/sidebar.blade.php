@@ -192,7 +192,7 @@
                 <ul class="flex flex-col gap-1.5">
 
                     {{-- User Management --}}
-                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
+                    @can('manage-users')
                     <li>
                         <a
                             href="{{ route('admin.users.index') }}"
@@ -207,10 +207,10 @@
                             </span>
                         </a>
                     </li>
-                    @endif
+                    @endcan
 
                     {{-- User Roles --}}
-                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
+                    @can('manage-roles')
                     <li>
                         <a
                             href="{{ route('admin.roles.index') }}"
@@ -225,10 +225,10 @@
                             </span>
                         </a>
                     </li>
-                    @endif
+                    @endcan
 
                     {{-- Company Management --}}
-                    @if (Auth::user()?->getActiveRole()?->name === 'admin')
+                    @canany(['manage-companies', 'view-companies'])
                     <li>
                         <a
                             href="{{ route('admin.companies.index') }}"
@@ -243,10 +243,10 @@
                             </span>
                         </a>
                     </li>
-                    @endif
+                    @endcanany
 
                     {{-- Org Structure --}}
-                    @if (Auth::user()?->getActiveRole()?->name === 'admin' || Gate::allows('manage-org-chart'))
+                    @canany(['manage-org-chart', 'view-org-chart'])
                     <li>
                         <a
                             href="{{ route('admin.org-chart.index') }}"
@@ -261,7 +261,7 @@
                             </span>
                         </a>
                     </li>
-                    @endif
+                    @endcanany
 
                     {{-- System Settings --}}
                     @can('manage-system-settings')
@@ -341,7 +341,7 @@
 
                     {{-- Audit Trail --}}
                     @feature('audit_logs')
-                    @can('viewAuditLog')
+                    @can('view-audit-logs')
                     <li>
                         <a
                             href="{{ route('admin.audit-trail.index') }}"
@@ -358,44 +358,6 @@
                     </li>
                     @endcan
                     @endfeature
-
-                    {{-- System Variables (Placeholder) --}}
-                    <li>
-                        <a
-                            href="#"
-                            onclick="return false;"
-                            class="menu-item group menu-item-inactive opacity-60 cursor-not-allowed flex items-center justify-between"
-                            title="Coming Soon"
-                        >
-                            <span class="flex items-center gap-3">
-                                {{-- Variables/Settings Icon --}}
-                                <svg class="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 4C3.5 3.44772 3.94772 3 4.5 3H19.5C20.0523 3 20.5 3.44772 20.5 4V10C20.5 10.5523 20.0523 11 19.5 11H4.5C3.94772 11 3.5 10.5523 3.5 10V4ZM5 4.5V9.5H19V4.5H5ZM3.5 14C3.5 13.4477 3.94772 13 4.5 13H19.5C20.0523 13 20.5 13.4477 20.5 14V20C20.5 20.5523 20.0523 21 19.5 21H4.5C3.94772 21 3.5 20.5523 3.5 20V14ZM5 14.5V19.5H19V14.5H5Z" />
-                                </svg>
-                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>System Variables</span>
-                            </span>
-                            <span class="text-[9px] bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded" x-show="!sidebarToggle || sidebarHover" x-cloak>Lock</span>
-                        </a>
-                    </li>
-
-                    {{-- SMTP Settings (Placeholder) --}}
-                    <li>
-                        <a
-                            href="#"
-                            onclick="return false;"
-                            class="menu-item group menu-item-inactive opacity-60 cursor-not-allowed flex items-center justify-between"
-                            title="Coming Soon"
-                        >
-                            <span class="flex items-center gap-3">
-                                {{-- Mail Icon --}}
-                                <svg class="fill-current text-gray-500" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M1.75 5C1.75 3.75736 2.75736 2.75 4 2.75H20C21.2426 2.75 22.25 3.75736 22.25 5V19C22.25 20.2426 21.2426 21.25 20 21.25H4C2.75736 21.25 1.75 20.2426 1.75 19V5ZM4 4.25H20C20.4142 4.25 20.75 4.58579 20.75 5V7.89304L12.548 12.9238C12.2125 13.1296 11.7875 13.1296 11.452 12.9238L3.25 7.89304V5C3.25 4.58579 3.58579 4.25 4 4.25ZM3.25 9.6384L10.682 14.1951C11.4883 14.6896 12.5117 14.6896 13.318 14.1951L20.75 9.6384V19C20.75 19.4142 20.4142 19.75 20 19.75H4C3.58579 19.75 3.25 19.4142 3.25 19V9.6384Z" />
-                                </svg>
-                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>SMTP Settings</span>
-                            </span>
-                            <span class="text-[9px] bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1.5 py-0.5 rounded" x-show="!sidebarToggle || sidebarHover" x-cloak>Lock</span>
-                        </a>
-                    </li>
                 </ul>
             </div>
         </nav>

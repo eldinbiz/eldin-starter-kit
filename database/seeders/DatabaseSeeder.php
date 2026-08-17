@@ -66,45 +66,62 @@ class DatabaseSeeder extends Seeder
             'view-approval-history',
             'view-approval-requests',
         ];
-        $adminApprovalPermissions = array_merge($userApprovalPermissions, [
+        $adminApprovalPermissions = [
             'manage-approvals',
             'manage-approval-workflows',
-        ]);
+        ];
 
-        $adminRole = Role::create([
-            'name' => 'admin',
+        $sysAdminRole = Role::create([
+            'name' => 'sysadmin',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-api-tokens', 'manage-system-settings', 'manage-company-settings'],
+                [
+                    'manage-users',
+                    'user-impersonation',
+                    'manage-roles',
+                    'manage-companies',
+                    'view-companies',
+                    'manage-org-chart',
+                    'view-org-chart',
+                    'manage-platform',
+                    'manage-system-settings',
+                    'manage-company-settings',
+                    'manage-auth-providers',
+                    'manage-api-tokens',
+                    'view-audit-logs',
+                ],
                 $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
         ]);
-        $managerRole = Role::create([
-            'name' => 'manager',
+
+        $companyAdminRole = Role::create([
+            'name' => 'company-admin',
             'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-org-chart', 'manage-company-settings'],
-                $userApprovalPermissions,
+                [
+                    'manage-users',
+                    'view-companies',
+                    'manage-org-chart',
+                    'view-org-chart',
+                    'manage-company-settings',
+                ],
+                $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
         ]);
+
         $userRole = Role::create([
             'name' => 'user',
             'permissions' => array_values(array_unique(array_merge(
+                [
+                    'view-org-chart',
+                ],
                 $userApprovalPermissions,
-                $alwaysEnabledPermissions,
-            ))),
-        ]);
-        $platformAdminRole = Role::create([
-            'name' => 'platform-admin',
-            'permissions' => array_values(array_unique(array_merge(
-                ['manage-users', 'manage-roles', 'manage-org-chart', 'manage-platform', 'manage-api-tokens', 'manage-system-settings', 'manage-company-settings'],
-                $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
         ]);
 
         // ─────────────────────────────────────────────
-        // 2. Create Companies
+        // 3. Create Companies
         // ─────────────────────────────────────────────
         $mmsgi = Company::create([
             'name' => 'MMSGI',
@@ -155,7 +172,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // ─────────────────────────────────────────────
-        // 3. Create Super Administrator (all roles, all companies)
+        // 4. Create Super Administrator (sysadmin and user roles in all companies)
         // ─────────────────────────────────────────────
         $superAdmin = User::create([
             'name' => 'Administrator',
@@ -172,13 +189,9 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]);
 
-            $superAdmin->companyRoles()->attach($adminRole->id, ['company_id' => $company->id]);
-            $superAdmin->companyRoles()->attach($managerRole->id, ['company_id' => $company->id]);
+            $superAdmin->companyRoles()->attach($sysAdminRole->id, ['company_id' => $company->id]);
             $superAdmin->companyRoles()->attach($userRole->id, ['company_id' => $company->id]);
         }
-
-        // Assign platform-admin role to the super admin (in first company)
-        $superAdmin->companyRoles()->attach($platformAdminRole->id, ['company_id' => $mmsgi->id]);
 
         // ─────────────────────────────────────────────
         // 4. Define company config: min/max users, job titles pool
@@ -361,22 +374,13 @@ class DatabaseSeeder extends Seeder
                 ]);
 
                 // Assign roles via company_user_role
-                // - At least 1 admin per company for holding/sub-holding
-                //   For operating companies, at least 1 manager
-                // - ~20% get manager role
-                // - Rest get user role
+                // - Root user #1 always gets company-admin role
+                // - ~20% of other users get company-admin role
+                // - All users always get user role
                 $rolesToAssign = [$userRole->id];
 
-                // Root user #1 always gets admin (for holding/sub-holding) or manager (for operating)
-                if ($i === 0) {
-                    if ($company->type === 'operating') {
-                        $rolesToAssign[] = $managerRole->id;
-                    } else {
-                        $rolesToAssign[] = $adminRole->id;
-                    }
-                } elseif (random_int(1, 100) <= 20) {
-                    // ~20% chance of extra manager role
-                    $rolesToAssign[] = $managerRole->id;
+                if ($i === 0 || random_int(1, 100) <= 20) {
+                    $rolesToAssign[] = $companyAdminRole->id;
                 }
 
                 foreach ($rolesToAssign as $roleId) {

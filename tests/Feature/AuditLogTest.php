@@ -93,3 +93,32 @@ it('records access audit log entry when user impersonation starts and stops', fu
     $admin->leaveImpersonation();
     AuditLog::assertRecorded(User::class, $target->id, 'accessed');
 });
+
+it('denies audit trail access when user with sysadmin role switches active role to user', function (): void {
+    $company = Company::factory()->create(['is_active' => true]);
+    $sysadminRole = Role::factory()->sysadmin()->create();
+    $userRole = Role::factory()->user()->create();
+
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, ['status' => 'active']);
+    $user->companyRoles()->attach($sysadminRole->id, ['company_id' => $company->id]);
+    $user->companyRoles()->attach($userRole->id, ['company_id' => $company->id]);
+
+    // Active role: sysadmin -> Allowed
+    session([
+        'active_company_id' => $company->id,
+        "active_role.{$company->id}" => 'sysadmin',
+    ]);
+    $this->actingAs($user)
+        ->get(route('admin.audit-trail.index'))
+        ->assertSuccessful();
+
+    // Switch active role to user -> Forbidden
+    session([
+        'active_company_id' => $company->id,
+        "active_role.{$company->id}" => 'user',
+    ]);
+    $this->actingAs($user)
+        ->get(route('admin.audit-trail.index'))
+        ->assertForbidden();
+});

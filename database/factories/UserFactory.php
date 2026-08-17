@@ -54,6 +54,49 @@ class UserFactory extends Factory
     }
 
     /**
+     * Give the user the sysadmin role.
+     */
+    public function sysadmin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $company = \App\Models\Company::factory()->create();
+            $user->companies()->attach($company->id, ['status' => 'active']);
+            $role = \App\Models\Role::firstOrCreate(
+                ['name' => 'sysadmin'],
+                ['permissions' => ['*'], 'is_active' => true]
+            );
+            $user->companyRoles()->attach($role->id, ['company_id' => $company->id]);
+        });
+    }
+
+    /**
+     * Give the user the company-admin role.
+     */
+    public function companyAdmin(?\App\Models\Company $company = null): static
+    {
+        return $this->afterCreating(function (User $user) use ($company) {
+            $targetCompany = $company ?? \App\Models\Company::factory()->create();
+            $user->companies()->syncWithoutDetaching([$targetCompany->id => ['status' => 'active']]);
+            $role = \App\Models\Role::firstOrCreate(
+                ['name' => 'company-admin'],
+                [
+                    'permissions' => [
+                        'manage-users',
+                        'view-companies',
+                        'manage-org-chart',
+                        'view-org-chart',
+                        'manage-company-settings',
+                        'manage-approvals',
+                        'manage-approval-workflows',
+                    ],
+                    'is_active' => true,
+                ]
+            );
+            $user->companyRoles()->attach($role->id, ['company_id' => $targetCompany->id]);
+        });
+    }
+
+    /**
      * Give the user the platform-admin role.
      */
     public function platformAdmin(): static

@@ -23,6 +23,7 @@ class OrgChartController extends Controller
 
         return view('admin.org-chart.index', [
             'company' => $activeCompany,
+            'canManage' => auth()->user()?->can('manage-org-chart') ?? false,
         ]);
     }
 

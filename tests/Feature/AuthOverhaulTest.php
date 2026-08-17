@@ -17,7 +17,7 @@ beforeEach(function () {
     $this->platformAdminRole = Role::factory()->create([
         'name' => 'platform-admin',
         'is_active' => true,
-        'permissions' => ['manage-auth-providers'],
+        'permissions' => ['manage-auth-providers', 'manage-users'],
     ]);
     $this->userRole = Role::factory()->create([
         'name' => 'user',

@@ -15,16 +15,20 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
 
     public function query(): Builder
     {
-        $company = auth()->user()?->getActiveCompany();
+        $user = auth()->user();
+        $isSysAdmin = $user?->hasPlatformAccess() ?? false;
+        $company = $user?->getActiveCompany();
 
         $query = WorkflowTemplate::withCount('groups')
             ->with('groups.steps');
 
-        // Non-trashed queries are scoped to the active company + its available templates
-        if ($company && ! $this->showTrashed) {
-            $query->availableFor($company);
-        } elseif ($company) {
-            $query->where('company_id', $company->id);
+        if (! $isSysAdmin) {
+            // Non-trashed queries are scoped to the active company + its available templates
+            if ($company && ! $this->showTrashed) {
+                $query->availableFor($company);
+            } elseif ($company) {
+                $query->where('company_id', $company->id);
+            }
         }
 
         if ($this->showTrashed) {
@@ -112,6 +116,17 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
                 ->label('Created From')
                 ->apply(fn (Builder $q, string $v) => $q->where('created_at', '>=', $v)),
         ];
+
+        if (auth()->user()?->hasPlatformAccess()) {
+            $companyOptions = \App\Models\Company::orderBy('name')->pluck('name', 'id')->all();
+            $filters[] = Filter::make('company_id')
+                ->type('select')
+                ->label('Company')
+                ->options($companyOptions)
+                ->apply(fn (Builder $q, string $v) => $q->where('company_id', $v));
+        }
+
+        return $filters;
     }
 
     public function renderRow(mixed $row): string

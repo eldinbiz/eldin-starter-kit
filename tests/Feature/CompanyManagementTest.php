@@ -89,6 +89,32 @@ it('blocks non-admin users from company management routes', function (): void {
     $this->delete(route('admin.companies.remove-user', [$company, 1]))->assertForbidden();
 });
 
+it('allows company-admin to view company hierarchy tree but blocks mutation operations', function (): void {
+    $company = Company::factory()->create(['is_active' => true]);
+    $companyAdminRole = Role::factory()->companyAdmin()->create();
+
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, ['status' => 'active']);
+    $user->companyRoles()->attach($companyAdminRole->id, ['company_id' => $company->id]);
+
+    $this->actingAs($user);
+    session(['active_company_id' => $company->id]);
+
+    // Allowed: view-companies
+    $this->get(route('admin.companies.index'))->assertSuccessful();
+    $this->get(route('admin.companies.tree'))->assertSuccessful();
+
+    // Blocked: manage-companies mutations
+    $this->patch(route('admin.companies.reparent'), ['company_id' => $company->id])->assertForbidden();
+    $this->get(route('admin.companies.create'))->assertForbidden();
+    $this->post(route('admin.companies.store'), ['name' => 'New Co'])->assertForbidden();
+    $this->get(route('admin.companies.edit', $company))->assertForbidden();
+    $this->put(route('admin.companies.update', $company), ['name' => 'Updated Co'])->assertForbidden();
+    $this->patch(route('admin.companies.toggle', $company))->assertForbidden();
+    $this->post(route('admin.companies.assign-user', $company), ['user_id' => 1])->assertForbidden();
+    $this->delete(route('admin.companies.remove-user', [$company, 1]))->assertForbidden();
+});
+
 // ---------------------------------------------------------------------------
 // Hierarchy & Tree
 // ---------------------------------------------------------------------------

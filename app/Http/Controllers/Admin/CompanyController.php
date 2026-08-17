@@ -25,8 +25,9 @@ class CompanyController extends Controller
     public function hierarchy(): View
     {
         $companies = Company::buildTree();
+        $canManage = auth()->user()?->can('manage-companies') ?? false;
 
-        return view('admin.companies.hierarchy', compact('companies'));
+        return view('admin.companies.hierarchy', compact('companies', 'canManage'));
     }
 
     /**
