@@ -80,38 +80,14 @@
     {{-- Tab Contents --}}
 
     {{-- Local Tab --}}
-    <div x-show="activeTab === 'local'" x-cloak x-data="{
-        testing: false,
-        testResult: null,
-        async testLocal() {
-            this.testing = true;
-            this.testResult = null;
-            try {
-                const response = await fetch('{{ route('admin.settings.auth-providers.test', 'local') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                });
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                    const data = await response.json();
-                    if (!response.ok && !data.message) {
-                        data.message = `HTTP Error ${response.status}: ${response.statusText}`;
-                    }
-                    this.testResult = data;
-                } else {
-                    const text = await response.text();
-                    this.testResult = { success: false, message: `Server Error (${response.status}): ${text.substring(0, 200)}` };
-                }
-            } catch (err) {
-                this.testResult = { success: false, message: `Connection test error: ${err.message || err}` };
-            } finally {
-                this.testing = false;
-            }
-        }
-    }">
+    <div 
+        x-show="activeTab === 'local'" 
+        x-cloak 
+        x-data="authProviderTester({
+            testUrl: '{{ route('admin.settings.auth-providers.test', 'local') }}',
+            csrfToken: '{{ csrf_token() }}'
+        })"
+    >
         <div class="rounded-xl border border-brand-200 bg-brand-50/50 p-5 dark:border-brand-900/40 dark:bg-brand-950/20 mb-6">
             <div class="flex items-start gap-3">
                 <span class="text-brand-500">ℹ️</span>
@@ -140,7 +116,7 @@
         <div>
             <button
                 type="button"
-                @click="testLocal()"
+                @click="testConnection()"
                 :disabled="testing"
                 class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
@@ -159,41 +135,10 @@
         @endphp
         <div x-show="activeTab === '{{ $prov }}'" x-cloak>
             <form
-                x-data="{
-                    testing: false,
-                    testResult: null,
-                    async testConnection() {
-                        this.testing = true;
-                        this.testResult = null;
-                        const formData = new FormData($el);
-                        formData.delete('_method');
-                        try {
-                            const response = await fetch('{{ route('admin.settings.auth-providers.test', $prov) }}', {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Accept': 'application/json'
-                                },
-                                body: formData
-                            });
-                            const contentType = response.headers.get('content-type') || '';
-                            if (contentType.includes('application/json')) {
-                                const data = await response.json();
-                                if (!response.ok && !data.message) {
-                                    data.message = `HTTP Error ${response.status}: ${response.statusText}`;
-                                }
-                                this.testResult = data;
-                            } else {
-                                const text = await response.text();
-                                this.testResult = { success: false, message: `Server Error (${response.status}): ${text.substring(0, 200)}` };
-                            }
-                        } catch (err) {
-                            this.testResult = { success: false, message: `Connection test error: ${err.message || err}` };
-                        } finally {
-                            this.testing = false;
-                        }
-                    }
-                }"
+                x-data="authProviderTester({
+                    testUrl: '{{ route('admin.settings.auth-providers.test', $prov) }}',
+                    csrfToken: '{{ csrf_token() }}'
+                })"
                 action="{{ route('admin.settings.auth-providers.update', $prov) }}"
                 method="POST"
                 class="space-y-6"
@@ -342,4 +287,51 @@
         </div>
     @endforeach
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('authProviderTester', (config = {}) => ({
+            testing: false,
+            testResult: null,
+            async testConnection() {
+                this.testing = true;
+                this.testResult = null;
+                let body = null;
+                let headers = {
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Accept': 'application/json'
+                };
+
+                if (this.$el.tagName && this.$el.tagName.toLowerCase() === 'form') {
+                    const formData = new FormData(this.$el);
+                    formData.delete('_method');
+                    body = formData;
+                }
+
+                try {
+                    const response = await fetch(config.testUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: body
+                    });
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await response.json();
+                        if (!response.ok && !data.message) {
+                            data.message = `HTTP Error ${response.status}: ${response.statusText}`;
+                        }
+                        this.testResult = data;
+                    } else {
+                        const text = await response.text();
+                        this.testResult = { success: false, message: `Server Error (${response.status}): ${text.substring(0, 200)}` };
+                    }
+                } catch (err) {
+                    this.testResult = { success: false, message: `Connection test error: ${err.message || err}` };
+                } finally {
+                    this.testing = false;
+                }
+            }
+        }));
+    });
+</script>
 @endsection

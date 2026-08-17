@@ -10,173 +10,11 @@
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill-html-edit-button@2.2.7/dist/quill.htmlEditButton.min.js"></script>
 
-<div x-data="{
-    quill: null,
+<div x-data="emailTemplateEditor({
     companyId: '{{ old('company_id', $selectedCompanyId ?? '') }}',
-    bodyTab: 'html',
-    lastActiveField: 'body_html',
-    lastSelectionIndex: 0,
-
-    previewModalOpen: false,
-    previewSubject: '',
-    previewHtml: '',
-    previewLoading: false,
-
-    initQuill() {
-        const startQuill = () => {
-            if (typeof Quill === 'undefined') {
-                setTimeout(startQuill, 50);
-                return;
-            }
-
-            if (typeof htmlEditButton !== 'undefined' && !Quill.imports['modules/htmlEditButton']) {
-                try {
-                    Quill.register('modules/htmlEditButton', htmlEditButton);
-                } catch (e) {}
-            }
-
-            const editorEl = this.$refs.quillEditor;
-            if (!editorEl || this.quill) return;
-
-            const quillInstance = new Quill(editorEl, {
-                theme: 'snow',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ 'color': [] }, { 'background': [] }],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link', 'clean']
-                    ],
-                    htmlEditButton: {
-                        msg: 'Edit HTML source code',
-                        okText: 'Apply Changes',
-                        cancelText: 'Cancel',
-                        buttonHTML: '&lt;/&gt;',
-                        buttonTitle: 'Edit HTML Source Code'
-                    }
-                }
-            });
-
-            this.quill = quillInstance;
-
-            const initialHtml = this.$refs.hiddenBodyHtml ? this.$refs.hiddenBodyHtml.value : '';
-            if (initialHtml) {
-                quillInstance.root.innerHTML = initialHtml;
-            }
-
-            quillInstance.on('selection-change', (range) => {
-                if (range) {
-                    this.lastSelectionIndex = range.index;
-                    this.lastActiveField = 'body_html';
-                }
-            });
-
-            quillInstance.on('text-change', () => {
-                if (this.$refs.hiddenBodyHtml) {
-                    this.$refs.hiddenBodyHtml.value = quillInstance.getSemanticHTML ? quillInstance.getSemanticHTML() : quillInstance.root.innerHTML;
-                }
-            });
-
-            editorEl.addEventListener('focusin', () => {
-                this.lastActiveField = 'body_html';
-            });
-            editorEl.addEventListener('mousedown', () => {
-                this.lastActiveField = 'body_html';
-            });
-        };
-
-        this.$nextTick(() => {
-            startQuill();
-        });
-    },
-
-    insertToken(token) {
-        const tokenString = '{' + '{ ' + token + ' }}';
-
-        if (this.lastActiveField === 'subject') {
-            const input = this.$refs.subjectInput;
-            if (input) {
-                const start = input.selectionStart || 0;
-                const end = input.selectionEnd || 0;
-                input.value = input.value.substring(0, start) + tokenString + input.value.substring(end);
-                input.focus();
-                input.selectionStart = input.selectionEnd = start + tokenString.length;
-            }
-            return;
-        }
-
-        if (this.bodyTab === 'text') {
-            const textarea = this.$refs.bodyTextInput;
-            if (textarea) {
-                const start = textarea.selectionStart || 0;
-                const end = textarea.selectionEnd || 0;
-                textarea.value = textarea.value.substring(0, start) + tokenString + textarea.value.substring(end);
-                textarea.focus();
-                textarea.selectionStart = textarea.selectionEnd = start + tokenString.length;
-            }
-            return;
-        }
-
-        // Targeting Rich HTML Editor (Quill)
-        const q = (typeof Alpine !== 'undefined' && Alpine.raw) ? Alpine.raw(this.quill) : this.quill;
-        if (q) {
-            q.focus();
-            const sel = q.getSelection();
-            const index = sel ? sel.index : ((typeof this.lastSelectionIndex === 'number') ? this.lastSelectionIndex : Math.max(0, q.getLength() - 1));
-
-            q.insertText(index, tokenString, 'user');
-            q.setSelection(index + tokenString.length, 0);
-            this.lastSelectionIndex = index + tokenString.length;
-
-            if (this.$refs.hiddenBodyHtml) {
-                this.$refs.hiddenBodyHtml.value = q.getSemanticHTML ? q.getSemanticHTML() : q.root.innerHTML;
-            }
-        }
-    },
-
-    async generateLivePreview() {
-        this.previewModalOpen = true;
-        this.previewLoading = true;
-        const currentSubject = this.$refs.subjectInput ? this.$refs.subjectInput.value : '';
-        const q = (typeof Alpine !== 'undefined' && Alpine.raw) ? Alpine.raw(this.quill) : this.quill;
-        const currentHtml = q
-            ? (q.getSemanticHTML ? q.getSemanticHTML() : q.root.innerHTML)
-            : (this.$refs.hiddenBodyHtml ? this.$refs.hiddenBodyHtml.value : '');
-
-        try {
-            const res = await fetch('{{ route('admin.settings.email-templates.preview-draft') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                },
-                body: JSON.stringify({
-                    subject: currentSubject,
-                    body_html: currentHtml,
-                    company_id: this.companyId || null
-                })
-            });
-            const data = await res.json();
-            this.previewSubject = data.subject;
-            this.previewHtml = data.html;
-        } catch (e) {
-            this.previewSubject = 'Error';
-            this.previewHtml = '<p class=&quot;text-error-500&quot;>Failed to generate live preview.</p>';
-        } finally {
-            this.previewLoading = false;
-        }
-    },
-
-    syncAndSubmit() {
-        const q = (typeof Alpine !== 'undefined' && Alpine.raw) ? Alpine.raw(this.quill) : this.quill;
-        if (q && this.$refs.hiddenBodyHtml) {
-            this.$refs.hiddenBodyHtml.value = q.getSemanticHTML ? q.getSemanticHTML() : q.root.innerHTML;
-        }
-    }
-}" x-init="initQuill()">
+    previewDraftRoute: '{{ route('admin.settings.email-templates.preview-draft') }}',
+    csrfToken: '{{ csrf_token() }}'
+})">
     {{-- Header Navigation --}}
     <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -451,4 +289,180 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('emailTemplateEditor', (config = {}) => ({
+            quill: null,
+            companyId: config.companyId || '',
+            bodyTab: 'html',
+            lastActiveField: 'body_html',
+            lastSelectionIndex: 0,
+
+            previewModalOpen: false,
+            previewSubject: '',
+            previewHtml: '',
+            previewLoading: false,
+
+            init() {
+                this.initQuill();
+            },
+
+            initQuill() {
+                const startQuill = () => {
+                    if (typeof Quill === 'undefined') {
+                        setTimeout(startQuill, 50);
+                        return;
+                    }
+
+                    if (typeof htmlEditButton !== 'undefined' && !Quill.imports['modules/htmlEditButton']) {
+                        try {
+                            Quill.register('modules/htmlEditButton', htmlEditButton);
+                        } catch (e) {}
+                    }
+
+                    const editorEl = this.$refs.quillEditor;
+                    if (!editorEl || this.quill) return;
+
+                    const quillInstance = new Quill(editorEl, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'align': [] }],
+                                ['link', 'clean']
+                            ],
+                            htmlEditButton: {
+                                msg: 'Edit HTML source code',
+                                okText: 'Apply Changes',
+                                cancelText: 'Cancel',
+                                buttonHTML: '&lt;/&gt;',
+                                buttonTitle: 'Edit HTML Source Code'
+                            }
+                        }
+                    });
+
+                    this.quill = quillInstance;
+
+                    const initialHtml = this.$refs.hiddenBodyHtml ? this.$refs.hiddenBodyHtml.value : '';
+                    if (initialHtml) {
+                        quillInstance.root.innerHTML = initialHtml;
+                    }
+
+                    quillInstance.on('selection-change', (range) => {
+                        if (range) {
+                            this.lastSelectionIndex = range.index;
+                            this.lastActiveField = 'body_html';
+                        }
+                    });
+
+                    quillInstance.on('text-change', () => {
+                        if (this.$refs.hiddenBodyHtml) {
+                            this.$refs.hiddenBodyHtml.value = quillInstance.getSemanticHTML ? quillInstance.getSemanticHTML() : quillInstance.root.innerHTML;
+                        }
+                    });
+
+                    editorEl.addEventListener('focusin', () => {
+                        this.lastActiveField = 'body_html';
+                    });
+                    editorEl.addEventListener('mousedown', () => {
+                        this.lastActiveField = 'body_html';
+                    });
+                };
+
+                this.$nextTick(() => {
+                    startQuill();
+                });
+            },
+
+            insertToken(token) {
+                const tokenString = '{' + '{ ' + token + ' }}';
+
+                if (this.lastActiveField === 'subject') {
+                    const input = this.$refs.subjectInput;
+                    if (input) {
+                        const start = input.selectionStart || 0;
+                        const end = input.selectionEnd || 0;
+                        input.value = input.value.substring(0, start) + tokenString + input.value.substring(end);
+                        input.focus();
+                        input.selectionStart = input.selectionEnd = start + tokenString.length;
+                    }
+                    return;
+                }
+
+                if (this.bodyTab === 'text') {
+                    const textarea = this.$refs.bodyTextInput;
+                    if (textarea) {
+                        const start = textarea.selectionStart || 0;
+                        const end = textarea.selectionEnd || 0;
+                        textarea.value = textarea.value.substring(0, start) + tokenString + textarea.value.substring(end);
+                        textarea.focus();
+                        textarea.selectionStart = textarea.selectionEnd = start + tokenString.length;
+                    }
+                    return;
+                }
+
+                // Targeting Rich HTML Editor (Quill)
+                const q = (typeof Alpine !== 'undefined' && Alpine.raw) ? Alpine.raw(this.quill) : this.quill;
+                if (q) {
+                    q.focus();
+                    const sel = q.getSelection();
+                    const index = sel ? sel.index : ((typeof this.lastSelectionIndex === 'number') ? this.lastSelectionIndex : Math.max(0, q.getLength() - 1));
+
+                    q.insertText(index, tokenString, 'user');
+                    q.setSelection(index + tokenString.length, 0);
+                    this.lastSelectionIndex = index + tokenString.length;
+
+                    if (this.$refs.hiddenBodyHtml) {
+                        this.$refs.hiddenBodyHtml.value = q.getSemanticHTML ? q.getSemanticHTML() : q.root.innerHTML;
+                    }
+                }
+            },
+
+            async generateLivePreview() {
+                this.previewModalOpen = true;
+                this.previewLoading = true;
+                const currentSubject = this.$refs.subjectInput ? this.$refs.subjectInput.value : '';
+                const q = (typeof Alpine !== 'undefined' && Alpine.raw) ? Alpine.raw(this.quill) : this.quill;
+                const currentHtml = q
+                    ? (q.getSemanticHTML ? q.getSemanticHTML() : q.root.innerHTML)
+                    : (this.$refs.hiddenBodyHtml ? this.$refs.hiddenBodyHtml.value : '');
+
+                try {
+                    const res = await fetch(config.previewDraftRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        },
+                        body: JSON.stringify({
+                            subject: currentSubject,
+                            body_html: currentHtml,
+                            company_id: this.companyId || null
+                        })
+                    });
+                    const data = await res.json();
+                    this.previewSubject = data.subject;
+                    this.previewHtml = data.html;
+                } catch (e) {
+                    this.previewSubject = 'Error';
+                    this.previewHtml = '<p class="text-error-500">Failed to generate live preview.</p>';
+                } finally {
+                    this.previewLoading = false;
+                }
+            },
+
+            syncAndSubmit() {
+                const q = (typeof Alpine !== 'undefined' && Alpine.raw) ? Alpine.raw(this.quill) : this.quill;
+                if (q && this.$refs.hiddenBodyHtml) {
+                    this.$refs.hiddenBodyHtml.value = q.getSemanticHTML ? q.getSemanticHTML() : q.root.innerHTML;
+                }
+            }
+        }));
+    });
+</script>
 @endsection

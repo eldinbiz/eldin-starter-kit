@@ -77,79 +77,11 @@
                 @auth
                 <div
                     class="relative"
-                    x-data="{
-                        open: false,
-                        unreadCount: 0,
-                        notifications: [],
-                        timer: 30,
-                        interval: null,
-                        async fetchNotifications() {
-                            try {
-                                const res = await fetch('{{ route('notifications.latest') }}', {
-                                    headers: { 'Accept': 'application/json' }
-                                });
-                                if (res.ok) {
-                                    const data = await res.json();
-                                    this.unreadCount = data.unread_count;
-                                    this.notifications = data.notifications;
-                                }
-                            } catch (e) {
-                                console.error('Failed to fetch notifications:', e);
-                            }
-                        },
-                        async markAsRead(notification) {
-                            try {
-                                const res = await fetch(`/notifications/${notification.id}/read`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json',
-                                        'Content-Type': 'application/json'
-                                    }
-                                });
-                                if (res.ok) {
-                                    const data = await res.json();
-                                    if (data.redirect_url) {
-                                        window.location.href = data.redirect_url;
-                                    } else {
-                                        this.fetchNotifications();
-                                    }
-                                }
-                            } catch (e) {
-                                console.error('Failed to mark notification as read:', e);
-                            }
-                        },
-                        async markAllAsRead() {
-                            try {
-                                const res = await fetch('{{ route('notifications.read-all') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json'
-                                    }
-                                });
-                                if (res.ok) {
-                                    this.fetchNotifications();
-                                }
-                            } catch (e) {
-                                console.error('Failed to mark all as read:', e);
-                            }
-                        },
-                        manualRefresh() {
-                            this.timer = 30;
-                            this.fetchNotifications();
-                        }
-                    }"
-                    x-init="
-                        fetchNotifications();
-                        interval = setInterval(() => {
-                            timer--;
-                            if (timer <= 0) {
-                                timer = 30;
-                                fetchNotifications();
-                            }
-                        }, 1000);
-                    "
+                    x-data="notificationBell({
+                        latestUrl: '{{ route('notifications.latest') }}',
+                        readAllUrl: '{{ route('notifications.read-all') }}',
+                        csrfToken: '{{ csrf_token() }}'
+                    })"
                     @click.outside="open = false"
                 >
                     <button
@@ -385,3 +317,89 @@
         </div>
     </div>
 </header>
+
+@auth
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('notificationBell', (config = {}) => ({
+            open: false,
+            unreadCount: 0,
+            notifications: [],
+            timer: 30,
+            interval: null,
+
+            init() {
+                this.fetchNotifications();
+                this.interval = setInterval(() => {
+                    this.timer--;
+                    if (this.timer <= 0) {
+                        this.timer = 30;
+                        this.fetchNotifications();
+                    }
+                }, 1000);
+            },
+
+            async fetchNotifications() {
+                try {
+                    const res = await fetch(config.latestUrl, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.unreadCount = data.unread_count;
+                        this.notifications = data.notifications;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch notifications:', e);
+                }
+            },
+
+            async markAsRead(notification) {
+                try {
+                    const res = await fetch(`/notifications/${notification.id}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': config.csrfToken,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            this.fetchNotifications();
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to mark notification as read:', e);
+                }
+            },
+
+            async markAllAsRead() {
+                try {
+                    const res = await fetch(config.readAllUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': config.csrfToken,
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (res.ok) {
+                        this.fetchNotifications();
+                    }
+                } catch (e) {
+                    console.error('Failed to mark all as read:', e);
+                }
+            },
+
+            manualRefresh() {
+                this.timer = 30;
+                this.fetchNotifications();
+            }
+        }));
+    });
+</script>
+@endauth
+

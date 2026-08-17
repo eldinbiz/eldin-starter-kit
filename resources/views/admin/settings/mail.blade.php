@@ -5,45 +5,12 @@
 ])
 
 @section('settings-content')
-<div x-data="{
+<div x-data="mailSettingsManager({
     mailer: '{{ old('mail_mailer', $settings['mail_mailer']) }}',
     oauthProvider: '{{ old('mail_oauth_provider', $settings['mail_oauth_provider']) }}',
-    smtpOpen: '{{ old('mail_mailer', $settings['mail_mailer']) }}' === 'smtp',
-    oauthOpen: '{{ old('mail_mailer', $settings['mail_mailer']) }}' === 'oauth',
-    testSending: false,
-    testStatus: null,
-    testMessage: '',
-    selectDriver(driver) {
-        this.mailer = driver;
-        if (driver === 'smtp') {
-            this.smtpOpen = true;
-        } else if (driver === 'oauth') {
-            this.oauthOpen = true;
-        }
-    },
-    async dispatchTestEmail() {
-        this.testSending = true;
-        this.testStatus = null;
-        try {
-            const res = await fetch('{{ route('admin.settings.mail.test') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                }
-            });
-            const data = await res.json();
-            this.testStatus = res.ok ? 'success' : 'error';
-            this.testMessage = data.message || 'Operation completed.';
-        } catch (e) {
-            this.testStatus = 'error';
-            this.testMessage = 'Network error while attempting to send test email.';
-        } finally {
-            this.testSending = false;
-        }
-    }
-}">
+    testRoute: '{{ route('admin.settings.mail.test') }}',
+    csrfToken: '{{ csrf_token() }}'
+})">
     {{-- Status Alert Banner --}}
     <div
         x-show="testStatus === 'success'"
@@ -541,4 +508,50 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('mailSettingsManager', (config = {}) => ({
+            mailer: config.mailer || 'smtp',
+            oauthProvider: config.oauthProvider || '',
+            smtpOpen: config.mailer === 'smtp',
+            oauthOpen: config.mailer === 'oauth',
+            testSending: false,
+            testStatus: null,
+            testMessage: '',
+
+            selectDriver(driver) {
+                this.mailer = driver;
+                if (driver === 'smtp') {
+                    this.smtpOpen = true;
+                } else if (driver === 'oauth') {
+                    this.oauthOpen = true;
+                }
+            },
+
+            async dispatchTestEmail() {
+                this.testSending = true;
+                this.testStatus = null;
+                try {
+                    const res = await fetch(config.testRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        }
+                    });
+                    const data = await res.json();
+                    this.testStatus = res.ok ? 'success' : 'error';
+                    this.testMessage = data.message || 'Operation completed.';
+                } catch (e) {
+                    this.testStatus = 'error';
+                    this.testMessage = 'Network error while attempting to send test email.';
+                } finally {
+                    this.testSending = false;
+                }
+            }
+        }));
+    });
+</script>
 @endsection

@@ -5,48 +5,11 @@
 @section('content')
 <div
     class="relative p-6 sm:p-10 bg-white z-1 dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-theme-lg border border-gray-100 dark:border-gray-800"
-    x-data="{
-        step: 1,
+    x-data="loginFlow({
         email: '{{ old('email') }}',
-        authMethod: 'local',
-        providerLabel: '',
-        isEnabled: true,
-        loading: false,
-        errorMessage: '',
-        async checkEmail() {
-            if (!this.email) return;
-            this.loading = true;
-            this.errorMessage = '';
-            try {
-                const res = await fetch('{{ route('login.lookup') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ email: this.email })
-                });
-                const data = await res.json();
-                if (data.found) {
-                    this.authMethod = data.auth_method;
-                    this.providerLabel = data.provider_label;
-                    this.isEnabled = data.is_enabled;
-                    this.step = 2;
-                } else {
-                    this.authMethod = 'local';
-                    this.step = 2;
-                }
-            } catch (err) {
-                this.errorMessage = 'Failed to lookup account. Please try again.';
-            } finally {
-                this.loading = false;
-            }
-        },
-        resetStep() {
-            this.step = 1;
-            this.errorMessage = '';
-        }
-    }"
+        lookupRoute: '{{ route('login.lookup') }}',
+        csrfToken: '{{ csrf_token() }}'
+    })"
 >
     <div>
         <div class="mb-5 sm:mb-8 text-center sm:text-left">
@@ -206,4 +169,53 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('loginFlow', (config = {}) => ({
+            step: 1,
+            email: config.email || '',
+            authMethod: 'local',
+            providerLabel: '',
+            isEnabled: true,
+            loading: false,
+            errorMessage: '',
+
+            async checkEmail() {
+                if (!this.email) return;
+                this.loading = true;
+                this.errorMessage = '';
+                try {
+                    const res = await fetch(config.lookupRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        },
+                        body: JSON.stringify({ email: this.email })
+                    });
+                    const data = await res.json();
+                    if (data.found) {
+                        this.authMethod = data.auth_method;
+                        this.providerLabel = data.provider_label;
+                        this.isEnabled = data.is_enabled;
+                        this.step = 2;
+                    } else {
+                        this.authMethod = 'local';
+                        this.step = 2;
+                    }
+                } catch (err) {
+                    this.errorMessage = 'Failed to lookup account. Please try again.';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            resetStep() {
+                this.step = 1;
+                this.errorMessage = '';
+            }
+        }));
+    });
+</script>
 @endsection

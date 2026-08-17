@@ -11,219 +11,12 @@
 <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/theme-tomorrow_night.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/src-min-noconflict/theme-chrome.js"></script>
 
-<div x-data="{
-    modalOpen: false,
-    editMode: false,
-    formAction: '{{ route('admin.settings.custom-variables.store') }}',
-    formMethod: 'POST',
-    varId: null,
-    varKey: '',
-    varType: 'text',
-    varScopeCompanyId: '{{ $selectedCompanyId ?? '' }}',
-    varValue: '',
-    varDescription: '',
-    jsonError: '',
-    isChecking: false,
-    confirmOverwriteOpen: false,
-    existingVariable: null,
-    aceEditor: null,
-    defaultJsonTemplate: JSON.stringify({
-        enabled: true,
-        sample_key: 'sample_value',
-        items: [
-            'item_1',
-            'item_2'
-        ]
-    }, null, 2),
-
-    initAce() {
-        if (typeof ace === 'undefined') {
-            setTimeout(() => this.initAce(), 50);
-            return;
-        }
-
-        const el = this.$refs.aceEditor;
-        if (!el) return;
-
-        if (!window._customVarAceEditor) {
-            window._customVarAceEditor = ace.edit(el, {
-                mode: 'ace/mode/json',
-                tabSize: 2,
-                useSoftTabs: true,
-                showPrintMargin: false,
-                fontSize: '12px',
-                useWorker: false,
-            });
-
-            window._customVarAceEditor.session.on('change', () => {
-                this.varValue = window._customVarAceEditor.getValue();
-                this.validateJson();
-            });
-        }
-
-        const editor = window._customVarAceEditor;
-        const isDark = document.body.classList.contains('dark') || document.documentElement.classList.contains('dark');
-        editor.setTheme(isDark ? 'ace/theme/tomorrow_night' : 'ace/theme/chrome');
-
-        const currentVal = this.varValue || (this.editMode ? '' : this.defaultJsonTemplate);
-        this.varValue = currentVal;
-        editor.setValue(currentVal, -1);
-        editor.clearSelection();
-
-        setTimeout(() => {
-            editor.resize(true);
-            editor.renderer.updateFull();
-        }, 50);
-
-        this.validateJson();
-    },
-
-    formatJson() {
-        const editor = window._customVarAceEditor;
-        if (!editor) return;
-        try {
-            const raw = editor.getValue();
-            const parsed = JSON.parse(raw);
-            const pretty = JSON.stringify(parsed, null, 2);
-            editor.setValue(pretty, -1);
-            editor.clearSelection();
-            this.varValue = pretty;
-            this.jsonError = '';
-        } catch (e) {
-            this.jsonError = 'Cannot format invalid JSON: ' + e.message;
-        }
-    },
-
-    onTypeChange() {
-        this.validateJson();
-        if (this.varType === 'json') {
-            if (!this.editMode && (!this.varValue || this.varValue.trim() === '')) {
-                this.varValue = this.defaultJsonTemplate;
-            }
-            this.$nextTick(() => {
-                this.initAce();
-            });
-        }
-    },
-
-    openCreate() {
-        this.editMode = false;
-        this.formAction = '{{ route('admin.settings.custom-variables.store') }}';
-        this.formMethod = 'POST';
-        this.varId = null;
-        this.varKey = '';
-        this.varType = 'text';
-        this.varScopeCompanyId = '{{ $selectedCompanyId ?? '' }}';
-        this.varValue = '';
-        this.varDescription = '';
-        this.jsonError = '';
-        this.isChecking = false;
-        this.confirmOverwriteOpen = false;
-        this.existingVariable = null;
-        this.modalOpen = true;
-
-        if (this.varType === 'json') {
-            this.varValue = this.defaultJsonTemplate;
-            this.$nextTick(() => {
-                this.initAce();
-            });
-        }
-    },
-
-    openEdit(item) {
-        this.editMode = true;
-        this.formAction = `/admin/settings/custom-variables/${item.id}`;
-        this.formMethod = 'POST';
-        this.varId = item.id;
-        this.varKey = item.key;
-        this.varType = item.type;
-        this.varScopeCompanyId = item.company_id || '';
-        this.varValue = item.raw_value || '';
-        this.varDescription = item.description || '';
-        this.jsonError = '';
-        this.isChecking = false;
-        this.confirmOverwriteOpen = false;
-        this.existingVariable = null;
-        this.modalOpen = true;
-
-        if (this.varType === 'json') {
-            try {
-                const parsed = JSON.parse(this.varValue);
-                this.varValue = JSON.stringify(parsed, null, 2);
-            } catch (e) {}
-            this.$nextTick(() => {
-                this.initAce();
-            });
-        }
-    },
-
-    validateJson() {
-        if (this.varType !== 'json' || !this.varValue) {
-            this.jsonError = '';
-            return true;
-        }
-        try {
-            JSON.parse(this.varValue);
-            this.jsonError = '';
-            return true;
-        } catch (e) {
-            this.jsonError = 'Invalid JSON: ' + e.message;
-            return false;
-        }
-    },
-
-    async handleSubmit(e) {
-        if (!this.validateJson()) {
-            return;
-        }
-
-        {{-- If editing an existing variable directly, submit immediately --}}
-        if (this.editMode) {
-            this.$refs.customVarForm.submit();
-            return;
-        }
-
-        {{-- Add mode: perform live DB check for key existence in the selected scope --}}
-        this.isChecking = true;
-        try {
-            const response = await fetch('{{ route('admin.settings.custom-variables.check') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    key: this.varKey,
-                    company_id: this.varScopeCompanyId ? this.varScopeCompanyId : null
-                })
-            });
-
-            if (!response.ok) {
-                this.$refs.customVarForm.submit();
-                return;
-            }
-
-            const data = await response.json();
-            if (data.exists) {
-                this.existingVariable = data;
-                this.confirmOverwriteOpen = true;
-                return;
-            }
-
-            this.$refs.customVarForm.submit();
-        } catch (err) {
-            this.$refs.customVarForm.submit();
-        } finally {
-            this.isChecking = false;
-        }
-    },
-
-    confirmOverwrite() {
-        this.confirmOverwriteOpen = false;
-        this.$refs.customVarForm.submit();
-    }
-}">
+<div x-data="customVariablesManager({
+    storeRoute: '{{ route('admin.settings.custom-variables.store') }}',
+    checkRoute: '{{ route('admin.settings.custom-variables.check') }}',
+    selectedCompanyId: '{{ $selectedCompanyId ?? '' }}',
+    csrfToken: '{{ csrf_token() }}'
+})">
     {{-- Filter & Action Header --}}
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <form method="GET" action="{{ route('admin.settings.custom-variables') }}" class="flex items-center gap-3">
@@ -611,4 +404,220 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('customVariablesManager', (config = {}) => ({
+            modalOpen: false,
+            editMode: false,
+            formAction: config.storeRoute || '',
+            formMethod: 'POST',
+            varId: null,
+            varKey: '',
+            varType: 'text',
+            varScopeCompanyId: config.selectedCompanyId || '',
+            varValue: '',
+            varDescription: '',
+            jsonError: '',
+            isChecking: false,
+            confirmOverwriteOpen: false,
+            existingVariable: null,
+            aceEditor: null,
+            defaultJsonTemplate: JSON.stringify({
+                enabled: true,
+                sample_key: 'sample_value',
+                items: [
+                    'item_1',
+                    'item_2'
+                ]
+            }, null, 2),
+
+            initAce() {
+                if (typeof ace === 'undefined') {
+                    setTimeout(() => this.initAce(), 50);
+                    return;
+                }
+
+                const el = this.$refs.aceEditor;
+                if (!el) return;
+
+                if (!window._customVarAceEditor) {
+                    window._customVarAceEditor = ace.edit(el, {
+                        mode: 'ace/mode/json',
+                        tabSize: 2,
+                        useSoftTabs: true,
+                        showPrintMargin: false,
+                        fontSize: '12px',
+                        useWorker: false,
+                    });
+
+                    window._customVarAceEditor.session.on('change', () => {
+                        this.varValue = window._customVarAceEditor.getValue();
+                        this.validateJson();
+                    });
+                }
+
+                const editor = window._customVarAceEditor;
+                const isDark = document.body.classList.contains('dark') || document.documentElement.classList.contains('dark');
+                editor.setTheme(isDark ? 'ace/theme/tomorrow_night' : 'ace/theme/chrome');
+
+                const currentVal = this.varValue || (this.editMode ? '' : this.defaultJsonTemplate);
+                this.varValue = currentVal;
+                editor.setValue(currentVal, -1);
+                editor.clearSelection();
+
+                setTimeout(() => {
+                    editor.resize(true);
+                    editor.renderer.updateFull();
+                }, 50);
+
+                this.validateJson();
+            },
+
+            formatJson() {
+                const editor = window._customVarAceEditor;
+                if (!editor) return;
+                try {
+                    const raw = editor.getValue();
+                    const parsed = JSON.parse(raw);
+                    const pretty = JSON.stringify(parsed, null, 2);
+                    editor.setValue(pretty, -1);
+                    editor.clearSelection();
+                    this.varValue = pretty;
+                    this.jsonError = '';
+                } catch (e) {
+                    this.jsonError = 'Cannot format invalid JSON: ' + e.message;
+                }
+            },
+
+            onTypeChange() {
+                this.validateJson();
+                if (this.varType === 'json') {
+                    if (!this.editMode && (!this.varValue || this.varValue.trim() === '')) {
+                        this.varValue = this.defaultJsonTemplate;
+                    }
+                    this.$nextTick(() => {
+                        this.initAce();
+                    });
+                }
+            },
+
+            openCreate() {
+                this.editMode = false;
+                this.formAction = config.storeRoute || '';
+                this.formMethod = 'POST';
+                this.varId = null;
+                this.varKey = '';
+                this.varType = 'text';
+                this.varScopeCompanyId = config.selectedCompanyId || '';
+                this.varValue = '';
+                this.varDescription = '';
+                this.jsonError = '';
+                this.isChecking = false;
+                this.confirmOverwriteOpen = false;
+                this.existingVariable = null;
+                this.modalOpen = true;
+
+                if (this.varType === 'json') {
+                    this.varValue = this.defaultJsonTemplate;
+                    this.$nextTick(() => {
+                        this.initAce();
+                    });
+                }
+            },
+
+            openEdit(item) {
+                this.editMode = true;
+                this.formAction = `/admin/settings/custom-variables/${item.id}`;
+                this.formMethod = 'POST';
+                this.varId = item.id;
+                this.varKey = item.key;
+                this.varType = item.type;
+                this.varScopeCompanyId = item.company_id || '';
+                this.varValue = item.raw_value || '';
+                this.varDescription = item.description || '';
+                this.jsonError = '';
+                this.isChecking = false;
+                this.confirmOverwriteOpen = false;
+                this.existingVariable = null;
+                this.modalOpen = true;
+
+                if (this.varType === 'json') {
+                    try {
+                        const parsed = JSON.parse(this.varValue);
+                        this.varValue = JSON.stringify(parsed, null, 2);
+                    } catch (e) {}
+                    this.$nextTick(() => {
+                        this.initAce();
+                    });
+                }
+            },
+
+            validateJson() {
+                if (this.varType !== 'json' || !this.varValue) {
+                    this.jsonError = '';
+                    return true;
+                }
+                try {
+                    JSON.parse(this.varValue);
+                    this.jsonError = '';
+                    return true;
+                } catch (e) {
+                    this.jsonError = 'Invalid JSON: ' + e.message;
+                    return false;
+                }
+            },
+
+            async handleSubmit(e) {
+                if (!this.validateJson()) {
+                    return;
+                }
+
+                if (this.editMode) {
+                    this.$refs.customVarForm.submit();
+                    return;
+                }
+
+                this.isChecking = true;
+                try {
+                    const response = await fetch(config.checkRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        },
+                        body: JSON.stringify({
+                            key: this.varKey,
+                            company_id: this.varScopeCompanyId ? this.varScopeCompanyId : null
+                        })
+                    });
+
+                    if (!response.ok) {
+                        this.$refs.customVarForm.submit();
+                        return;
+                    }
+
+                    const data = await response.json();
+                    if (data.exists) {
+                        this.existingVariable = data;
+                        this.confirmOverwriteOpen = true;
+                        return;
+                    }
+
+                    this.$refs.customVarForm.submit();
+                } catch (err) {
+                    this.$refs.customVarForm.submit();
+                } finally {
+                    this.isChecking = false;
+                }
+            },
+
+            confirmOverwrite() {
+                this.confirmOverwriteOpen = false;
+                this.$refs.customVarForm.submit();
+            }
+        }));
+    });
+</script>
 @endsection

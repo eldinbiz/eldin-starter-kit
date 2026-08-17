@@ -7,40 +7,7 @@
     @include('partials.breadcrumb')
 </div>
 
-<div x-data="{ 
-    showCreateModal: false,
-    showScopesModal: false,
-    viewingToken: null,
-    viewingAbilities: [],
-    allEndpoints: {{ json_encode($endpoints) }},
-    selectAll: true,
-    allAbilities: {{ json_encode(array_column($endpoints, 'ability')) }},
-    selectedAbilities: [],
-    init() {
-        this.selectedAbilities = [...this.allAbilities];
-    },
-    toggleSelectAll() {
-        if (this.selectAll) {
-            this.selectedAbilities = [...this.allAbilities];
-        } else {
-            this.selectedAbilities = [];
-        }
-    },
-    updateSelectAll() {
-        this.selectAll = this.selectedAbilities.length === this.allAbilities.length;
-    },
-    openScopesModal(tokenName, userName, userEmail, abilities) {
-        this.viewingToken = { name: tokenName, user_name: userName, user_email: userEmail };
-        this.viewingAbilities = abilities || ['*'];
-        this.showScopesModal = true;
-    },
-    getGrantedEndpoints() {
-        if (!this.viewingAbilities || this.viewingAbilities.includes('*')) {
-            return this.allEndpoints;
-        }
-        return this.allEndpoints.filter(ep => this.viewingAbilities.includes(ep.ability));
-    }
-}" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+<div x-data="apiTokensGovernance(@js($endpoints))" class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
     <div class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
@@ -298,4 +265,48 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('apiTokensGovernance', (endpoints = []) => ({
+            showCreateModal: false,
+            showScopesModal: false,
+            viewingToken: null,
+            viewingAbilities: [],
+            allEndpoints: endpoints,
+            selectAll: true,
+            allAbilities: endpoints.map(ep => ep.ability),
+            selectedAbilities: [],
+
+            init() {
+                this.selectedAbilities = [...this.allAbilities];
+            },
+
+            toggleSelectAll() {
+                if (this.selectAll) {
+                    this.selectedAbilities = [...this.allAbilities];
+                } else {
+                    this.selectedAbilities = [];
+                }
+            },
+
+            updateSelectAll() {
+                this.selectAll = this.selectedAbilities.length === this.allAbilities.length;
+            },
+
+            openScopesModal(tokenName, userName, userEmail, abilities) {
+                this.viewingToken = { name: tokenName, user_name: userName, user_email: userEmail };
+                this.viewingAbilities = abilities || ['*'];
+                this.showScopesModal = true;
+            },
+
+            getGrantedEndpoints() {
+                if (!this.viewingAbilities || this.viewingAbilities.includes('*')) {
+                    return this.allEndpoints;
+                }
+                return this.allEndpoints.filter(ep => this.viewingAbilities.includes(ep.ability));
+            }
+        }));
+    });
+</script>
 @endsection

@@ -107,19 +107,7 @@
             </div>
         </div>
         <div class="max-w-full overflow-x-auto custom-scrollbar">
-            <div x-data x-init="
-                const options = {
-                    chart: { type: 'area', height: 310, toolbar: { show: false } },
-                    series: [{ name: 'Unique Visitors', data: [30, 45, 38, 55, 48, 65, 75, 70, 95, 88, 110, 125] }],
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
-                    colors: ['#465FFF'],
-                    stroke: { curve: 'smooth', width: 3 },
-                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
-                    grid: { borderColor: '#f1f1f1' },
-                    markers: { size: 4, colors: ['#465FFF'], strokeColors: '#fff', strokeWidth: 2 }
-                };
-                new ApexCharts($el, options).render();
-            " class="w-full min-w-[500px]"></div>
+            <div x-data="dashboardChart('traffic')" class="w-full min-w-[500px]"></div>
         </div>
     </div>
 
@@ -132,18 +120,7 @@
             </div>
         </div>
         <div class="flex items-center justify-center h-[310px]">
-            <div x-data x-init="
-                const options = {
-                    chart: { type: 'donut', height: 280 },
-                    series: [55, 30, 15],
-                    labels: ['Desktop', 'Mobile', 'Tablet'],
-                    colors: ['#465FFF', '#0ba5ec', '#fdb022'],
-                    legend: { position: 'bottom' },
-                    plotOptions: { pie: { donut: { size: '65%' } } },
-                    dataLabels: { enabled: false }
-                };
-                new ApexCharts($el, options).render();
-            " class="w-full"></div>
+            <div x-data="dashboardChart('device')" class="w-full"></div>
         </div>
     </div>
 
@@ -156,21 +133,7 @@
             </div>
         </div>
         <div class="max-w-full overflow-x-auto custom-scrollbar">
-            <div x-data x-init="
-                const options = {
-                    chart: { type: 'bar', height: 300, toolbar: { show: false } },
-                    series: [
-                        { name: 'Revenue', data: [44, 55, 41, 67, 22, 43, 65] },
-                        { name: 'Sales count', data: [13, 23, 20, 8, 13, 27, 33] }
-                    ],
-                    xaxis: { categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
-                    colors: ['#465FFF', '#0ba5ec'],
-                    plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4 } },
-                    fill: { opacity: 1 },
-                    grid: { borderColor: '#f1f1f1' }
-                };
-                new ApexCharts($el, options).render();
-            " class="w-full min-w-[600px]"></div>
+            <div x-data="dashboardChart('sales')" class="w-full min-w-[600px]"></div>
         </div>
     </div>
 </div>
@@ -317,4 +280,53 @@
         </table>
     </div>
 </div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dashboardChart', (chartType) => ({
+            init() {
+                let options = null;
+                if (chartType === 'traffic') {
+                    options = {
+                        chart: { type: 'area', height: 310, toolbar: { show: false } },
+                        series: [{ name: 'Unique Visitors', data: [30, 45, 38, 55, 48, 65, 75, 70, 95, 88, 110, 125] }],
+                        xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] },
+                        colors: ['#465FFF'],
+                        stroke: { curve: 'smooth', width: 3 },
+                        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
+                        grid: { borderColor: '#f1f1f1' },
+                        markers: { size: 4, colors: ['#465FFF'], strokeColors: '#fff', strokeWidth: 2 }
+                    };
+                } else if (chartType === 'device') {
+                    options = {
+                        chart: { type: 'donut', height: 280 },
+                        series: [55, 30, 15],
+                        labels: ['Desktop', 'Mobile', 'Tablet'],
+                        colors: ['#465FFF', '#0ba5ec', '#fdb022'],
+                        legend: { position: 'bottom' },
+                        plotOptions: { pie: { donut: { size: '65%' } } },
+                        dataLabels: { enabled: false }
+                    };
+                } else if (chartType === 'sales') {
+                    options = {
+                        chart: { type: 'bar', height: 300, toolbar: { show: false } },
+                        series: [
+                            { name: 'Revenue', data: [44, 55, 41, 67, 22, 43, 65] },
+                            { name: 'Sales count', data: [13, 23, 20, 8, 13, 27, 33] }
+                        ],
+                        xaxis: { categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
+                        colors: ['#465FFF', '#0ba5ec'],
+                        plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 4 } },
+                        fill: { opacity: 1 },
+                        grid: { borderColor: '#f1f1f1' }
+                    };
+                }
+
+                if (options && typeof ApexCharts !== 'undefined') {
+                    new ApexCharts(this.$el, options).render();
+                }
+            }
+        }));
+    });
+</script>
 @endsection
