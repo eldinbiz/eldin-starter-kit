@@ -236,10 +236,14 @@ The `composer dev` command already runs `php artisan queue:listen` alongside the
 
 ---
 
-## API Layer & Documentation
+## Architecture & Developer Guides
 
-- **Interactive API Docs (Swagger/OpenAPI 3.1)**: [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (or `http://localhost:8080/docs/api` in Docker)
-- **API Developer Guide**: See [docs/API_LAYER_GUIDE.md](docs/API_LAYER_GUIDE.md) for architecture, multi-tenant scoping (`X-Company-ID`), and code templates.
-- **Bruno API Collection**: Located in `bruno/` for instant API testing in the VS Code Bruno extension.
-- **Agent Skill**: `.agents/skills/api-layer-integration/SKILL.md` ensures all future AI-scaffolded modules adhere to standard API conventions.
+- **Modular Architecture Guide (`internachi/modular`)**: See [docs/MODULAR_ARCHITECTURE_GUIDE.md](docs/MODULAR_ARCHITECTURE_GUIDE.md) for module lifecycle, anatomy, CLI commands with `--module`, and core integrations.
+  - Upstream package documentation: [InterNACHI/modular on GitHub](https://github.com/InterNACHI/modular/blob/main/README.md).
+- **API Developer Guide & OpenAPI (Scramble)**: See [docs/API_LAYER_GUIDE.md](docs/API_LAYER_GUIDE.md) for REST API architecture, multi-tenant scoping (`X-Company-ID`), and code templates.
+  - Interactive Swagger/OpenAPI 3.1 docs: [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (or `http://localhost:8080/docs/api` in Docker).
+  - Bruno API collection: located in `bruno/` for instant API testing in the VS Code Bruno extension.
+- **Feature Toggles & Module Management Guide**: See [docs/developer-guide-feature-toggles.md](docs/developer-guide-feature-toggles.md) for per-company module enablement, middleware, and `@feature` Blade directives.
+- **Notifications & Email Templates Guide**: See [docs/developer-guide-notifications-and-emails.md](docs/developer-guide-notifications-and-emails.md) for transactional emails, in-app alerts, and Quill WYSIWYG templates.
+
 
