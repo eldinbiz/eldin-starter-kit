@@ -80,21 +80,27 @@ class ApprovalHistoryDataTable extends DataTable
         ];
     }
 
-    public function renderRow(mixed $row): string
+    public function rowView(): string
     {
-        /** @var ApprovalRequest $row */
-        return view('approvals._history_row', [
-            'request' => $row,
-            'currentUser' => auth()->user(),
-        ])->render();
+        return 'approvals._history_row';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileRowView(): string
     {
-        /** @var ApprovalRequest $row */
-        return view('approvals._history_mobile_row', [
+        return 'approvals._history_mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'request' => $row,
+        ];
+    }
+
+    public function sharedViewData(): array
+    {
+        return [
             'currentUser' => auth()->user(),
-        ])->render();
+        ];
     }
 }

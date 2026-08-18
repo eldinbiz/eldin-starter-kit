@@ -45,16 +45,84 @@ abstract class DataTable
     }
 
     /**
-     * Render a single row for the desktop table.
+     * View path for the entire desktop table body containing the row loop (e.g. 'admin.users._tbody').
+     * When defined, this is used instead of iterating rowView() per row, reducing view instantiations to 1.
      */
-    abstract public function renderRow(mixed $row): string;
+    public function bodyView(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * View path for the entire mobile card grid containing the loop (e.g. 'admin.users._mobile_body').
+     * When defined, this is used instead of iterating mobileRowView() per card.
+     */
+    public function mobileBodyView(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * View path for the desktop table row (e.g. 'admin.users._row').
+     */
+    public function rowView(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * View path for the mobile card row (e.g. 'admin.users._mobile_row').
+     * Defaults to rowView() if null.
+     */
+    public function mobileRowView(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * Context data passed to the individual row view.
+     *
+     * @return array<string, mixed>
+     */
+    public function rowViewData(mixed $row): array
+    {
+        return ['row' => $row];
+    }
+
+    /**
+     * Shared context data computed ONCE per request and passed to all rows.
+     * Use this to hoist permissions, color maps, and lookups out of loops.
+     *
+     * @return array<string, mixed>
+     */
+    public function sharedViewData(): array
+    {
+        return [];
+    }
+
+    /**
+     * Render a single row for the desktop table.
+     * Fallback for custom string rendering (backward compatible).
+     */
+    public function renderRow(mixed $row): string
+    {
+        if ($this->rowView()) {
+            return view($this->rowView(), array_merge($this->sharedViewData(), $this->rowViewData($row)))->render();
+        }
+
+        return '';
+    }
 
     /**
      * Render a single row for the mobile card view.
-     * Defaults to renderRow().
+     * Defaults to mobileRowView(), rowView(), or renderRow().
      */
     public function renderMobileRow(mixed $row): string
     {
+        if ($this->mobileRowView()) {
+            return view($this->mobileRowView(), array_merge($this->sharedViewData(), $this->rowViewData($row)))->render();
+        }
+
         return $this->renderRow($row);
     }
 

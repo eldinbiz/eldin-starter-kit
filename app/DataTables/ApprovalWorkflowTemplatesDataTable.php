@@ -130,19 +130,20 @@ class ApprovalWorkflowTemplatesDataTable extends DataTable
         return $filters;
     }
 
-    public function renderRow(mixed $row): string
+    public function rowView(): string
     {
-        /** @var WorkflowTemplate $row */
-        return view('admin.approval-workflows._row', [
-            'template' => $row,
-        ])->render();
+        return 'admin.approval-workflows._row';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileRowView(): string
     {
-        /** @var WorkflowTemplate $row */
-        return view('admin.approval-workflows._mobile_row', [
+        return 'admin.approval-workflows._mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'template' => $row,
-        ])->render();
+        ];
     }
 }

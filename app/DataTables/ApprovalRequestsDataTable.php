@@ -69,19 +69,20 @@ class ApprovalRequestsDataTable extends DataTable
         ];
     }
 
-    public function renderRow(mixed $row): string
+    public function rowView(): string
     {
-        /** @var ApprovalRequest $row */
-        return view('approvals._requests_row', [
-            'request' => $row,
-        ])->render();
+        return 'approvals._requests_row';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileRowView(): string
     {
-        /** @var ApprovalRequest $row */
-        return view('approvals._requests_mobile_row', [
+        return 'approvals._requests_mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'request' => $row,
-        ])->render();
+        ];
     }
 }

@@ -65,19 +65,20 @@ class ApprovalInboxDataTable extends DataTable
         ];
     }
 
-    public function renderRow(mixed $row): string
+    public function rowView(): string
     {
-        /** @var ApprovalRequestStep $row */
-        return view('approvals._inbox_row', [
-            'step' => $row,
-        ])->render();
+        return 'approvals._inbox_row';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileRowView(): string
     {
-        /** @var ApprovalRequestStep $row */
-        return view('approvals._inbox_mobile_row', [
+        return 'approvals._inbox_mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'step' => $row,
-        ])->render();
+        ];
     }
 }

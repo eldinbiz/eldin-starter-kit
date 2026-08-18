@@ -38,20 +38,41 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                @foreach($datatable->results() as $row)
-                    {!! $datatable->renderRow($row) !!}
-                @endforeach
+                @if($datatable->bodyView())
+                    @include($datatable->bodyView(), array_merge($datatable->sharedViewData(), ['rows' => $datatable->results(), 'datatable' => $datatable]))
+                @elseif($datatable->rowView())
+                    @php($sharedData = $datatable->sharedViewData())
+                    @foreach($datatable->results() as $row)
+                        @include($datatable->rowView(), array_merge($sharedData, $datatable->rowViewData($row)))
+                    @endforeach
+                @else
+                    @foreach($datatable->results() as $row)
+                        {!! $datatable->renderRow($row) !!}
+                    @endforeach
+                @endif
             </tbody>
         </table>
     </div>
 
     {{-- Mobile Card View --}}
     <div class="block md:hidden">
-        <div class="grid grid-cols-1 gap-4">
-            @foreach($datatable->results() as $row)
-                {!! $datatable->renderMobileRow($row) !!}
-            @endforeach
-        </div>
+        @if($datatable->mobileBodyView())
+            @include($datatable->mobileBodyView(), array_merge($datatable->sharedViewData(), ['rows' => $datatable->results(), 'datatable' => $datatable]))
+        @elseif($datatable->mobileRowView() || $datatable->rowView())
+            <div class="grid grid-cols-1 gap-4">
+                @php($mobileView = $datatable->mobileRowView() ?: $datatable->rowView())
+                @php($sharedData = $datatable->sharedViewData())
+                @foreach($datatable->results() as $row)
+                    @include($mobileView, array_merge($sharedData, $datatable->rowViewData($row)))
+                @endforeach
+            </div>
+        @else
+            <div class="grid grid-cols-1 gap-4">
+                @foreach($datatable->results() as $row)
+                    {!! $datatable->renderMobileRow($row) !!}
+                @endforeach
+            </div>
+        @endif
     </div>
 
     {{-- Pagination --}}

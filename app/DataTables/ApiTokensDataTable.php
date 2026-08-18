@@ -85,21 +85,21 @@ class ApiTokensDataTable extends DataTable
         ];
     }
 
-    public function renderRow(mixed $row): string
+    public function rowView(): string
     {
-        /** @var PersonalAccessToken $row */
-        return view('admin.api-tokens._row', [
-            'token' => $row,
-            'user' => $row->tokenable,
-        ])->render();
+        return 'admin.api-tokens._row';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileRowView(): string
     {
-        /** @var PersonalAccessToken $row */
-        return view('admin.api-tokens._mobile_row', [
+        return 'admin.api-tokens._mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'token' => $row,
             'user' => $row->tokenable,
-        ])->render();
+        ];
     }
 }

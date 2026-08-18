@@ -112,21 +112,27 @@ class ApprovalManagementDataTable extends DataTable
         return $filters;
     }
 
-    public function renderRow(mixed $row): string
+    public function rowView(): string
     {
-        /** @var ApprovalRequestStep $row */
-        return view('admin.approval-management._row', [
-            'step' => $row,
-            'companyUsers' => $this->request->attributes->get('_company_users', collect()),
-        ])->render();
+        return 'admin.approval-management._row';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileRowView(): string
     {
-        /** @var ApprovalRequestStep $row */
-        return view('admin.approval-management._mobile_row', [
+        return 'admin.approval-management._mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'step' => $row,
+        ];
+    }
+
+    public function sharedViewData(): array
+    {
+        return [
             'companyUsers' => $this->request->attributes->get('_company_users', collect()),
-        ])->render();
+        ];
     }
 }

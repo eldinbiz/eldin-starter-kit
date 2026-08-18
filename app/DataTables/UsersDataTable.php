@@ -122,24 +122,41 @@ class UsersDataTable extends DataTable
         ];
     }
 
-    public function renderRow(mixed $row): string
+    public function bodyView(): string
     {
-        /** @var User $row */
-        return view('admin.users._row', [
-            'user' => $row,
-            'userCompanyRoleMap' => $this->getUserCompanyRoleMap(),
-            'roleColorClasses' => fn (string $roleName): string => $this->roleColorClasses($roleName),
-        ])->render();
+        return 'admin.users._tbody';
     }
 
-    public function renderMobileRow(mixed $row): string
+    public function mobileBodyView(): string
     {
-        /** @var User $row */
-        return view('admin.users._mobile_row', [
+        return 'admin.users._mobile_body';
+    }
+
+    public function rowView(): string
+    {
+        return 'admin.users._row';
+    }
+
+    public function mobileRowView(): string
+    {
+        return 'admin.users._mobile_row';
+    }
+
+    public function rowViewData(mixed $row): array
+    {
+        return [
             'user' => $row,
+        ];
+    }
+
+    public function sharedViewData(): array
+    {
+        return [
             'userCompanyRoleMap' => $this->getUserCompanyRoleMap(),
+            'canImpersonate' => auth()->user()?->canImpersonate() ?? false,
+            'authUserId' => auth()->id(),
             'roleColorClasses' => fn (string $roleName): string => $this->roleColorClasses($roleName),
-        ])->render();
+        ];
     }
 
     public function handle(Request $request): static

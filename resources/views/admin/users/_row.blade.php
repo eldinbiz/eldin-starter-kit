@@ -42,21 +42,17 @@
     </td>
     <td class="py-3.5 text-right">
         <div class="flex items-center justify-end gap-2">
-            @canImpersonate
-                @canBeImpersonated($user)
-                    @if($user->id !== Auth::id())
-                        <a
-                            href="{{ route('impersonate', $user->id) }}"
-                            title="Impersonate {{ $user->name }}"
-                            class="text-gray-500 hover:text-amber-500 dark:text-gray-400 dark:hover:text-amber-400"
-                        >
-                            <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24">
-                                <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
-                            </svg>
-                        </a>
-                    @endif
-                @endCanBeImpersonated
-            @endCanImpersonate
+            @if(($canImpersonate ?? false) && $user->id !== ($authUserId ?? null))
+                <a
+                    href="{{ route('impersonate', $user->id) }}"
+                    title="Impersonate {{ $user->name }}"
+                    class="text-gray-500 hover:text-amber-500 dark:text-gray-400 dark:hover:text-amber-400"
+                >
+                    <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24">
+                        <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 5a3 3 0 0 1 6 0v3H9V7zm3 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+                    </svg>
+                </a>
+            @endif
 
             <a
                 href="{{ route('admin.users.edit', $user->id) }}"
@@ -67,7 +63,7 @@
                 </svg>
             </a>
 
-            @if($user->id !== Auth::id())
+            @if($user->id !== ($authUserId ?? Auth::id()))
                 <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');">
                     @csrf
                     @method('DELETE')
