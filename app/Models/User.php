@@ -116,12 +116,21 @@ class User extends Authenticatable
     }
 
     /**
+     * Cached platform access status for the current request.
+     */
+    private ?bool $cachedHasPlatformAccess = null;
+
+    /**
      * Check if the user has platform-level access (platform-admin role
      * in any company). Platform admins bypass company scoping entirely.
      */
     public function hasPlatformAccess(): bool
     {
-        return $this->companyRoles()
+        if ($this->cachedHasPlatformAccess !== null) {
+            return $this->cachedHasPlatformAccess;
+        }
+
+        return $this->cachedHasPlatformAccess = $this->companyRoles()
             ->whereIn('name', ['sysadmin', 'platform-admin'])
             ->exists();
     }

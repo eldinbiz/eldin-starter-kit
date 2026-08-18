@@ -171,8 +171,8 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        // Share company context, appLogo, and appFavicon with all views
-        view()->composer('*', function ($view): void {
+        // Share company context, appLogo, and appFavicon with root layouts
+        view()->composer(['layouts.app', 'layouts.auth'], function ($view): void {
             $settingService = app(SettingService::class);
             $appLogo = (string) $settingService->get('app_logo', null, '');
             $appFavicon = (string) $settingService->get('app_favicon', null, '');
