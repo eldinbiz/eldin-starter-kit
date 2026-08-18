@@ -18,29 +18,70 @@ class SettingService
 {
     private const CACHE_PREFIX = 'system_setting:';
 
+    private const CACHE_KEY_ALL = 'system_settings:all_dictionary';
+
     private const CACHE_TTL_SECONDS = 3600;
+
+    /**
+     * In-memory request-level cache of all system settings indexed by scope_key.
+     *
+     * @var array<string, mixed>|null
+     */
+    private static ?array $allSettingsCache = null;
 
     /**
      * Get a setting value by key with cascading tenant-to-global fallback.
      */
     public function get(string $key, ?int $companyId = null, mixed $default = null): mixed
     {
+        $settings = $this->getAllSettings();
+
         // 1. Try company-specific override if company ID provided
         if ($companyId !== null) {
-            $companyVal = $this->getCached($key, $companyId);
-            if ($companyVal !== null) {
-                return $companyVal;
+            $companyScopeKey = "company_{$companyId}:{$key}";
+            if (array_key_exists($companyScopeKey, $settings) && $settings[$companyScopeKey] !== null) {
+                return $settings[$companyScopeKey];
             }
         }
 
         // 2. Try global system default
-        $globalVal = $this->getCached($key, null);
-        if ($globalVal !== null) {
-            return $globalVal;
+        $globalScopeKey = "global:{$key}";
+        if (array_key_exists($globalScopeKey, $settings) && $settings[$globalScopeKey] !== null) {
+            return $settings[$globalScopeKey];
         }
 
         // 3. Return provided default or config fallback
         return $default;
+    }
+
+    /**
+     * Load all settings into an in-memory dictionary.
+     *
+     * @return array<string, mixed>
+     */
+    private function getAllSettings(): array
+    {
+        if (self::$allSettingsCache !== null) {
+            return self::$allSettingsCache;
+        }
+
+        self::$allSettingsCache = Cache::remember(self::CACHE_KEY_ALL, self::CACHE_TTL_SECONDS, function (): array {
+            try {
+                $dictionary = [];
+                $settings = SystemSetting::all();
+
+                foreach ($settings as $setting) {
+                    $scope = $setting->company_id !== null ? "company_{$setting->company_id}" : 'global';
+                    $dictionary["{$scope}:{$setting->key}"] = $setting->typed_value;
+                }
+
+                return $dictionary;
+            } catch (Throwable) {
+                return [];
+            }
+        });
+
+        return self::$allSettingsCache ?? [];
     }
 
     /**
@@ -146,8 +187,12 @@ class SettingService
     /**
      * Apply runtime mail configuration overrides from database settings.
      */
-    public function applyRuntimeMailConfig(): void
+    public function applyRuntimeMailConfig(bool $force = false): void
     {
+        if (! $force && app()->environment('testing')) {
+            return;
+        }
+
         try {
             $mailer = (string) $this->get('mail_mailer', null, Config::get('mail.default', 'smtp'));
             $host = (string) $this->get('mail_host', null, Config::get('mail.mailers.smtp.host'));
@@ -239,27 +284,29 @@ class SettingService
      */
     private function getCached(string $key, ?int $companyId): mixed
     {
-        $cacheKey = $this->cacheKey($key, $companyId);
-
-        return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($key, $companyId): mixed {
-            try {
-                $setting = SystemSetting::where('company_id', $companyId)
-                    ->where('key', $key)
-                    ->first();
-
-                return $setting?->typed_value;
-            } catch (Throwable) {
-                return null;
-            }
-        });
+        return $this->get($key, $companyId);
     }
 
     /**
      * Forget setting cache.
      */
-    public function forgetCache(string $key, ?int $companyId = null): void
+    public function forgetCache(?string $key = null, ?int $companyId = null): void
     {
-        Cache::forget($this->cacheKey($key, $companyId));
+        self::$allSettingsCache = null;
+        Cache::forget(self::CACHE_KEY_ALL);
+
+        if ($key !== null) {
+            Cache::forget($this->cacheKey($key, $companyId));
+        }
+    }
+
+    /**
+     * Clear all in-memory runtime cache.
+     */
+    public function flushRuntimeCache(): void
+    {
+        self::$allSettingsCache = null;
+        Cache::forget(self::CACHE_KEY_ALL);
     }
 
     /**

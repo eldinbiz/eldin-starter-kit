@@ -17,6 +17,7 @@
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.29",
+        "laravel/telescope": "^5.22",
         "laravel/tinker": "^3.0",
         "modules/purchase-requests": "*",
         "romalytar/yammi-audit-log-laravel": "^2.2",

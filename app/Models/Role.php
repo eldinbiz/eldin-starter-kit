@@ -79,6 +79,14 @@ class Role extends Model
      */
     public function getUsersCountAttribute(): int
     {
+        if (array_key_exists('users_count', $this->attributes)) {
+            return (int) $this->attributes['users_count'];
+        }
+
+        if (array_key_exists('company_users_count', $this->attributes)) {
+            return (int) $this->attributes['company_users_count'];
+        }
+
         return $this->companyUsers()->count();
     }
 

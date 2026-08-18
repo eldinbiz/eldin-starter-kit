@@ -40,7 +40,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SettingService::class);
+        $this->app->singleton(FeatureService::class);
     }
 
     /**

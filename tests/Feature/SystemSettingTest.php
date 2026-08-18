@@ -121,7 +121,7 @@ test('it dynamically applies runtime mail configuration overrides', function ():
     $this->settingService->set('mail_from_address', 'system@custom-domain.com', 'text', 'mail');
     $this->settingService->set('mail_from_name', 'Custom System Mailer', 'text', 'mail');
 
-    $this->settingService->applyRuntimeMailConfig();
+    $this->settingService->applyRuntimeMailConfig(force: true);
 
     expect(Config::get('mail.default'))->toBe('smtp')
         ->and(Config::get('mail.mailers.smtp.host'))->toBe('smtp.custom-mail.com')
@@ -131,6 +131,8 @@ test('it dynamically applies runtime mail configuration overrides', function ():
         ->and(Config::get('mail.mailers.smtp.encryption'))->toBe('tls')
         ->and(Config::get('mail.from.address'))->toBe('system@custom-domain.com')
         ->and(Config::get('mail.from.name'))->toBe('Custom System Mailer');
+
+    Config::set('mail.default', 'array');
 });
 
 test('it dynamically applies runtime OAuth mail configuration overrides', function (): void {
@@ -142,10 +144,12 @@ test('it dynamically applies runtime OAuth mail configuration overrides', functi
     $this->settingService->set('mail_from_address', 'oauth@domain.com', 'text', 'mail');
     $this->settingService->set('mail_from_name', 'OAuth Mailer', 'text', 'mail');
 
-    $this->settingService->applyRuntimeMailConfig();
+    $this->settingService->applyRuntimeMailConfig(force: true);
 
     expect(Config::get('mail.default'))->toBe('oauth')
         ->and(Config::get('mail.mailers.oauth.transport'))->toBe('oauth')
         ->and(Config::get('mail.from.address'))->toBe('oauth@domain.com')
         ->and(Config::get('mail.from.name'))->toBe('OAuth Mailer');
+
+    Config::set('mail.default', 'array');
 });

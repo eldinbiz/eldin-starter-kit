@@ -22,7 +22,7 @@ class RoleController extends Controller
 
         $roles = Role::query()
             ->when($showTrashed, fn ($q) => $q->onlyTrashed())
-            ->withCount('companyUsers')
+            ->withCount(['companyUsers as users_count'])
             ->get();
 
         $permissionLabels = $this->getPermissionLabels();
