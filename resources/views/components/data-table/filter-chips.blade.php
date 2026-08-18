@@ -5,7 +5,7 @@
 @endphp
 
 @if($datatable->hasActiveFilters())
-    <div class="mt-3 flex flex-wrap items-center gap-2">
+    <div class="mt-3 flex flex-wrap items-center gap-2 datatable-filter-chips">
         <span class="text-xs text-gray-500 dark:text-gray-400">Active filters:</span>
 
         {{-- Search chip --}}

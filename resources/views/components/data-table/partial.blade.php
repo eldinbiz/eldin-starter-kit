@@ -2,7 +2,7 @@
 <x-data-table.filter-chips :datatable="$datatable" />
 
 @if($datatable->results()->isEmpty())
-    <div class="py-10 text-center">
+    <div class="py-10 text-center datatable-empty-state">
         <p class="text-gray-500 dark:text-gray-400">No results match your filters.</p>
         <a href="{{ $datatable->clearFiltersUrl() }}" class="text-brand-500 hover:text-brand-600 text-sm font-medium mt-1 inline-block">
             Clear filters

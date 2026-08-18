@@ -21,8 +21,8 @@
             <svg class="fill-current transition-transform" :class="filtersOpen ? 'rotate-180' : ''" width="16" height="16" viewBox="0 0 24 24"><path d="M12 16l-6-6h12z"/></svg>
         </button>
 
-        <div x-show="filtersOpen" x-transition class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
-            <form method="GET" action="{{ url()->current() }}">
+        <div x-show="filtersOpen" x-transition class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.02] datatable-filters">
+            <form method="GET" action="{{ url()->current() }}" class="datatable-filter-form" data-datatable-filter>
                 {{-- Preserve sort/direction so filters don't reset sorting --}}
                 <input type="hidden" name="sort" value="{{ $datatable->sort() }}">
                 <input type="hidden" name="direction" value="{{ $datatable->direction() }}">

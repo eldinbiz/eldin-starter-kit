@@ -39,16 +39,20 @@
                 const link = e.target.closest('a');
                 if (!link || !this.$el.contains(link)) return;
 
+                // NEVER intercept links inside table body or mobile card records (edit, view, show, etc.)
+                if (link.closest('tbody') !== null || link.closest('.grid') !== null) return;
+
                 const href = link.getAttribute('href');
-                if (!href || href === '#' || href.startsWith('javascript:')) return;
+                if (!href || href === '#' || href.startsWith('javascript:') || link.hasAttribute('download') || link.hasAttribute('target')) return;
 
-                // Intercept sort headers, filter chips, pagination, and clear-filter links
+                // Only intercept dedicated DataTable navigation links (sort headers, pagination, filter chips, clear buttons)
                 const isSort = link.closest('th') !== null;
-                const isPagination = link.closest('.pagination') !== null || link.closest('nav[role=\'navigation\']') !== null;
-                const isFilterAction = href.includes('filter_') || href.includes('clear') || href.includes('sort=') || href.includes('page=') || href.includes('per_page=');
-                const isRecordAction = href.includes('/edit') || href.includes('/impersonate') || link.hasAttribute('download') || link.hasAttribute('target');
+                const isPagination = link.closest('.pagination') !== null || link.closest('nav[role=\'navigation\']') !== null || link.closest('.pagination-links') !== null;
+                const isFilterChip = link.closest('.datatable-filter-chips') !== null;
+                const isFilterControl = link.closest('.datatable-filters') !== null;
+                const isEmptyStateClear = link.closest('.datatable-empty-state') !== null;
 
-                if ((isSort || isPagination || isFilterAction) && !isRecordAction) {
+                if (isSort || isPagination || isFilterChip || isFilterControl || isEmptyStateClear) {
                     e.preventDefault();
                     this.fetchTable(href, true);
                 }
@@ -56,6 +60,14 @@
             handleFilterSubmit(e) {
                 const form = e.target.closest('form');
                 if (!form || !this.$el.contains(form)) return;
+
+                // NEVER intercept non-GET forms or action forms (POST/DELETE/PUT for delete, disable, restore, etc.)
+                const method = (form.getAttribute('method') || 'GET').toUpperCase();
+                const isFilterForm = form.classList.contains('datatable-filter-form') || form.hasAttribute('data-datatable-filter') || form.closest('.datatable-filters') !== null;
+
+                if (method !== 'GET' || !isFilterForm) {
+                    return; // Allow native form submission to controller
+                }
 
                 e.preventDefault();
                 const formData = new FormData(form);
@@ -96,16 +108,33 @@
             <x-data-table.skeleton :datatable="$datatable" />
         </div>
 
-        {{-- Dynamic Content Area --}}
-        <div
-            x-ref="tableContent"
-            x-show="hasLoaded"
-            :class="{ 'opacity-50 pointer-events-none transition-opacity duration-200': loading }"
-        >
-            {{-- Fallback for JavaScript-disabled environments --}}
-            <noscript>
-                @include('components.data-table.partial', ['datatable' => $datatable])
-            </noscript>
+        {{-- Dynamic Content Area with Spinner Overlay --}}
+        <div class="relative">
+            {{-- Active Spinner Overlay for Page Changes / Sorting / Filtering --}}
+            <div
+                x-show="loading && hasLoaded"
+                x-cloak
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="absolute inset-0 z-30 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[2px] dark:bg-gray-900/70 min-h-[160px]"
+            >
+                <x-data-table.spinner label="Loading records..." />
+            </div>
+
+            <div
+                x-ref="tableContent"
+                x-show="hasLoaded"
+                :class="{ 'opacity-40 pointer-events-none transition-opacity duration-150': loading && hasLoaded }"
+            >
+                {{-- Fallback for JavaScript-disabled environments --}}
+                <noscript>
+                    @include('components.data-table.partial', ['datatable' => $datatable])
+                </noscript>
+            </div>
         </div>
     </div>
 @else
