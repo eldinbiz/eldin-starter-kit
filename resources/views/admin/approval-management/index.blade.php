@@ -13,6 +13,6 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">Company-wide approval oversight. Delegate or skip pending steps as needed.</p>
     </div>
 
-    <x-data-table :datatable="$dataTable" />
+    <x-data-table :datatable="$dataTable" deferred />
 </div>
 @endsection

@@ -112,6 +112,16 @@ class ApprovalManagementDataTable extends DataTable
         return $filters;
     }
 
+    public function bodyView(): string
+    {
+        return 'admin.approval-management._tbody';
+    }
+
+    public function mobileBodyView(): string
+    {
+        return 'admin.approval-management._mobile_body';
+    }
+
     public function rowView(): string
     {
         return 'admin.approval-management._row';
