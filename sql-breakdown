@@ -1,0 +1,68 @@
+#!/bin/sh
+URI="${1:-}"
+
+if [ -n "$URI" ]; then
+    php artisan tinker --execute '
+        $uri = "'"$URI"'";
+        $req = Laravel\Telescope\Storage\EntryModel::where("type", "request")
+            ->where("content->uri", "like", "%" . $uri . "%")
+            ->latest()
+            ->first();
+
+        if (! $req) {
+            echo "No Telescope request entry found matching [{$uri}].\n";
+            exit(1);
+        }
+
+        $queries = Laravel\Telescope\Storage\EntryModel::where("batch_id", $req->batch_id)
+            ->where("type", "query")
+            ->get();
+
+        echo "URI: " . ($req->content["uri"] ?? "N/A") . " | Total Queries: " . $queries->count() . "\n\n";
+
+        $breakdown = $queries
+            ->groupBy(fn ($q) => $q->content["sql"] ?? "N/A")
+            ->map(function ($items, $sql) {
+                return [
+                    "count" => $items->count(),
+                    "total_time_ms" => round($items->sum(fn ($i) => (float) ($i->content["time"] ?? 0)), 2),
+                    "avg_time_ms" => round($items->avg(fn ($i) => (float) ($i->content["time"] ?? 0)), 2),
+                ];
+            })
+            ->sortByDesc("count")
+            ->toArray();
+
+        dump($breakdown);
+    '
+else
+    php artisan tinker --execute '
+        $req = Laravel\Telescope\Storage\EntryModel::where("type", "request")
+            ->latest()
+            ->first();
+
+        if (! $req) {
+            echo "No Telescope request entries found.\n";
+            exit(1);
+        }
+
+        $queries = Laravel\Telescope\Storage\EntryModel::where("batch_id", $req->batch_id)
+            ->where("type", "query")
+            ->get();
+
+        echo "URI: " . ($req->content["uri"] ?? "N/A") . " | Total Queries: " . $queries->count() . "\n\n";
+
+        $breakdown = $queries
+            ->groupBy(fn ($q) => $q->content["sql"] ?? "N/A")
+            ->map(function ($items, $sql) {
+                return [
+                    "count" => $items->count(),
+                    "total_time_ms" => round($items->sum(fn ($i) => (float) ($i->content["time"] ?? 0)), 2),
+                    "avg_time_ms" => round($items->avg(fn ($i) => (float) ($i->content["time"] ?? 0)), 2),
+                ];
+            })
+            ->sortByDesc("count")
+            ->toArray();
+
+        dump($breakdown);
+    '
+fi

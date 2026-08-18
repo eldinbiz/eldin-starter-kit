@@ -1,0 +1,58 @@
+#!/bin/sh
+URI="${1:-}"
+
+if [ -n "$URI" ]; then
+    php artisan tinker --execute '
+        $uri = "'"$URI"'";
+        $req = Laravel\Telescope\Storage\EntryModel::where("type", "request")
+            ->where("content->uri", "like", "%" . $uri . "%")
+            ->latest()
+            ->first();
+
+        if (! $req) {
+            echo "No Telescope request entry found matching [{$uri}].\n";
+            exit(1);
+        }
+
+        $queries = Laravel\Telescope\Storage\EntryModel::where("batch_id", $req->batch_id)
+            ->where("type", "query")
+            ->get();
+
+        $totalQueryTime = $queries->sum(fn ($q) => (float) ($q->content["time"] ?? 0));
+
+        dump([
+            "uri" => $req->content["uri"] ?? "N/A",
+            "method" => $req->content["method"] ?? "GET",
+            "response_status" => $req->content["response_status"] ?? 200,
+            "duration_ms" => $req->content["duration"] ?? 0,
+            "query_count" => $queries->count(),
+            "query_time_ms" => round($totalQueryTime, 2),
+        ]);
+    '
+else
+    php artisan tinker --execute '
+        $req = Laravel\Telescope\Storage\EntryModel::where("type", "request")
+            ->latest()
+            ->first();
+
+        if (! $req) {
+            echo "No Telescope request entries found.\n";
+            exit(1);
+        }
+
+        $queries = Laravel\Telescope\Storage\EntryModel::where("batch_id", $req->batch_id)
+            ->where("type", "query")
+            ->get();
+
+        $totalQueryTime = $queries->sum(fn ($q) => (float) ($q->content["time"] ?? 0));
+
+        dump([
+            "uri" => $req->content["uri"] ?? "N/A",
+            "method" => $req->content["method"] ?? "GET",
+            "response_status" => $req->content["response_status"] ?? 200,
+            "duration_ms" => $req->content["duration"] ?? 0,
+            "query_count" => $queries->count(),
+            "query_time_ms" => round($totalQueryTime, 2),
+        ]);
+    '
+fi
