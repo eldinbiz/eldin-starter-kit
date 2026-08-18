@@ -24,9 +24,14 @@ class ApprovalWorkflowController extends Controller
     public function index(Request $request, ApprovalWorkflowTemplatesDataTable $dataTable): View
     {
         $dataTable->showTrashed = $request->boolean('trashed');
+        $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
 
         return view('admin.approval-workflows.index', [
-            'dataTable' => $dataTable->handle($request),
+            'dataTable' => $dataTable,
             'showTrashed' => $dataTable->showTrashed,
         ]);
     }

@@ -26,8 +26,14 @@ class ApprovalController extends Controller
      */
     public function inbox(Request $request, ApprovalInboxDataTable $dataTable): View
     {
+        $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
+
         return view('approvals.inbox', [
-            'dataTable' => $dataTable->handle($request),
+            'dataTable' => $dataTable,
         ]);
     }
 
@@ -36,8 +42,14 @@ class ApprovalController extends Controller
      */
     public function history(Request $request, ApprovalHistoryDataTable $dataTable): View
     {
+        $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
+
         return view('approvals.history', [
-            'dataTable' => $dataTable->handle($request),
+            'dataTable' => $dataTable,
         ]);
     }
 
@@ -46,8 +58,14 @@ class ApprovalController extends Controller
      */
     public function requests(Request $request, ApprovalRequestsDataTable $dataTable): View
     {
+        $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
+
         return view('approvals.requests', [
-            'dataTable' => $dataTable->handle($request),
+            'dataTable' => $dataTable,
         ]);
     }
 

@@ -9,8 +9,9 @@
     <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
         <span>Show</span>
         <select
-            onchange="window.location.href = this.value"
-            class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+            @change="$dispatch('per-page-change', $el.value)"
+            onchange="if (!window.Alpine) window.location.href = this.value"
+            class="pagination-per-page rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
         >
             @foreach($datatable->perPageOptions() as $option)
                 <option

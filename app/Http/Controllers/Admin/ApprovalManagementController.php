@@ -27,8 +27,14 @@ class ApprovalManagementController
         $companyUsers = $company->users()->orderBy('name')->get();
         $request->attributes->set('_company_users', $companyUsers);
 
+        $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
+
         return view('admin.approval-management.index', [
-            'dataTable' => $dataTable->handle($request),
+            'dataTable' => $dataTable,
             'companyUsers' => $companyUsers,
         ]);
     }

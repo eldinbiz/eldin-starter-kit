@@ -139,6 +139,11 @@ class ApiTokenController extends Controller
     public function index(Request $request, ApiTokensDataTable $dataTable)
     {
         $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
+
         $endpoints = self::AVAILABLE_ENDPOINTS;
 
         return view('admin.api-tokens.index', [

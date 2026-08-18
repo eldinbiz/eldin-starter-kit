@@ -1,80 +1,130 @@
-@props(['datatable'])
+@props(['datatable', 'deferred' => false])
 
-{{-- Flash Messages --}}
-@if (session('success'))
-    <div class="mb-4 rounded-lg bg-success-50 p-4 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-500">
-        {{ session('success') }}
-    </div>
-@endif
+@if($deferred)
+    <div
+        x-data="{
+            loading: true,
+            hasLoaded: false,
+            currentUrl: '{{ request()->fullUrl() }}',
+            init() {
+                this.fetchTable(this.currentUrl, false);
+            },
+            fetchTable(url, pushState = true) {
+                this.loading = true;
+                fetch(url, {
+                    headers: {
+                        'X-DataTable-Partial': 'true',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Network error');
+                    return res.text();
+                })
+                .then(html => {
+                    this.$refs.tableContent.innerHTML = html;
+                    this.currentUrl = url;
+                    if (pushState && window.location.href !== url) {
+                        window.history.pushState(null, '', url);
+                    }
+                    this.hasLoaded = true;
+                    this.loading = false;
+                })
+                .catch(err => {
+                    console.error('DataTable fetch error:', err);
+                    this.loading = false;
+                });
+            },
+            handleContainerClick(e) {
+                const link = e.target.closest('a');
+                if (!link || !this.$el.contains(link)) return;
 
-@if (session('error'))
-    <div class="mb-4 rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
-        {{ session('error') }}
-    </div>
-@endif
+                const href = link.getAttribute('href');
+                if (!href || href === '#' || href.startsWith('javascript:')) return;
 
-{{-- Filters Panel --}}
-<x-data-table.filters :datatable="$datatable" />
+                // Intercept sort headers, filter chips, pagination, and clear-filter links
+                const isSort = link.closest('th') !== null;
+                const isPagination = link.closest('.pagination') !== null || link.closest('nav[role=\'navigation\']') !== null;
+                const isFilterAction = href.includes('filter_') || href.includes('clear') || href.includes('sort=') || href.includes('page=') || href.includes('per_page=');
+                const isRecordAction = href.includes('/edit') || href.includes('/impersonate') || link.hasAttribute('download') || link.hasAttribute('target');
 
-{{-- Active Filter Chips --}}
-<x-data-table.filter-chips :datatable="$datatable" />
+                if ((isSort || isPagination || isFilterAction) && !isRecordAction) {
+                    e.preventDefault();
+                    this.fetchTable(href, true);
+                }
+            },
+            handleFilterSubmit(e) {
+                const form = e.target.closest('form');
+                if (!form || !this.$el.contains(form)) return;
 
-@if($datatable->results()->isEmpty())
-    <div class="py-10 text-center">
-        <p class="text-gray-500 dark:text-gray-400">No results match your filters.</p>
-        <a href="{{ $datatable->clearFiltersUrl() }}" class="text-brand-500 hover:text-brand-600 text-sm font-medium mt-1 inline-block">
-            Clear filters
-        </a>
-    </div>
-@else
-    {{-- Desktop Table View --}}
-    <div class="hidden md:block w-full overflow-x-auto">
-        <table class="min-w-full">
-            <thead>
-                <tr class="border-gray-100 border-y dark:border-gray-800">
-                    @foreach($datatable->columns() as $column)
-                        <x-data-table.th :column="$column" :datatable="$datatable" />
-                    @endforeach
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                @if($datatable->bodyView())
-                    @include($datatable->bodyView(), array_merge($datatable->sharedViewData(), ['rows' => $datatable->results(), 'datatable' => $datatable]))
-                @elseif($datatable->rowView())
-                    @php($sharedData = $datatable->sharedViewData())
-                    @foreach($datatable->results() as $row)
-                        @include($datatable->rowView(), array_merge($sharedData, $datatable->rowViewData($row)))
-                    @endforeach
-                @else
-                    @foreach($datatable->results() as $row)
-                        {!! $datatable->renderRow($row) !!}
-                    @endforeach
-                @endif
-            </tbody>
-        </table>
-    </div>
-
-    {{-- Mobile Card View --}}
-    <div class="block md:hidden">
-        @if($datatable->mobileBodyView())
-            @include($datatable->mobileBodyView(), array_merge($datatable->sharedViewData(), ['rows' => $datatable->results(), 'datatable' => $datatable]))
-        @elseif($datatable->mobileRowView() || $datatable->rowView())
-            <div class="grid grid-cols-1 gap-4">
-                @php($mobileView = $datatable->mobileRowView() ?: $datatable->rowView())
-                @php($sharedData = $datatable->sharedViewData())
-                @foreach($datatable->results() as $row)
-                    @include($mobileView, array_merge($sharedData, $datatable->rowViewData($row)))
-                @endforeach
-            </div>
-        @else
-            <div class="grid grid-cols-1 gap-4">
-                @foreach($datatable->results() as $row)
-                    {!! $datatable->renderMobileRow($row) !!}
-                @endforeach
+                e.preventDefault();
+                const formData = new FormData(form);
+                const params = new URLSearchParams();
+                for (const [key, value] of formData.entries()) {
+                    if (value !== '') {
+                        params.append(key, value);
+                    }
+                }
+                const cleanUrl = form.action.split('?')[0];
+                const targetUrl = cleanUrl + (params.toString() ? '?' + params.toString() : '');
+                this.fetchTable(targetUrl, true);
+            }
+        }"
+        @popstate.window="fetchTable(window.location.href, false)"
+        @click="handleContainerClick($event)"
+        @submit="handleFilterSubmit($event)"
+        @per-page-change="fetchTable($event.detail, true)"
+    >
+        {{-- Flash Messages --}}
+        @if (session('success'))
+            <div class="mb-4 rounded-lg bg-success-50 p-4 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-500">
+                {{ session('success') }}
             </div>
         @endif
-    </div>
 
-    {{-- Pagination --}}
-    <x-data-table.pagination :datatable="$datatable" />
+        @if (session('error'))
+            <div class="mb-4 rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        {{-- Filters Panel --}}
+        <x-data-table.filters :datatable="$datatable" />
+
+        {{-- Initial Skeleton Placeholder --}}
+        <div x-show="loading && !hasLoaded" x-cloak>
+            <x-data-table.skeleton :datatable="$datatable" />
+        </div>
+
+        {{-- Dynamic Content Area --}}
+        <div
+            x-ref="tableContent"
+            x-show="hasLoaded"
+            :class="{ 'opacity-50 pointer-events-none transition-opacity duration-200': loading }"
+        >
+            {{-- Fallback for JavaScript-disabled environments --}}
+            <noscript>
+                @include('components.data-table.partial', ['datatable' => $datatable])
+            </noscript>
+        </div>
+    </div>
+@else
+    {{-- Synchronous SSR Rendering (Default / Backward Compatible) --}}
+    @if (session('success'))
+        <div class="mb-4 rounded-lg bg-success-50 p-4 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-500">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- Filters Panel --}}
+    <x-data-table.filters :datatable="$datatable" />
+
+    {{-- Partial Content (Chips, Table, Mobile Cards, Pagination) --}}
+    @include('components.data-table.partial', ['datatable' => $datatable])
 @endif

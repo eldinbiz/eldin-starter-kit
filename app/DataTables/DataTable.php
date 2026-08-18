@@ -7,6 +7,7 @@ namespace App\DataTables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\View\View;
 
 abstract class DataTable
 {
@@ -274,6 +275,28 @@ abstract class DataTable
         }
 
         return $this->request->url().($params ? '?'.http_build_query($params) : '');
+    }
+
+    /**
+     * Determine if the incoming request is an asynchronous partial DataTable request.
+     */
+    public function isPartialRequest(?Request $request = null): bool
+    {
+        $req = $request ?? ($this->request ?? request());
+
+        return $req->header('X-DataTable-Partial') === 'true'
+            || $req->query('_partial') === '1'
+            || ($req->ajax() && ! $req->pjax());
+    }
+
+    /**
+     * Render the partial response view for async requests.
+     */
+    public function renderPartialView(): View
+    {
+        return view('components.data-table.partial', [
+            'datatable' => $this,
+        ]);
     }
 
     /**

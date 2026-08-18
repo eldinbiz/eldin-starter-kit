@@ -25,8 +25,14 @@ class UserController extends Controller
      */
     public function index(Request $request, UsersDataTable $dataTable): View
     {
+        $dataTable->handle($request);
+
+        if ($dataTable->isPartialRequest($request)) {
+            return $dataTable->renderPartialView();
+        }
+
         return view('admin.users.index', [
-            'dataTable' => $dataTable->handle($request),
+            'dataTable' => $dataTable,
         ]);
     }
 

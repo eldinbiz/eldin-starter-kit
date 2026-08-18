@@ -30,6 +30,6 @@
         </div>
     </div>
 
-    <x-data-table :datatable="$dataTable" />
+    <x-data-table :datatable="$dataTable" deferred />
 </div>
 @endsection
