@@ -104,19 +104,22 @@ class ApprovalWorkflowController extends Controller
      */
     public function edit(WorkflowTemplate $workflow): View
     {
-        $company = auth()->user()?->getActiveCompany();
+        /** @var User|null $user */
+        $user = auth()->user();
+        $company = $user?->getActiveCompany();
 
-        if (! $company || $workflow->company_id !== $company->id) {
+        if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
         }
 
         $workflow->load('groups.steps');
         $workflow->load('company.children');
-        $users = $this->getCompanyAndAncestorUsers($company);
+        $targetCompany = $workflow->company ?? $company;
+        $users = $targetCompany ? $this->getCompanyAndAncestorUsers($targetCompany) : new Collection;
 
         return view('admin.approval-workflows.edit', [
             'template' => $workflow,
-            'company' => $workflow->company,
+            'company' => $targetCompany,
             'users' => $users,
             'approvableTypes' => ApprovableTypes::options(),
         ]);
@@ -127,9 +130,11 @@ class ApprovalWorkflowController extends Controller
      */
     public function update(StoreWorkflowTemplateRequest $request, WorkflowTemplate $workflow): RedirectResponse
     {
-        $company = auth()->user()?->getActiveCompany();
+        /** @var User|null $user */
+        $user = auth()->user();
+        $company = $user?->getActiveCompany();
 
-        if (! $company || $workflow->company_id !== $company->id) {
+        if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
         }
 
@@ -170,9 +175,11 @@ class ApprovalWorkflowController extends Controller
      */
     public function destroy(WorkflowTemplate $workflow): RedirectResponse
     {
-        $company = auth()->user()?->getActiveCompany();
+        /** @var User|null $user */
+        $user = auth()->user();
+        $company = $user?->getActiveCompany();
 
-        if (! $company || $workflow->company_id !== $company->id) {
+        if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
         }
 
@@ -187,15 +194,13 @@ class ApprovalWorkflowController extends Controller
      */
     public function restore(string $id): RedirectResponse
     {
-        $company = auth()->user()?->getActiveCompany();
-
-        if (! $company) {
-            abort(403);
-        }
+        /** @var User|null $user */
+        $user = auth()->user();
+        $company = $user?->getActiveCompany();
 
         $workflow = WorkflowTemplate::withTrashed()->findOrFail((int) $id);
 
-        if ($workflow->company_id !== $company->id) {
+        if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
         }
 
@@ -215,9 +220,11 @@ class ApprovalWorkflowController extends Controller
      */
     public function trash(WorkflowTemplate $workflow): RedirectResponse
     {
-        $company = auth()->user()?->getActiveCompany();
+        /** @var User|null $user */
+        $user = auth()->user();
+        $company = $user?->getActiveCompany();
 
-        if (! $company || $workflow->company_id !== $company->id) {
+        if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
         }
 
@@ -232,11 +239,44 @@ class ApprovalWorkflowController extends Controller
     }
 
     /**
+     * Permanently delete a workflow template (force delete).
+     */
+    public function softDelete(string $id): RedirectResponse
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+        $company = $user?->getActiveCompany();
+
+        $workflow = WorkflowTemplate::withTrashed()->findOrFail((int) $id);
+
+        if (! $this->canManageWorkflow($user, $company, $workflow)) {
+            abort(403);
+        }
+
+        $workflow->forceDelete();
+
+        return redirect()->route('admin.approval-workflows.index', ['trashed' => 1])
+            ->with('success', 'Workflow template permanently deleted.');
+    }
+
+    /**
+     * Check if user is authorized to manage the workflow template.
+     */
+    private function canManageWorkflow(?User $user, ?Company $company, WorkflowTemplate $workflow): bool
+    {
+        if ($user?->hasPlatformAccess()) {
+            return true;
+        }
+
+        return $company !== null && $workflow->company_id === $company->id;
+    }
+
+    /**
      * Get users from the current company and all ancestor companies.
      *
      * @return Collection<int, User>
      */
-    private function getCompanyAndAncestorUsers(Company $company)
+    private function getCompanyAndAncestorUsers(Company $company): Collection
     {
         $companyIds = collect([$company->id])
             ->merge($company->allAncestors()->pluck('id'));
@@ -245,28 +285,5 @@ class ApprovalWorkflowController extends Controller
             ->with(['companies' => fn ($q) => $q->whereIn('companies.id', $companyIds)])
             ->orderBy('name')
             ->get();
-    }
-
-    /**
-     * Permanently delete a workflow template (force delete).
-     */
-    public function softDelete(string $id): RedirectResponse
-    {
-        $company = auth()->user()?->getActiveCompany();
-
-        if (! $company) {
-            abort(403);
-        }
-
-        $workflow = WorkflowTemplate::withTrashed()->findOrFail((int) $id);
-
-        if ($workflow->company_id !== $company->id) {
-            abort(403);
-        }
-
-        $workflow->forceDelete();
-
-        return redirect()->route('admin.approval-workflows.index', ['trashed' => 1])
-            ->with('success', 'Workflow template permanently deleted.');
     }
 }

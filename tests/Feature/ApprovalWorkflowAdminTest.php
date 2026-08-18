@@ -61,6 +61,32 @@ function actAsApprovalRegularUser(TestCase $test): User
     return $user;
 }
 
+function createApprovalSysadminUser(): array
+{
+    $companyA = Company::factory()->create(['is_active' => true]);
+    $companyB = Company::factory()->create(['is_active' => true]);
+    $role = Role::where('name', 'sysadmin')->first() ?? Role::factory()->sysadmin()->create();
+
+    $user = User::factory()->create();
+    $user->companies()->attach($companyA->id, ['status' => 'active']);
+    $user->companyRoles()->attach(
+        $role->id,
+        ['company_id' => $companyA->id]
+    );
+
+    return [$user, $companyA, $companyB];
+}
+
+function actAsApprovalSysadmin(TestCase $test): array
+{
+    [$user, $companyA, $companyB] = createApprovalSysadminUser();
+
+    $test->actingAs($user);
+    session(['active_company_id' => $companyA->id]);
+
+    return [$user, $companyA, $companyB];
+}
+
 function validWorkflowPayload(string $name = 'New Workflow', int $groupCount = 1, int $stepsPerGroup = 1): array
 {
     $groups = [];
@@ -356,4 +382,108 @@ it('force-deletes template with all groups and steps', function () {
     $this->assertDatabaseMissing('approval_workflow_templates', ['id' => $template->id]);
     $this->assertDatabaseMissing('approval_workflow_groups', ['id' => $group->id]);
     $this->assertDatabaseMissing('approval_workflow_steps', ['id' => $step->id]);
+});
+
+// ---------------------------------------------------------------------------
+// Cross-Company Access (Sysadmin vs Regular Company Admin)
+// ---------------------------------------------------------------------------
+
+it('allows sysadmin to view edit form of workflow template belonging to another company', function () {
+    [$user, $companyA, $companyB] = actAsApprovalSysadmin($this);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $companyB->id,
+        'name' => 'Company B Workflow',
+    ]);
+
+    $this->get(route('admin.approval-workflows.edit', $template))
+        ->assertSuccessful()
+        ->assertSee('Company B Workflow');
+});
+
+it('denies company admin from viewing edit form of workflow template belonging to another company', function () {
+    [$user, $companyA] = actAsApprovalAdmin($this);
+    $companyB = Company::factory()->create(['is_active' => true]);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $companyB->id,
+        'name' => 'Other Company Workflow',
+    ]);
+
+    $this->get(route('admin.approval-workflows.edit', $template))
+        ->assertForbidden();
+});
+
+it('allows sysadmin to update workflow template belonging to another company', function () {
+    [$user, $companyA, $companyB] = actAsApprovalSysadmin($this);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $companyB->id,
+        'name' => 'Company B Old Name',
+    ]);
+
+    $this->get(route('admin.approval-workflows.edit', $template));
+
+    $payload = validWorkflowPayload('Company B Updated Name');
+    $this->put(route('admin.approval-workflows.update', $template), $payload)
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success', 'Workflow template updated successfully.');
+
+    $this->assertDatabaseHas('approval_workflow_templates', [
+        'id' => $template->id,
+        'name' => 'Company B Updated Name',
+        'company_id' => $companyB->id,
+    ]);
+});
+
+it('denies company admin from updating workflow template belonging to another company', function () {
+    [$user, $companyA] = actAsApprovalAdmin($this);
+    $companyB = Company::factory()->create(['is_active' => true]);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $companyB->id,
+        'name' => 'Other Company Workflow',
+    ]);
+
+    $payload = validWorkflowPayload('Unauthorized Update');
+    $this->put(route('admin.approval-workflows.update', $template), $payload)
+        ->assertForbidden();
+});
+
+it('allows sysadmin to disable, trash, restore, and soft-delete workflow template belonging to another company', function () {
+    [$user, $companyA, $companyB] = actAsApprovalSysadmin($this);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $companyB->id,
+        'name' => 'Company B Lifecycle Template',
+        'is_active' => true,
+    ]);
+
+    // 1. Destroy (disable)
+    $this->delete(route('admin.approval-workflows.destroy', $template), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success', 'Workflow template disabled.');
+
+    expect($template->fresh()->is_active)->toBeFalse();
+
+    // 2. Trash (soft delete)
+    $this->delete(route('admin.approval-workflows.trash', $template), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success', 'Workflow template deleted.');
+
+    $this->assertSoftDeleted('approval_workflow_templates', ['id' => $template->id]);
+
+    // 3. Restore
+    $this->post(route('admin.approval-workflows.restore', $template->id), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success', 'Workflow template enabled.');
+
+    expect($template->fresh()->trashed())->toBeFalse();
+    expect($template->fresh()->is_active)->toBeTrue();
+
+    // 4. Disable again before force-deleting
+    $template->update(['is_active' => false]);
+    $template->delete();
+
+    // 5. Permanent force delete
+    $this->delete(route('admin.approval-workflows.soft-delete', $template->id), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index', ['trashed' => 1]))
+        ->assertSessionHas('success', 'Workflow template permanently deleted.');
+
+    $this->assertDatabaseMissing('approval_workflow_templates', ['id' => $template->id]);
 });
