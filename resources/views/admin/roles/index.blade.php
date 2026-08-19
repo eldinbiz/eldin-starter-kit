@@ -61,7 +61,7 @@
                     <th class="py-3 text-left">
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Role</p>
                     </th>
-                    <th class="py-3 text-left">
+                    <th class="py-3 text-left max-w-md">
                         <p class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">Permissions</p>
                     </th>
                     <th class="py-3 text-left">
@@ -92,12 +92,13 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="py-3.5">
-                            <div class="flex flex-wrap gap-1.5">
+                        <td class="py-3.5 max-w-md">
+                            <div class="flex flex-wrap gap-1.5 max-w-md">
                                 @php $rolePermissions = $role->permissions ?? []; @endphp
                                 @forelse($rolePermissions as $permKey)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                                        {{ $permissionLabels[$permKey] ?? $permKey }}
+                                        {{-- {{ $permissionLabels[$permKey] ?? $permKey }} --}}
+                                        {{ $permKey }}
                                     </span>
                                 @empty
                                     <span class="text-xs text-gray-400 dark:text-gray-500 italic">No permissions</span>
