@@ -102,8 +102,14 @@ class ApprovalRequestStep extends Model
     }
 
     /**
+     * Cache for company_user job titles across the request to prevent duplicate queries.
+     *
+     * @var array<string, ?string>
+     */
+    private static array $jobTitleCache = [];
+
+    /**
      * Get the approver's job title from the company_user pivot.
-     * Uses a direct DB query to avoid lazy-loading violations.
      */
     public function getApproverJobTitleAttribute(): ?string
     {
@@ -111,17 +117,27 @@ class ApprovalRequestStep extends Model
             return null;
         }
 
-        $companyId = ApprovalRequest::where('id', $this->approval_request_id)
-            ->value('company_id');
+        $companyId = $this->relationLoaded('request') && $this->request
+            ? $this->request->company_id
+            : ApprovalRequest::where('id', $this->approval_request_id)->value('company_id');
 
         if (! $companyId) {
             return null;
         }
 
-        return DB::table('company_user')
-            ->where('user_id', $this->approver_id)
-            ->where('company_id', $companyId)
-            ->value('job_title');
+        if ($this->relationLoaded('approver') && $this->approver?->relationLoaded('companies')) {
+            return $this->approver->companies->firstWhere('id', $companyId)?->pivot?->job_title;
+        }
+
+        $cacheKey = "{$this->approver_id}:{$companyId}";
+        if (! array_key_exists($cacheKey, self::$jobTitleCache)) {
+            self::$jobTitleCache[$cacheKey] = DB::table('company_user')
+                ->where('user_id', $this->approver_id)
+                ->where('company_id', $companyId)
+                ->value('job_title');
+        }
+
+        return self::$jobTitleCache[$cacheKey];
     }
 
     /**
@@ -134,26 +150,6 @@ class ApprovalRequestStep extends Model
             return $this->step_label;
         }
 
-        $approver = $this->approver;
-
-        if (! $approver) {
-            return 'Approver';
-        }
-
-        // Use a direct query instead of lazy-loading the `request` relationship,
-        // which would trigger LazyLoadingViolationException in development.
-        $companyId = ApprovalRequest::where('id', $this->approval_request_id)
-            ->value('company_id');
-
-        if ($companyId) {
-            $membership = DB::table('company_user')
-                ->where('user_id', $this->approver_id)
-                ->where('company_id', $companyId)
-                ->first();
-
-            return $membership?->job_title ?: 'Approver';
-        }
-
-        return 'Approver';
+        return $this->approver_job_title ?: 'Approver';
     }
 }

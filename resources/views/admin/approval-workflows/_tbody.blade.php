@@ -58,59 +58,21 @@
                         </button>
                     </form>
 
-                    <div x-data="{ confirming: false, typedName: '' }">
-                        <button
-                            type="button"
-                            @click="confirming = true; typedName = ''"
-                            class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer"
-                            title="Permanently delete"
-                        >
-                            <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                            </svg>
-                        </button>
-
-                        <div
-                            x-show="confirming"
-                            x-cloak
-                            x-trap.noscroll="confirming"
-                            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                        >
-                            <div
-                                @click.outside="confirming = false; typedName = ''"
-                                class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-white/[0.03]"
-                            >
-                                <p class="text-center text-sm font-medium text-gray-800 dark:text-white/90 mb-1">
-                                    Permanently delete?
-                                </p>
-                                <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                    This action cannot be undone. <strong class="font-semibold text-error-600 dark:text-error-400">{{ $template->name }}</strong> will be permanently deleted.
-                                </p>
-                                <p class="text-center text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                    Type <code class="rounded bg-gray-100 px-1 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $template->name }}</code> to confirm.
-                                </p>
-
-                                <form action="{{ route('admin.approval-workflows.soft-delete', $template->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <input type="text" x-model="typedName" placeholder="Type template name"
-                                        class="mb-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-error-500 focus:outline-none focus:ring-1 focus:ring-error-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:placeholder-gray-500">
-                                    <div class="flex justify-end gap-2">
-                                        <button type="button" @click="confirming = false; typedName = ''"
-                                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]">
-                                            Cancel
-                                        </button>
-                                        <button type="submit"
-                                            :disabled="typedName !== '{{ $template->name }}'"
-                                            :class="typedName === '{{ $template->name }}' ? 'bg-error-500 hover:bg-error-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'"
-                                            class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
-                                            Delete
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    <button
+                        type="button"
+                        @click="$dispatch('open-delete-template', {
+                            title: 'Permanently delete?',
+                            message: 'This action cannot be undone. ' + @js($template->name) + ' will be permanently deleted.',
+                            templateName: @js($template->name),
+                            actionUrl: @js(route('admin.approval-workflows.soft-delete', $template->id))
+                        })"
+                        class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer"
+                        title="Permanently delete"
+                    >
+                        <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                    </button>
                 @elseif (! $template->is_active)
                     {{-- Disabled: Show edit, enable, and delete buttons --}}
                     <a
@@ -135,59 +97,21 @@
                         </button>
                     </form>
 
-                    <div x-data="{ confirming: false, typedName: '' }">
-                        <button
-                            type="button"
-                            @click="confirming = true; typedName = ''"
-                            class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer"
-                            title="Delete template"
-                        >
-                            <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                            </svg>
-                        </button>
-
-                        <div
-                            x-show="confirming"
-                            x-cloak
-                            x-trap.noscroll="confirming"
-                            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                        >
-                            <div
-                                @click.outside="confirming = false; typedName = ''"
-                                class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-white/[0.03]"
-                            >
-                                <p class="text-center text-sm font-medium text-gray-800 dark:text-white/90 mb-1">
-                                    Delete template?
-                                </p>
-                                <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                    This will move <strong class="font-semibold text-error-600 dark:text-error-400">{{ $template->name }}</strong> to the trash.
-                                </p>
-                                <p class="text-center text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                    Type <code class="rounded bg-gray-100 px-1 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ $template->name }}</code> to confirm.
-                                </p>
-
-                                <form action="{{ route('admin.approval-workflows.trash', $template->id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <input type="text" x-model="typedName" placeholder="Type template name"
-                                        class="mb-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-error-500 focus:outline-none focus:ring-1 focus:ring-error-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:placeholder-gray-500">
-                                    <div class="flex justify-end gap-2">
-                                        <button type="button" @click="confirming = false; typedName = ''"
-                                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300 dark:hover:bg-white/[0.05]">
-                                            Cancel
-                                        </button>
-                                        <button type="submit"
-                                            :disabled="typedName !== '{{ $template->name }}'"
-                                            :class="typedName === '{{ $template->name }}' ? 'bg-error-500 hover:bg-error-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'"
-                                            class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
-                                            Delete
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    <button
+                        type="button"
+                        @click="$dispatch('open-delete-template', {
+                            title: 'Delete template?',
+                            message: 'This will move ' + @js($template->name) + ' to the trash.',
+                            templateName: @js($template->name),
+                            actionUrl: @js(route('admin.approval-workflows.trash', $template->id))
+                        })"
+                        class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer"
+                        title="Delete template"
+                    >
+                        <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                    </button>
                 @else
                     {{-- Active: Show edit and disable buttons --}}
                     <a
@@ -217,3 +141,60 @@
         </td>
     </tr>
 @endforeach
+
+{{-- Reusable Confirmation Modal --}}
+<tr x-data="{
+    open: false,
+    title: '',
+    message: '',
+    templateName: '',
+    actionUrl: '',
+    typedName: '',
+    openModal(detail) {
+        this.title = detail.title;
+        this.message = detail.message;
+        this.templateName = detail.templateName;
+        this.actionUrl = detail.actionUrl;
+        this.typedName = '';
+        this.open = true;
+    }
+}" @open-delete-template.window="openModal($event.detail)">
+    <td colspan="6" class="p-0 border-0">
+        <div
+            x-show="open"
+            x-cloak
+            x-trap.noscroll="open"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        >
+            <div
+                @click.outside="open = false; typedName = ''"
+                class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-800"
+            >
+                <p class="text-center text-sm font-medium text-gray-800 dark:text-white/90 mb-1" x-text="title"></p>
+                <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-4" x-text="message"></p>
+                <p class="text-center text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    Type <code class="rounded bg-gray-100 px-1 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300" x-text="templateName"></code> to confirm.
+                </p>
+
+                <form :action="actionUrl" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <input type="text" x-model="typedName" placeholder="Type template name"
+                        class="mb-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-error-500 focus:outline-none focus:ring-1 focus:ring-error-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:placeholder-gray-500">
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="open = false; typedName = ''"
+                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            :disabled="typedName !== templateName"
+                            :class="typedName === templateName ? 'bg-error-500 hover:bg-error-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'"
+                            class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
+                            Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </td>
+</tr>

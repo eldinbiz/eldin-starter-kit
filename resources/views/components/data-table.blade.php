@@ -129,12 +129,7 @@
                 x-ref="tableContent"
                 x-show="hasLoaded"
                 :class="{ 'opacity-40 pointer-events-none transition-opacity duration-150': loading && hasLoaded }"
-            >
-                {{-- Fallback for JavaScript-disabled environments --}}
-                <noscript>
-                    @include('components.data-table.partial', ['datatable' => $datatable])
-                </noscript>
-            </div>
+            ></div>
         </div>
     </div>
 @else

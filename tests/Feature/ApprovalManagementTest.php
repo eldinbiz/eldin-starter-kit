@@ -37,6 +37,10 @@ it('admin can view the manage approvals page', function () {
 
     $this->get(route('admin.approval-management.index'))
         ->assertSuccessful()
+        ->assertSee('Manage Approvals');
+
+    $this->get(route('admin.approval-management.index'), ['X-DataTable-Partial' => 'true'])
+        ->assertSuccessful()
         ->assertSee('Manager Approval');
 });
 
@@ -74,7 +78,7 @@ it('admin sees steps from their company only', function () {
         'step_label' => 'Other Step',
     ]);
 
-    $this->get(route('admin.approval-management.index'))
+    $this->get(route('admin.approval-management.index'), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee('My Step')
         ->assertDontSee('Other Step');
@@ -269,7 +273,7 @@ it('search filter works by approver name', function () {
     expect($janeCount)->toBe(1);
 
     // Verify page shows only the matching step
-    $this->get(route('admin.approval-management.index', ['search' => 'Jane']))
+    $this->get(route('admin.approval-management.index', ['search' => 'Jane']), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee('HR Review')
         ->assertDontSee('Manager Approval');
@@ -294,7 +298,7 @@ it('step_state filter works', function () {
         'step_label' => 'Approved Step',
     ]);
 
-    $this->get(route('admin.approval-management.index', ['step_state' => 'approved']))
+    $this->get(route('admin.approval-management.index', ['step_state' => 'approved']), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee('Approved Step')
         ->assertDontSee('Pending Step');
@@ -322,7 +326,7 @@ it('request_status filter works', function () {
         'step_label' => 'Approved Request Step',
     ]);
 
-    $this->get(route('admin.approval-management.index', ['request_status' => 'approved']))
+    $this->get(route('admin.approval-management.index', ['request_status' => 'approved']), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee('Approved Request Step')
         ->assertDontSee('Pending Request Step');

@@ -15,7 +15,7 @@ abstract class DataTable
 
     protected Request $request;
 
-    protected LengthAwarePaginator $results;
+    protected ?LengthAwarePaginator $results = null;
 
     protected string $sort;
 
@@ -128,7 +128,7 @@ abstract class DataTable
     }
 
     /**
-     * Process the incoming request and paginate the query.
+     * Process the incoming request and configure query parameters.
      */
     public function handle(Request $request): static
     {
@@ -139,11 +139,6 @@ abstract class DataTable
         $this->resolveSearch();
         $this->applyFilters();
         $this->resolvePerPage();
-
-        $this->results = $this->query
-            ->orderBy($this->sort, $this->direction)
-            ->paginate($this->perPage)
-            ->appends($request->query());
 
         return $this;
     }
@@ -172,6 +167,13 @@ abstract class DataTable
 
     public function results(): LengthAwarePaginator
     {
+        if ($this->results === null) {
+            $this->results = $this->query
+                ->orderBy($this->sort, $this->direction)
+                ->paginate($this->perPage)
+                ->appends($this->request->query());
+        }
+
         return $this->results;
     }
 

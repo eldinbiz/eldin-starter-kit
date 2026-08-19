@@ -13,6 +13,6 @@
         <p class="text-sm text-gray-500 dark:text-gray-400">All approval requests you've been involved in as an approver or delegate.</p>
     </div>
 
-    <x-data-table :datatable="$dataTable" />
+    <x-data-table :datatable="$dataTable" deferred />
 </div>
 @endsection

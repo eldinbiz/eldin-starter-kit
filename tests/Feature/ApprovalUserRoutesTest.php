@@ -99,6 +99,10 @@ it('shows pending steps where authenticated user is the approver', function () {
 
     $this->get(route('approvals.inbox'))
         ->assertSuccessful()
+        ->assertSee('Approval Inbox');
+
+    $this->get(route('approvals.inbox'), ['X-DataTable-Partial' => 'true'])
+        ->assertSuccessful()
         ->assertSee("Fake Approvable #{$request->approvable_id}");
 });
 
@@ -109,6 +113,10 @@ it('shows empty state when user has no pending steps', function () {
     actAsApprovalUser($this, $user, $company);
 
     $this->get(route('approvals.inbox'))
+        ->assertSuccessful()
+        ->assertSee('Approval Inbox');
+
+    $this->get(route('approvals.inbox'), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee('No results match your filters.');
 });
@@ -139,6 +147,10 @@ it('shows approved and rejected requests where user was approver', function () {
 
     $this->get(route('approvals.history'))
         ->assertSuccessful()
+        ->assertSee('Approval History');
+
+    $this->get(route('approvals.history'), ['X-DataTable-Partial' => 'true'])
+        ->assertSuccessful()
         ->assertSee("Fake Approvable #{$requestA->approvable_id}")
         ->assertSee("Fake Approvable #{$requestB->approvable_id}");
 });
@@ -154,7 +166,7 @@ it('shows requests where user was delegate', function () {
 
     actAsApprovalUser($this, $manager, $company);
 
-    $this->get(route('approvals.history'))
+    $this->get(route('approvals.history'), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee("Fake Approvable #{$approvable->id}");
 });
@@ -168,6 +180,10 @@ it('shows requests submitted by the authenticated user', function () {
     actAsApprovalUser($this, $requestor, $company);
 
     $this->get(route('approvals.requests'))
+        ->assertSuccessful()
+        ->assertSee('My Requests');
+
+    $this->get(route('approvals.requests'), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()
         ->assertSee("Fake Approvable #{$request->approvable_id}");
 });

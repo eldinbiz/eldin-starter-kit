@@ -8,7 +8,6 @@ use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class UsersDataTable extends DataTable
@@ -149,9 +148,15 @@ class UsersDataTable extends DataTable
         ];
     }
 
+    private ?array $cachedSharedViewData = null;
+
     public function sharedViewData(): array
     {
-        return [
+        if ($this->cachedSharedViewData !== null) {
+            return $this->cachedSharedViewData;
+        }
+
+        return $this->cachedSharedViewData = [
             'userCompanyRoleMap' => $this->getUserCompanyRoleMap(),
             'canImpersonate' => auth()->user()?->canImpersonate() ?? false,
             'authUserId' => auth()->id(),
@@ -159,18 +164,13 @@ class UsersDataTable extends DataTable
         ];
     }
 
-    public function handle(Request $request): static
-    {
-        parent::handle($request);
-
-        $this->buildUserCompanyRoleMap();
-
-        return $this;
-    }
-
     public function getUserCompanyRoleMap(): Collection
     {
-        return $this->userCompanyRoleMap ?? collect();
+        if (! isset($this->userCompanyRoleMap)) {
+            $this->buildUserCompanyRoleMap();
+        }
+
+        return $this->userCompanyRoleMap;
     }
 
     /**
@@ -188,7 +188,7 @@ class UsersDataTable extends DataTable
 
     private function buildUserCompanyRoleMap(): void
     {
-        $this->userCompanyRoleMap = $this->results->getCollection()->mapWithKeys(function (User $user) {
+        $this->userCompanyRoleMap = $this->results()->getCollection()->mapWithKeys(function (User $user) {
             $grouped = $user->companyRoles->groupBy('pivot.company_id');
 
             $mapped = $grouped->map(function ($roles) use ($user) {

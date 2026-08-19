@@ -58,7 +58,7 @@
         </div>
     @endif
 
-    <x-data-table :datatable="$dataTable" />
+    <x-data-table :datatable="$dataTable" deferred />
 
     {{-- Create Modal --}}
     <div 

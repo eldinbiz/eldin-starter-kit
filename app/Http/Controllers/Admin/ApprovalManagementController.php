@@ -20,13 +20,6 @@ class ApprovalManagementController
 
     public function index(Request $request, ApprovalManagementDataTable $dataTable): View
     {
-        /** @var User $user */
-        $user = auth()->user();
-        $company = $user->getActiveCompany();
-
-        $companyUsers = $company->users()->orderBy('name')->get();
-        $request->attributes->set('_company_users', $companyUsers);
-
         $dataTable->handle($request);
 
         if ($dataTable->isPartialRequest($request)) {
@@ -35,7 +28,6 @@ class ApprovalManagementController
 
         return view('admin.approval-management.index', [
             'dataTable' => $dataTable,
-            'companyUsers' => $companyUsers,
         ]);
     }
 

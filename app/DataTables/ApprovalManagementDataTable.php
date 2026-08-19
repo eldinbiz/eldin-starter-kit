@@ -16,7 +16,7 @@ class ApprovalManagementDataTable extends DataTable
         $isSysAdmin = $user?->hasPlatformAccess() ?? false;
         $company = $user?->getActiveCompany();
 
-        $query = ApprovalRequestStep::with('request.requestor', 'request.approvable', 'approver', 'request.company');
+        $query = ApprovalRequestStep::with('request.requestor', 'request.approvable', 'approver.companies', 'request.company');
 
         if (! $isSysAdmin && $company) {
             $query->whereHas('request', fn ($q) => $q->where('company_id', $company->id));
@@ -139,10 +139,23 @@ class ApprovalManagementDataTable extends DataTable
         ];
     }
 
+    private ?array $cachedSharedViewData = null;
+
     public function sharedViewData(): array
     {
-        return [
-            'companyUsers' => $this->request->attributes->get('_company_users', collect()),
+        if ($this->cachedSharedViewData !== null) {
+            return $this->cachedSharedViewData;
+        }
+
+        $companyUsers = $this->request?->attributes->get('_company_users');
+
+        if ($companyUsers === null) {
+            $company = auth()->user()?->getActiveCompany();
+            $companyUsers = $company ? $company->users()->orderBy('name')->get() : collect();
+        }
+
+        return $this->cachedSharedViewData = [
+            'companyUsers' => $companyUsers,
         ];
     }
 }

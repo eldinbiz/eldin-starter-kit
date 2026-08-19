@@ -170,14 +170,14 @@ it('filters and searches api tokens in datatable', function () {
 
     // Search by token name
     $this->actingAs($admin)
-        ->get(route('admin.api-tokens.index', ['search' => 'Sync']))
+        ->get(route('admin.api-tokens.index', ['search' => 'Sync']), ['X-DataTable-Partial' => 'true'])
         ->assertOk()
         ->assertSee('Active Sync Token')
         ->assertDontSee('Old Expired Token');
 
     // Filter by expired status
     $this->actingAs($admin)
-        ->get(route('admin.api-tokens.index', ['status' => 'expired']))
+        ->get(route('admin.api-tokens.index', ['status' => 'expired']), ['X-DataTable-Partial' => 'true'])
         ->assertOk()
         ->assertSee('Old Expired Token')
         ->assertDontSee('Active Sync Token');

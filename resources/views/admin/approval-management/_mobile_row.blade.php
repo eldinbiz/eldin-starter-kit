@@ -6,6 +6,9 @@ $isActionable = ($step->state === StepState::Pending || $step->state === StepSta
     && $step->request->isPending();
 $canDelegate = $isActionable && $step->state === StepState::Pending;
 $canSkip = $isActionable;
+$approvalTitle = $step->request->approvable instanceof \App\Contracts\Approvable
+    ? $step->request->approvable->getApprovalTitle()
+    : 'Approval Request #'.$step->request->id;
 @endphp
 
 <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
@@ -19,11 +22,7 @@ $canSkip = $isActionable;
         </span>
         <div class="min-w-0">
             <a href="{{ route('approvals.show', $step->request->id) }}" class="font-medium text-gray-800 text-theme-sm dark:text-white/90 truncate block hover:text-brand-500">
-                @if ($step->request->approvable instanceof \App\Contracts\Approvable)
-                    {{ $step->request->approvable->getApprovalTitle() }}
-                @else
-                    Approval Request #{{ $step->request->id }}
-                @endif
+                {{ $approvalTitle }}
             </a>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ $step->request->requestor->name }}</p>
         </div>
@@ -58,77 +57,23 @@ $canSkip = $isActionable;
         @if ($canDelegate || $canSkip)
             <div class="flex items-center gap-2">
                 @if ($canDelegate)
-                    <div x-data="{ open: false, selectedUser: '' }">
-                        <button @click="open = true" class="inline-flex items-center justify-center rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-100 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20">
-                            Delegate
-                        </button>
-
-                        <div x-show="open" x-cloak x-trap.noscroll="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                            <div @click.outside="open = false" class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900">
-                                <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Reassign Approver</h4>
-                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                    Reassign "{{ $step->step_label }}" — {{ $step->request->approvable instanceof \App\Contracts\Approvable ? $step->request->approvable->getApprovalTitle() : 'Approval Request #'.$step->request->id }}
-                                </p>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                    Current: <span class="font-medium text-gray-700 dark:text-gray-300">{{ $step->approver?->name ?? 'None' }}</span>
-                                </p>
-
-                                <form action="{{ route('admin.approval-management.delegate', $step->id) }}" method="POST" class="mt-4">
-                                    @csrf
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Approver</label>
-                                    <select x-model="selectedUser" name="approver_id" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                                        <option value="">Select user...</option>
-                                        @foreach ($companyUsers as $u)
-                                            @if ($u->id !== $step->approver_id)
-                                                <option value="{{ $u->id }}">{{ $u->name }}</option>
-                                            @endif
-                                        @endforeach
-                                    </select>
-
-                                    <div class="mt-6 flex justify-end gap-3">
-                                        <button type="button" @click="open = false" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" :disabled="selectedUser === ''" class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed">
-                                            Delegate
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    <button
+                        type="button"
+                        @click="$dispatch('open-delegate', { id: {{ $step->id }}, label: @js($step->display_label), title: @js($approvalTitle), approver: @js($step->approver?->name ?? 'None'), approverId: {{ $step->approver_id ?? 'null' }} })"
+                        class="inline-flex items-center justify-center rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-100 dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500/20"
+                    >
+                        Delegate
+                    </button>
                 @endif
 
                 @if ($canSkip)
-                    <div x-data="{ skipOpen: false }">
-                        <button @click="skipOpen = true" class="inline-flex items-center justify-center rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-600 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20">
-                            Skip
-                        </button>
-
-                        <div x-show="skipOpen" x-cloak x-trap.noscroll="skipOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                            <div @click.outside="skipOpen = false" class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900">
-                                <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Skip Step</h4>
-                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                    Skip "{{ $step->step_label }}"?
-                                </p>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                    This will bypass the step and advance the workflow.
-                                </p>
-
-                                <form action="{{ route('admin.approval-management.skip', $step->id) }}" method="POST" class="mt-4">
-                                    @csrf
-                                    <div class="mt-6 flex justify-end gap-3">
-                                        <button type="button" @click="skipOpen = false" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-error-500 px-4 py-2 text-sm font-medium text-white hover:bg-error-600">
-                                            Skip
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                    <button
+                        type="button"
+                        @click="$dispatch('open-skip', { id: {{ $step->id }}, label: @js($step->display_label) })"
+                        class="inline-flex items-center justify-center rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-600 hover:bg-error-100 dark:bg-error-500/10 dark:text-error-400 dark:hover:bg-error-500/20"
+                    >
+                        Skip
+                    </button>
                 @endif
             </div>
         @endif

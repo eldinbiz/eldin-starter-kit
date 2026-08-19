@@ -14,7 +14,7 @@ class ApprovalInboxDataTable extends DataTable
         $user = auth()->user();
         $company = $user?->getActiveCompany();
 
-        return ApprovalRequestStep::with('request.requestor', 'request.approvable')
+        return ApprovalRequestStep::with(['request.requestor', 'request.approvable', 'request.company', 'approver.companies'])
             ->where('approver_id', $user?->id)
             ->whereHas('request', function ($query) use ($company): void {
                 $query->where('company_id', $company?->id)
