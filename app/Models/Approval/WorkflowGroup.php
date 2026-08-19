@@ -23,6 +23,7 @@ class WorkflowGroup extends Model
         'name',
         'order',
         'type',
+        'min_approvals',
     ];
 
     /**
@@ -32,6 +33,7 @@ class WorkflowGroup extends Model
     {
         return [
             'type' => GroupType::class,
+            'min_approvals' => 'integer',
         ];
     }
 
@@ -59,5 +61,15 @@ class WorkflowGroup extends Model
     public function isParallel(): bool
     {
         return $this->type === GroupType::Parallel;
+    }
+
+    public function isUnanimous(): bool
+    {
+        return $this->isSequential() || $this->min_approvals === null;
+    }
+
+    public function requiredApprovalsCount(): int
+    {
+        return $this->min_approvals ?? $this->steps()->count();
     }
 }

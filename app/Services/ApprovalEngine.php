@@ -260,7 +260,7 @@ class ApprovalEngine
      * Preview a workflow — resolves all approvers without creating any database records.
      * Returns the template structure with resolved approver names for each step.
      *
-     * @return array{template_name: string, groups: array<int, array{name: string, type: string, steps: array<int, array{label: string, order: int, resolver_type: string, approver_name: string, approver_job_title: string|null}>}>}
+     * @return array{template_name: string, groups: array<int, array{name: string, type: string, min_approvals: int|null, steps: array<int, array{label: string, order: int, resolver_type: string, approver_name: string, approver_job_title: string|null}>}>}
      */
     public function preview(Approvable $approvable, WorkflowTemplate $template): array
     {
@@ -273,6 +273,7 @@ class ApprovalEngine
             return [
                 'name' => $group->name,
                 'type' => $group->type->value,
+                'min_approvals' => $group->min_approvals,
                 'steps' => $group->steps->map(function ($step) use ($requestor, $company): array {
                     $resolverType = $step->resolver_type;
 
@@ -442,6 +443,7 @@ class ApprovalEngine
         foreach ($snapshot['groups'] as $groupIndex => $group) {
             $groupName = $group['name'];
             $groupType = GroupType::from($group['type']);
+            $minApprovals = $group['min_approvals'] ?? null;
 
             $groupSteps = $allSteps->where('group_name', $groupName);
 
@@ -450,7 +452,25 @@ class ApprovalEngine
                 return;
             }
 
-            $isComplete = $groupSteps->every(fn ($s) => in_array($s->state, [StepState::Approved, StepState::Skipped], true));
+            if ($groupType === GroupType::Parallel && $minApprovals !== null && $minApprovals > 0) {
+                $approvedCount = $groupSteps->whereIn('state', [StepState::Approved, StepState::Skipped])->count();
+                $isComplete = $approvedCount >= $minApprovals;
+
+                if ($isComplete) {
+                    // Auto-skip remaining pending or awaiting steps in this parallel group
+                    $remainingSteps = $groupSteps->whereIn('state', [StepState::Pending, StepState::AwaitingPrevious]);
+                    foreach ($remainingSteps as $remainingStep) {
+                        $remainingStep->update([
+                            'state' => StepState::Skipped,
+                            'action_at' => now(),
+                            'notes' => "Auto-skipped (Threshold of {$minApprovals} approval(s) met)",
+                        ]);
+                        ApprovalStepCompleted::dispatch($remainingStep);
+                    }
+                }
+            } else {
+                $isComplete = $groupSteps->every(fn ($s) => in_array($s->state, [StepState::Approved, StepState::Skipped], true));
+            }
 
             if (! $isComplete) {
                 $this->activateGroupStepsIfNeeded($request, $group, $groupSteps);
@@ -618,7 +638,7 @@ class ApprovalEngine
     /**
      * Build a snapshot array from a workflow template.
      *
-     * @return array{template_name: string, groups: array<int, array{name: string, type: string, steps: array<int, array{label: string, order: int, resolver_type: string, resolver_payload: array}>}>}
+     * @return array{template_name: string, groups: array<int, array{name: string, type: string, min_approvals: int|null, steps: array<int, array{label: string, order: int, resolver_type: string, resolver_payload: array}>}>}
      */
     private function buildSnapshot(WorkflowTemplate $template): array
     {
@@ -630,6 +650,7 @@ class ApprovalEngine
                 return [
                     'name' => $group->name,
                     'type' => $group->type->value,
+                    'min_approvals' => $group->min_approvals,
                     'steps' => $group->steps->map(function ($step): array {
                         return [
                             'label' => $step->label,

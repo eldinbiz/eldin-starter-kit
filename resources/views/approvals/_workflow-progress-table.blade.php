@@ -15,13 +15,20 @@
         @foreach ($approvalRequest->workflow_snapshot['groups'] as $groupIndex => $group)
             @php
                 $groupSteps = $approvalRequest->steps->where('group_name', $group['name']);
-                $allApproved = $groupSteps->every(fn($s) => $s->state === \App\Enums\StepState::Approved);
+                $groupType = $group['type'] ?? 'sequential';
+                $minApprovals = $group['min_approvals'] ?? null;
+                $approvedCount = $groupSteps->where('state', \App\Enums\StepState::Approved)->count();
+                $isParallelQuorum = ($groupType === 'parallel' && $minApprovals !== null && $minApprovals > 0);
+
+                $groupComplete = $isParallelQuorum
+                    ? ($approvedCount >= $minApprovals)
+                    : $groupSteps->every(fn($s) => in_array($s->state, [\App\Enums\StepState::Approved, \App\Enums\StepState::Skipped], true));
                 $anyRejected = $groupSteps->contains('state', \App\Enums\StepState::Rejected);
             @endphp
 
             <div class="mb-4">
                 <div class="flex items-center gap-2 mb-2">
-                    @if ($allApproved)
+                    @if ($groupComplete && ! $anyRejected && $groupSteps->isNotEmpty())
                         <span class="flex h-5 w-5 items-center justify-center rounded-full bg-success-100 text-success-600 dark:bg-success-500/10 dark:text-success-400">✓</span>
                     @elseif ($anyRejected)
                         <span class="flex h-5 w-5 items-center justify-center rounded-full bg-error-100 text-error-600 dark:bg-error-500/10 dark:text-error-400">✗</span>
@@ -33,6 +40,9 @@
                     </span>
                     <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-500 dark:bg-gray-800 dark:text-gray-400">
                         {{ $group['type'] }}
+                        @if ($isParallelQuorum)
+                            &middot; {{ $minApprovals }} of {{ $groupSteps->count() }} required
+                        @endif
                     </span>
                 </div>
 

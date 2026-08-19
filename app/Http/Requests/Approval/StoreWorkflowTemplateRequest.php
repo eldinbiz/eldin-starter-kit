@@ -22,6 +22,7 @@ class StoreWorkflowTemplateRequest extends FormRequest
             'groups' => ['required', 'array', 'min:1'],
             'groups.*.name' => ['required', 'string', 'max:255'],
             'groups.*.type' => ['required', 'string', 'in:sequential,parallel'],
+            'groups.*.min_approvals' => ['nullable', 'integer', 'min:1'],
             'groups.*.steps' => ['required', 'array', 'min:1'],
             'groups.*.steps.*.label' => ['nullable', 'string', 'max:255'],
             'groups.*.steps.*.resolver_type' => ['required', 'string', 'in:N+1,specific_user,N+1_of_previous'],

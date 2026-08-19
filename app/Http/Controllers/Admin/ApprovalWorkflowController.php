@@ -79,10 +79,15 @@ class ApprovalWorkflowController extends Controller
         ]);
 
         foreach ($request->input('groups', []) as $groupIndex => $groupData) {
+            $minApprovals = ($groupData['type'] === 'parallel' && ! empty($groupData['min_approvals']))
+                ? (int) $groupData['min_approvals']
+                : null;
+
             $group = $template->groups()->create([
                 'name' => $groupData['name'],
                 'order' => $groupIndex,
                 'type' => $groupData['type'],
+                'min_approvals' => $minApprovals,
             ]);
 
             foreach ($groupData['steps'] ?? [] as $stepIndex => $stepData) {
@@ -150,10 +155,15 @@ class ApprovalWorkflowController extends Controller
         $workflow->groups()->delete();
 
         foreach ($request->input('groups', []) as $groupIndex => $groupData) {
+            $minApprovals = ($groupData['type'] === 'parallel' && ! empty($groupData['min_approvals']))
+                ? (int) $groupData['min_approvals']
+                : null;
+
             $group = $workflow->groups()->create([
                 'name' => $groupData['name'],
                 'order' => $groupIndex,
                 'type' => $groupData['type'],
+                'min_approvals' => $minApprovals,
             ]);
 
             foreach ($groupData['steps'] ?? [] as $stepIndex => $stepData) {

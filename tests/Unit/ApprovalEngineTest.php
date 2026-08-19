@@ -75,10 +75,10 @@ function createSingleStepTemplate(Company $company): WorkflowTemplate
 /**
  * Create a template with one parallel group of N+1 steps.
  */
-function createParallelTemplate(Company $company, int $steps = 2): WorkflowTemplate
+function createParallelTemplate(Company $company, int $steps = 2, ?int $minApprovals = null): WorkflowTemplate
 {
     $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
-    $group = WorkflowGroup::factory()->parallel()->create(['template_id' => $template->id, 'order' => 0]);
+    $group = WorkflowGroup::factory()->parallel($minApprovals)->create(['template_id' => $template->id, 'order' => 0]);
 
     foreach (range(0, $steps - 1) as $order) {
         WorkflowStep::factory()->nPlus1()->create(['group_id' => $group->id, 'order' => $order]);
@@ -743,4 +743,103 @@ it('dispatches ApprovalCompleted when final group completes', function () {
     approvalEngine()->approve($step, $manager);
 
     Event::assertDispatched(ApprovalCompleted::class, fn (ApprovalCompleted $event) => $event->approvalRequest->is($request));
+});
+
+it('completes request and auto-skips remaining steps when parallel group min_approvals threshold is met', function () {
+    [$company, [$requestor, $manager]] = createApprovalManagerChain();
+    $template = createParallelTemplate($company, 3, minApprovals: 1);
+    $request = submitApprovalRequest($company, $requestor, $template);
+    $steps = $request->steps()->orderBy('order')->get();
+
+    expect($steps)->toHaveCount(3);
+    expect($steps[0]->state)->toBe(StepState::Pending);
+    expect($steps[1]->state)->toBe(StepState::Pending);
+    expect($steps[2]->state)->toBe(StepState::Pending);
+
+    // Approve only the first step
+    approvalEngine()->approve($steps[0], $manager);
+    $request->refresh();
+
+    // The whole request should now be approved
+    expect($request->status)->toBe(ApprovalStatus::Approved);
+
+    // Step 0 is approved, steps 1 and 2 should be auto-skipped
+    expect($steps[0]->fresh()->state)->toBe(StepState::Approved);
+    expect($steps[1]->fresh()->state)->toBe(StepState::Skipped);
+    expect($steps[1]->fresh()->notes)->toContain('Auto-skipped');
+    expect($steps[2]->fresh()->state)->toBe(StepState::Skipped);
+    expect($steps[2]->fresh()->notes)->toContain('Auto-skipped');
+});
+
+it('waits for quorum when parallel group has min_approvals greater than 1', function () {
+    [$company, [$requestor, $manager]] = createApprovalManagerChain();
+    $template = createParallelTemplate($company, 3, minApprovals: 2);
+    $request = submitApprovalRequest($company, $requestor, $template);
+    $steps = $request->steps()->orderBy('order')->get();
+
+    // First approval: still pending
+    approvalEngine()->approve($steps[0], $manager);
+    $request->refresh();
+    expect($request->status)->toBe(ApprovalStatus::Pending);
+    expect($steps[1]->fresh()->state)->toBe(StepState::Pending);
+    expect($steps[2]->fresh()->state)->toBe(StepState::Pending);
+
+    // Second approval (threshold 2 reached): completes request and skips 3rd step
+    approvalEngine()->approve($steps[1], $manager);
+    $request->refresh();
+    expect($request->status)->toBe(ApprovalStatus::Approved);
+    expect($steps[0]->fresh()->state)->toBe(StepState::Approved);
+    expect($steps[1]->fresh()->state)->toBe(StepState::Approved);
+    expect($steps[2]->fresh()->state)->toBe(StepState::Skipped);
+});
+
+it('advances to next sequential group when parallel group min_approvals is met', function () {
+    [$company, [$requestor, $manager]] = createApprovalManagerChain();
+
+    $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
+    $g1 = WorkflowGroup::factory()->parallel(1)->create(['template_id' => $template->id, 'name' => 'Group 1', 'order' => 0]);
+    $g2 = WorkflowGroup::factory()->sequential()->create(['template_id' => $template->id, 'name' => 'Group 2', 'order' => 1]);
+
+    WorkflowStep::factory()->nPlus1()->create(['group_id' => $g1->id, 'order' => 0]);
+    WorkflowStep::factory()->nPlus1()->create(['group_id' => $g1->id, 'order' => 1]);
+    WorkflowStep::factory()->nPlus1()->create(['group_id' => $g2->id, 'order' => 0]);
+
+    $request = submitApprovalRequest($company, $requestor, $template);
+
+    $g1Steps = $request->steps()->where('group_name', 'Group 1')->orderBy('order')->get();
+    $g2Steps = $request->steps()->where('group_name', 'Group 2')->orderBy('order')->get();
+
+    // Initial state: Group 1 (parallel) steps are Pending, Group 2 steps are AwaitingPrevious
+    expect($g1Steps[0]->state)->toBe(StepState::Pending);
+    expect($g1Steps[1]->state)->toBe(StepState::Pending);
+    expect($g2Steps[0]->state)->toBe(StepState::AwaitingPrevious);
+
+    // Approving Group 1 step 0 satisfies Group 1 (min_approvals = 1)
+    approvalEngine()->approve($g1Steps[0], $manager);
+    $request->refresh();
+
+    expect($request->status)->toBe(ApprovalStatus::Pending);
+    expect($g1Steps[0]->fresh()->state)->toBe(StepState::Approved);
+    expect($g1Steps[1]->fresh()->state)->toBe(StepState::Skipped);
+    expect($g2Steps[0]->fresh()->state)->toBe(StepState::Pending);
+
+    // Now approve Group 2 step
+    approvalEngine()->approve($g2Steps[0]->fresh(), $manager);
+    $request->refresh();
+    expect($request->status)->toBe(ApprovalStatus::Approved);
+});
+
+it('rejects entire request immediately when an approver rejects in a parallel group with min_approvals', function () {
+    [$company, [$requestor, $manager]] = createApprovalManagerChain();
+    $template = createParallelTemplate($company, 3, minApprovals: 1);
+    $request = submitApprovalRequest($company, $requestor, $template);
+    $steps = $request->steps()->orderBy('order')->get();
+
+    approvalEngine()->reject($steps[0], $manager, 'Disapproved finance item');
+    $request->refresh();
+
+    expect($request->status)->toBe(ApprovalStatus::Rejected);
+    expect($steps[0]->fresh()->state)->toBe(StepState::Rejected);
+    expect($steps[1]->fresh()->state)->toBe(StepState::Skipped);
+    expect($steps[2]->fresh()->state)->toBe(StepState::Skipped);
 });

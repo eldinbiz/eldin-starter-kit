@@ -224,6 +224,42 @@ it('returns validation error when group has no steps', function () {
         ->assertSessionHasErrors('groups.0.steps');
 });
 
+it('stores a workflow template with parallel group and min_approvals', function () {
+    [$user, $company] = actAsApprovalAdmin($this);
+
+    $this->get(route('admin.approval-workflows.create'));
+
+    $payload = [
+        '_token' => session()->token(),
+        'name' => 'Parallel Quorum Workflow',
+        'description' => 'Test quorum workflow',
+        'approvable_type' => '',
+        'is_active' => true,
+        'groups' => [
+            [
+                'name' => 'Finance Committee',
+                'type' => 'parallel',
+                'min_approvals' => 2,
+                'steps' => [
+                    ['label' => 'Admin 1', 'resolver_type' => 'N+1', 'resolver_payload' => []],
+                    ['label' => 'Admin 2', 'resolver_type' => 'N+1', 'resolver_payload' => []],
+                    ['label' => 'Admin 3', 'resolver_type' => 'N+1', 'resolver_payload' => []],
+                ],
+            ],
+        ],
+    ];
+
+    $this->post(route('admin.approval-workflows.store'), $payload)
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success');
+
+    $this->assertDatabaseHas('approval_workflow_groups', [
+        'name' => 'Finance Committee',
+        'type' => 'parallel',
+        'min_approvals' => 2,
+    ]);
+});
+
 it('returns 403 for non-admin users on store', function () {
     actAsApprovalRegularUser($this);
 
@@ -288,6 +324,43 @@ it('replaces groups and steps on update', function () {
     $this->assertDatabaseHas('approval_workflow_groups', ['name' => 'Group 0']);
     $this->assertDatabaseHas('approval_workflow_groups', ['name' => 'Group 1']);
     $this->assertDatabaseHas('approval_workflow_steps', ['label' => 'Step 1-0']);
+});
+
+it('updates workflow template with parallel min_approvals', function () {
+    [$user, $company] = actAsApprovalAdmin($this);
+    $template = WorkflowTemplate::factory()->create(['company_id' => $company->id]);
+
+    $this->get(route('admin.approval-workflows.edit', $template));
+
+    $payload = [
+        '_token' => session()->token(),
+        'name' => 'Updated Parallel Workflow',
+        'description' => 'Updated description',
+        'approvable_type' => '',
+        'is_active' => true,
+        'groups' => [
+            [
+                'name' => 'Finance Team',
+                'type' => 'parallel',
+                'min_approvals' => 1,
+                'steps' => [
+                    ['label' => 'Admin 1', 'resolver_type' => 'N+1', 'resolver_payload' => []],
+                    ['label' => 'Admin 2', 'resolver_type' => 'N+1', 'resolver_payload' => []],
+                ],
+            ],
+        ],
+    ];
+
+    $this->put(route('admin.approval-workflows.update', $template), $payload)
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success');
+
+    $this->assertDatabaseHas('approval_workflow_groups', [
+        'template_id' => $template->id,
+        'name' => 'Finance Team',
+        'type' => 'parallel',
+        'min_approvals' => 1,
+    ]);
 });
 
 it('returns 403 for non-admin users on update', function () {

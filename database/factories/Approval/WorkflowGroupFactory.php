@@ -41,10 +41,11 @@ class WorkflowGroupFactory extends Factory
     /**
      * Make the group parallel.
      */
-    public function parallel(): static
+    public function parallel(?int $minApprovals = null): static
     {
         return $this->state(fn (array $attributes): array => [
             'type' => GroupType::Parallel,
+            'min_approvals' => $minApprovals,
         ]);
     }
 

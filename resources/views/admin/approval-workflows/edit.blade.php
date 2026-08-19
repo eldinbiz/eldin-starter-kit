@@ -11,6 +11,7 @@
     $initialGroups = $template->groups->map(fn($g) => [
         'name' => $g->name,
         'type' => $g->type->value,
+        'min_approvals' => $g->min_approvals,
         'steps' => $g->steps->map(fn($s) => [
             'label' => $s->label,
             'resolver_type' => $s->resolver_type->value,
@@ -69,19 +70,20 @@
                         $thisCompanyValue = \App\Enums\TemplateScope::ThisCompany;
                         $subsidiariesValue = \App\Enums\TemplateScope::ThisCompanyAndSubsidiaries;
                         $globalValue = \App\Enums\TemplateScope::Global;
+                        $currentScope = old('scope', $template->scope->value);
                     @endphp
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="scope" value="{{ $thisCompanyValue->value }}" {{ old('scope', $template->scope->value) === $thisCompanyValue->value ? 'checked' : '' }}
+                        <input type="radio" name="scope" value="{{ $thisCompanyValue->value }}" {{ $currentScope === $thisCompanyValue->value ? 'checked' : '' }}
                             class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
                         <span class="text-sm text-gray-700 dark:text-gray-300">{{ $thisCompanyValue->label($company) }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="scope" value="{{ $subsidiariesValue->value }}" {{ old('scope', $template->scope->value) === $subsidiariesValue->value ? 'checked' : '' }}
+                        <input type="radio" name="scope" value="{{ $subsidiariesValue->value }}" {{ $currentScope === $subsidiariesValue->value ? 'checked' : '' }}
                             class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
                         <span class="text-sm text-gray-700 dark:text-gray-300">{{ $subsidiariesValue->label($company) }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="scope" value="{{ $globalValue->value }}" {{ old('scope', $template->scope->value) === $globalValue->value ? 'checked' : '' }}
+                        <input type="radio" name="scope" value="{{ $globalValue->value }}" {{ $currentScope === $globalValue->value ? 'checked' : '' }}
                             class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
                         <span class="text-sm text-gray-700 dark:text-gray-300">{{ $globalValue->label() }}</span>
                     </label>
@@ -123,6 +125,46 @@
                             </select>
                         </div>
 
+                        {{-- Parallel Rule Options --}}
+                        <div x-show="group.type === 'parallel'" x-cloak class="mb-3 rounded-lg border border-gray-200 bg-white p-2.5 dark:border-gray-700 dark:bg-white/[0.03]">
+                            <div class="mb-1.5 flex items-center justify-between">
+                                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Approval Requirement</span>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" :name="'groups[' + gi + '][_rule_type]'" value="unanimous"
+                                        x-model="group.rule_type"
+                                        @change="group.min_approvals = null"
+                                        class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                                    <span class="text-xs text-gray-700 dark:text-gray-300">All approvers must approve (Unanimous)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" :name="'groups[' + gi + '][_rule_type]'" value="any_one"
+                                        x-model="group.rule_type"
+                                        @change="group.min_approvals = 1"
+                                        class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                                    <span class="text-xs text-gray-700 dark:text-gray-300">Any 1 approver (First to respond)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" :name="'groups[' + gi + '][_rule_type]'" value="custom"
+                                        x-model="group.rule_type"
+                                        @change="group.min_approvals = (group.min_approvals && group.min_approvals > 1) ? group.min_approvals : 2"
+                                        class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
+                                    <span class="text-xs text-gray-700 dark:text-gray-300">Custom minimum approvals</span>
+                                </label>
+                                <div x-show="group.rule_type === 'custom'" class="mt-1 pl-5">
+                                    <div class="flex items-center gap-2">
+                                        <input type="number"
+                                            x-model.number="group.min_approvals"
+                                            min="1" :max="Math.max(1, group.steps.length)"
+                                            class="w-20 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
+                                        <span class="text-[11px] text-gray-500 dark:text-gray-400" x-text="'of ' + group.steps.length + ' approver(s)'"></span>
+                                    </div>
+                                </div>
+                                <input type="hidden" :name="'groups[' + gi + '][min_approvals]'" :value="group.type === 'parallel' ? (group.rule_type === 'unanimous' ? '' : (group.rule_type === 'any_one' ? 1 : (group.min_approvals || ''))) : ''">
+                            </div>
+                        </div>
+
                         {{-- Steps within this group --}}
                         <div class="space-y-3">
                             <template x-for="(step, si) in group.steps" :key="si">
@@ -158,9 +200,10 @@
 
                                         {{-- N+1 of Previous Step --}}
                                         <div x-data="{ tooltip: false }" class="relative">
-                                            <label class="flex items-center gap-2 cursor-pointer">
+                                            <label class="flex items-center gap-2" :class="group.type === 'parallel' || si === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'">
                                                 <input type="radio" :name="'groups[' + gi + '][steps][' + si + '][resolver_type]'" value="N+1_of_previous"
                                                     x-model="step.resolver_type"
+                                                    :disabled="group.type === 'parallel' || si === 0"
                                                     class="h-3.5 w-3.5 border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600">
                                                 <span class="text-xs text-gray-700 dark:text-gray-300">N+1 of Previous Step</span>
                                                 <span @mouseenter="tooltip = true" @mouseleave="tooltip = false" @click="tooltip = !tooltip"
@@ -168,7 +211,7 @@
                                             </label>
                                             <div x-show="tooltip" x-cloak
                                                 class="absolute left-0 top-full mt-1 z-10 w-48 rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white shadow-lg dark:bg-gray-700">
-                                                The direct manager of the previous step's approver.
+                                                The manager of whoever approved the preceding step in this group. Not available for the first step or parallel groups.
                                             </div>
                                         </div>
 
@@ -262,9 +305,19 @@
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('workflowBuilder', (initialGroups) => ({
-            groups: initialGroups,
+            groups: (initialGroups || []).map(g => ({
+                ...g,
+                rule_type: g.min_approvals === 1 ? 'any_one' : (g.min_approvals && g.min_approvals > 1 ? 'custom' : 'unanimous'),
+                min_approvals: g.min_approvals || (g.rule_type === 'custom' ? 2 : null),
+            })),
             addGroup() {
-                this.groups.push({ name: 'Group ' + (this.groups.length + 1), type: 'sequential', steps: [{ label: '', resolver_type: 'N+1', resolver_payload: {} }] });
+                this.groups.push({
+                    name: 'Group ' + (this.groups.length + 1),
+                    type: 'sequential',
+                    rule_type: 'unanimous',
+                    min_approvals: null,
+                    steps: [{ label: '', resolver_type: 'N+1', resolver_payload: {} }]
+                });
             },
             removeGroup(index) {
                 if (this.groups.length > 1) this.groups.splice(index, 1);
@@ -273,7 +326,12 @@
                 this.groups[groupIndex].steps.push({ label: '', resolver_type: 'N+1', resolver_payload: {} });
             },
             removeStep(groupIndex, stepIndex) {
-                if (this.groups[groupIndex].steps.length > 1) this.groups[groupIndex].steps.splice(stepIndex, 1);
+                if (this.groups[groupIndex].steps.length > 1) {
+                    this.groups[groupIndex].steps.splice(stepIndex, 1);
+                    if (this.groups[groupIndex].min_approvals && this.groups[groupIndex].min_approvals > this.groups[groupIndex].steps.length) {
+                        this.groups[groupIndex].min_approvals = Math.max(1, this.groups[groupIndex].steps.length);
+                    }
+                }
             }
         }));
     });
