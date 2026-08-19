@@ -33,6 +33,7 @@ WORKDIR /var/www/html
 
 # Dependencies first (cached layer)
 COPY composer.json composer.lock ./
+COPY app-modules/ ./app-modules/
 RUN composer install --no-interaction --no-progress --no-scripts
 
 # App code

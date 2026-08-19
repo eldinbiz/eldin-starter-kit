@@ -15,4 +15,8 @@ php artisan package:discover --ansi || true
 # Enable Yammi audit-log UI dashboard (idempotent — safe to run every start)
 php artisan audit-log:ui enable || true
 
-exec docker-php-entrypoint php-fpm
+if [ $# -gt 0 ]; then
+    exec docker-php-entrypoint "$@"
+else
+    exec docker-php-entrypoint php-fpm
+fi
