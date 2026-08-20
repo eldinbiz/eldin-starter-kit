@@ -4,18 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Companies\AssignCompanyUserAction;
+use App\Actions\Companies\CreateCompanyAction;
+use App\Actions\Companies\RemoveCompanyUserAction;
+use App\Actions\Companies\ReparentCompanyAction;
+use App\Actions\Companies\ToggleCompanyActiveAction;
+use App\Actions\Companies\UpdateCompanyAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Companies\AssignCompanyUserRequest;
+use App\Http\Requests\Admin\Companies\ReparentCompanyRequest;
+use App\Http\Requests\Admin\Companies\StoreCompanyRequest;
+use App\Http\Requests\Admin\Companies\UpdateCompanyRequest;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use InvalidArgumentException;
 
 class CompanyController extends Controller
 {
@@ -45,35 +52,18 @@ class CompanyController extends Controller
     /**
      * Reparent a company via drag-and-drop.
      */
-    public function reparent(Request $request): JsonResponse
+    public function reparent(ReparentCompanyRequest $request, ReparentCompanyAction $action): JsonResponse
     {
-        $request->validate([
-            'company_id' => ['required', 'integer', 'exists:companies,id'],
-            'new_parent_id' => ['nullable', 'integer', 'exists:companies,id'],
-        ]);
+        /** @var array{company_id: int|string, new_parent_id?: int|string|null} $validated */
+        $validated = $request->validated();
+        $companyId = (int) $validated['company_id'];
+        $newParentId = ! empty($validated['new_parent_id']) ? (int) $validated['new_parent_id'] : null;
 
-        $companyId = (int) $request->input('company_id');
-        $newParentId = $request->input('new_parent_id') ? (int) $request->input('new_parent_id') : null;
-
-        $company = Company::findOrFail($companyId);
-
-        // Prevent self-referencing
-        if ($companyId === $newParentId) {
-            return response()->json(['error' => 'A company cannot be its own parent.'], 422);
+        try {
+            $action->execute($companyId, $newParentId);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
-
-        // Cycle detection: prevent moving a company under one of its own descendants
-        if ($newParentId !== null) {
-            $newParent = Company::findOrFail($newParentId);
-
-            if ($newParent->isDescendantOf($company)) {
-                return response()->json(['error' => 'Cannot move a company under one of its own subsidiaries.'], 422);
-            }
-        }
-
-        $company->update([
-            'parent_id' => $newParentId,
-        ]);
 
         return response()->json(['success' => true]);
     }
@@ -82,24 +72,19 @@ class CompanyController extends Controller
      * Toggle the active/inactive status of a company.
      * When disabling, validates that all children are already disabled.
      */
-    public function toggleActive(Company $company): JsonResponse
+    public function toggleActive(Company $company, ToggleCompanyActiveAction $action): JsonResponse
     {
-        if ($company->is_active) {
-            // Disabling: check all children are already disabled
-            if (! $company->allChildrenDisabled()) {
-                return response()->json([
-                    'error' => 'All child companies must be disabled before disabling this company.',
-                ], 422);
-            }
+        try {
+            $updatedCompany = $action->execute($company);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 422);
         }
-
-        $company->update([
-            'is_active' => ! $company->is_active,
-        ]);
 
         return response()->json([
             'success' => true,
-            'is_active' => $company->is_active,
+            'is_active' => $updatedCompany->is_active,
         ]);
     }
 
@@ -117,33 +102,12 @@ class CompanyController extends Controller
     /**
      * Store a newly created company.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCompanyRequest $request, CreateCompanyAction $action): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:companies,slug'],
-            'type' => ['required', 'string', 'in:'.implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
-            'parent_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'logo' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg', 'max:2048'],
-            'is_active' => ['boolean'],
-        ]);
+        /** @var array{name: string, slug: string, type: string, parent_id?: int|string|null, is_active?: bool|int|string} $validated */
+        $validated = $request->validated();
 
-        $logoPath = null;
-
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $filename = Str::slug($request->string('name')->toString()).'.'.$file->getClientOriginalExtension();
-            $logoPath = $file->storeAs('logos', $filename, 'public');
-        }
-
-        Company::create([
-            'name' => $request->string('name')->toString(),
-            'slug' => $request->string('slug')->toString(),
-            'type' => $request->string('type')->toString(),
-            'parent_id' => $request->input('parent_id') ? (int) $request->input('parent_id') : null,
-            'logo' => $logoPath,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+        $action->execute($validated, $request->file('logo'));
 
         return redirect()->route('admin.companies.index')->with('success', 'Company created successfully.');
     }
@@ -187,53 +151,12 @@ class CompanyController extends Controller
     /**
      * Update the specified company.
      */
-    public function update(Request $request, Company $company): RedirectResponse
+    public function update(UpdateCompanyRequest $request, Company $company, UpdateCompanyAction $action): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('companies', 'slug')->ignore($company->id)],
-            'type' => ['required', 'string', 'in:'.implode(',', array_keys(config('company.types', ['operating' => 'Operating Company'])))],
-            'parent_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'logo' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg', 'max:2048'],
-            'is_active' => ['boolean'],
-        ]);
+        /** @var array{name: string, slug: string, type: string, parent_id?: int|string|null, is_active?: bool|int|string} $validated */
+        $validated = $request->validated();
 
-        $newParentId = $request->input('parent_id') ? (int) $request->input('parent_id') : null;
-
-        // Prevent self-referencing
-        if ($newParentId === $company->id) {
-            return redirect()->back()->withErrors(['parent_id' => 'A company cannot be its own parent.']);
-        }
-
-        // Cycle detection on edit as well
-        if ($newParentId !== null) {
-            $newParent = Company::findOrFail($newParentId);
-
-            if ($newParent->isDescendantOf($company)) {
-                return redirect()->back()->withErrors(['parent_id' => 'Cannot set a subsidiary as the parent company.']);
-            }
-        }
-
-        $logoPath = $company->logo;
-
-        if ($request->hasFile('logo')) {
-            // Delete old logo if exists
-            if ($company->logo) {
-                Storage::disk('public')->delete($company->logo);
-            }
-            $file = $request->file('logo');
-            $filename = Str::slug($request->string('name')->toString()).'.'.$file->getClientOriginalExtension();
-            $logoPath = $file->storeAs('logos', $filename, 'public');
-        }
-
-        $company->update([
-            'name' => $request->string('name')->toString(),
-            'slug' => $request->string('slug')->toString(),
-            'type' => $request->string('type')->toString(),
-            'parent_id' => $newParentId,
-            'logo' => $logoPath,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+        $action->execute($company, $validated, $request->file('logo'));
 
         return redirect()->route('admin.companies.index')->with('success', 'Company updated successfully.');
     }
@@ -241,29 +164,12 @@ class CompanyController extends Controller
     /**
      * Assign a user to this company.
      */
-    public function assignUser(Request $request, Company $company): RedirectResponse
+    public function assignUser(AssignCompanyUserRequest $request, Company $company, AssignCompanyUserAction $action): RedirectResponse
     {
-        $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
-            'roles' => ['required', 'array'],
-            'roles.*' => ['exists:roles,id'],
-            'job_title' => ['nullable', 'string', 'max:255'],
-            'manager_id' => ['nullable', 'integer', 'exists:users,id'],
-        ]);
+        /** @var array{user_id: int|string, roles: array<int, int|string>, job_title?: string|null, manager_id?: int|string|null} $validated */
+        $validated = $request->validated();
 
-        $userId = (int) $request->input('user_id');
-
-        $company->users()->attach($userId, [
-            'job_title' => $request->input('job_title'),
-            'manager_id' => $request->input('manager_id') ? (int) $request->input('manager_id') : null,
-            'status' => 'active',
-        ]);
-
-        // Attach company-scoped roles
-        $user = User::find($userId);
-        if ($user) {
-            $user->companyRoles()->attach($request->input('roles'), ['company_id' => $company->id]);
-        }
+        $action->execute($company, $validated);
 
         return redirect()->route('admin.companies.edit', $company)->with('success', 'User assigned to company.');
     }
@@ -271,16 +177,9 @@ class CompanyController extends Controller
     /**
      * Remove a user from this company.
      */
-    public function removeUser(Company $company, int $userId): RedirectResponse
+    public function removeUser(Company $company, int $userId, RemoveCompanyUserAction $action): RedirectResponse
     {
-        // Reassign direct reports to the company level before removing the user
-        $affectedCount = $company->users()
-            ->wherePivot('manager_id', $userId)
-            ->newPivotStatement()
-            ->where('company_id', $company->id)
-            ->update(['manager_id' => null]);
-
-        $company->users()->detach($userId);
+        $affectedCount = $action->execute($company, $userId);
 
         $message = 'User removed from company.';
         if ($affectedCount > 0) {
