@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Roles\CreateRoleAction;
+use App\Actions\Roles\DeleteRoleAction;
+use App\Actions\Roles\DisableRoleAction;
+use App\Actions\Roles\RestoreRoleAction;
+use App\Actions\Roles\UpdateRoleAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Roles\StoreRoleRequest;
+use App\Http\Requests\Admin\Roles\UpdateRoleRequest;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use InvalidArgumentException;
 
 class RoleController extends Controller
 {
@@ -44,20 +51,12 @@ class RoleController extends Controller
     /**
      * Store a newly created role in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreRoleRequest $request, CreateRoleAction $action): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
-            'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['string'],
-        ]);
+        /** @var array{name: string, permissions?: array<int, string>|null} $validated */
+        $validated = $request->validated();
 
-        $permissions = $this->mergeAlwaysEnabledPermissions($validated['permissions'] ?? []);
-
-        Role::create([
-            'name' => $validated['name'],
-            'permissions' => $permissions,
-        ]);
+        $action->execute($validated);
 
         return redirect()->route('admin.roles.index')->with('success', 'Role created successfully.');
     }
@@ -77,20 +76,12 @@ class RoleController extends Controller
     /**
      * Update the specified role in storage.
      */
-    public function update(Request $request, Role $role): RedirectResponse
+    public function update(UpdateRoleRequest $request, Role $role, UpdateRoleAction $action): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($role->id)],
-            'permissions' => ['nullable', 'array'],
-            'permissions.*' => ['string'],
-        ]);
+        /** @var array{name: string, permissions?: array<int, string>|null} $validated */
+        $validated = $request->validated();
 
-        $permissions = $this->mergeAlwaysEnabledPermissions($validated['permissions'] ?? []);
-
-        $role->update([
-            'name' => $validated['name'],
-            'permissions' => $permissions,
-        ]);
+        $action->execute($role, $validated);
 
         return redirect()->route('admin.roles.index')->with('success', 'Role updated successfully.');
     }
@@ -99,77 +90,39 @@ class RoleController extends Controller
      * Disable the specified role (set is_active = false).
      * This is the first step before a role can be soft-deleted.
      */
-    public function destroy(Role $role): RedirectResponse
+    public function destroy(Role $role, DisableRoleAction $action): RedirectResponse
     {
-        if ($role->name === 'user') {
-            return redirect()->route('admin.roles.index')->with(
-                'error',
-                'The "user" role cannot be disabled.',
-            );
+        try {
+            $action->execute($role);
+        } catch (InvalidArgumentException $e) {
+            return redirect()->route('admin.roles.index')->with('error', $e->getMessage());
         }
-
-        $role->update(['is_active' => false]);
 
         return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been disabled.');
     }
 
     /**
-     * Enable a previously disabled role (set is_active = true).
+     * Enable a previously disabled role (set is_active = true) or restore from trash.
      */
-    public function restore(Role $role): RedirectResponse
+    public function restore(Role $role, RestoreRoleAction $action): RedirectResponse
     {
-        if ($role->trashed()) {
-            // Restore from soft-delete
-            $role->restore();
-            $role->update(['is_active' => true]);
+        $status = $action->execute($role);
 
-            return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been restored.');
-        }
-
-        $role->update(['is_active' => true]);
-
-        return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been enabled.');
+        return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been '.$status.'.');
     }
 
     /**
      * Soft-delete a disabled role. The role must already be disabled first.
      */
-    public function softDelete(Role $role): RedirectResponse
+    public function softDelete(Role $role, DeleteRoleAction $action): RedirectResponse
     {
-        if ($role->name === 'user') {
-            return redirect()->route('admin.roles.index')->with(
-                'error',
-                'The "user" role cannot be deleted.',
-            );
+        try {
+            $action->execute($role);
+        } catch (InvalidArgumentException $e) {
+            return redirect()->route('admin.roles.index')->with('error', $e->getMessage());
         }
-
-        if ($role->is_active) {
-            return redirect()->route('admin.roles.index')->with(
-                'error',
-                'Role "'.$role->name.'" must be disabled before it can be deleted.',
-            );
-        }
-
-        $role->delete();
 
         return redirect()->route('admin.roles.index')->with('success', 'Role "'.$role->name.'" has been deleted.');
-    }
-
-    /**
-     * Merge any always-enabled permissions into the given permissions array.
-     *
-     * @param  array<string>  $permissions
-     * @return array<string>
-     */
-    private function mergeAlwaysEnabledPermissions(array $permissions): array
-    {
-        foreach (config('permissions.list', []) as $key => $definition) {
-            if (($definition['always_enabled'] ?? false) && ! in_array($key, $permissions, true)) {
-                $permissions[] = $key;
-            }
-        }
-
-        return $permissions;
     }
 
     /**
