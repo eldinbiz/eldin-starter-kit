@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Approvals\CreateWorkflowTemplateAction;
+use App\Actions\Approvals\ForceDeleteWorkflowTemplateAction;
+use App\Actions\Approvals\ToggleWorkflowTemplateAction;
+use App\Actions\Approvals\TrashWorkflowTemplateAction;
+use App\Actions\Approvals\UpdateWorkflowTemplateAction;
 use App\DataTables\ApprovalWorkflowTemplatesDataTable;
 use App\Helpers\ApprovableTypes;
 use App\Http\Controllers\Controller;
@@ -48,7 +53,6 @@ class ApprovalWorkflowController extends Controller
         }
 
         $users = $this->getCompanyAndAncestorUsers($company);
-
         $company->loadMissing('children');
 
         return view('admin.approval-workflows.create', [
@@ -61,44 +65,17 @@ class ApprovalWorkflowController extends Controller
     /**
      * Store a new workflow template with groups and steps.
      */
-    public function store(StoreWorkflowTemplateRequest $request): RedirectResponse
-    {
-        $company = auth()->user()?->getActiveCompany();
+    public function store(
+        StoreWorkflowTemplateRequest $request,
+        CreateWorkflowTemplateAction $action
+    ): RedirectResponse {
+        $company = $request->user()?->getActiveCompany();
 
         if (! $company) {
             abort(403);
         }
 
-        $template = WorkflowTemplate::create([
-            'company_id' => $company->id,
-            'name' => $request->input('name'),
-            'description' => $request->input('description'),
-            'approvable_type' => $request->input('approvable_type') ?: null,
-            'is_active' => $request->boolean('is_active', true),
-            'scope' => $request->input('scope', 'this_company'),
-        ]);
-
-        foreach ($request->input('groups', []) as $groupIndex => $groupData) {
-            $minApprovals = ($groupData['type'] === 'parallel' && ! empty($groupData['min_approvals']))
-                ? (int) $groupData['min_approvals']
-                : null;
-
-            $group = $template->groups()->create([
-                'name' => $groupData['name'],
-                'order' => $groupIndex,
-                'type' => $groupData['type'],
-                'min_approvals' => $minApprovals,
-            ]);
-
-            foreach ($groupData['steps'] ?? [] as $stepIndex => $stepData) {
-                $group->steps()->create([
-                    'label' => $stepData['label'],
-                    'order' => $stepIndex,
-                    'resolver_type' => $stepData['resolver_type'],
-                    'resolver_payload' => $stepData['resolver_payload'] ?? null,
-                ]);
-            }
-        }
+        $action->execute($company, $request->validated());
 
         return redirect()->route('admin.approval-workflows.index')
             ->with('success', 'Workflow template created successfully.');
@@ -133,48 +110,20 @@ class ApprovalWorkflowController extends Controller
     /**
      * Update an existing workflow template.
      */
-    public function update(StoreWorkflowTemplateRequest $request, WorkflowTemplate $workflow): RedirectResponse
-    {
+    public function update(
+        StoreWorkflowTemplateRequest $request,
+        WorkflowTemplate $workflow,
+        UpdateWorkflowTemplateAction $action
+    ): RedirectResponse {
         /** @var User|null $user */
-        $user = auth()->user();
+        $user = $request->user();
         $company = $user?->getActiveCompany();
 
         if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
         }
 
-        $workflow->update([
-            'name' => $request->input('name'),
-            'description' => $request->input('description'),
-            'approvable_type' => $request->input('approvable_type') ?: null,
-            'is_active' => $request->boolean('is_active', true),
-            'scope' => $request->input('scope', 'this_company'),
-        ]);
-
-        // Remove old groups (and their steps via cascade)
-        $workflow->groups()->delete();
-
-        foreach ($request->input('groups', []) as $groupIndex => $groupData) {
-            $minApprovals = ($groupData['type'] === 'parallel' && ! empty($groupData['min_approvals']))
-                ? (int) $groupData['min_approvals']
-                : null;
-
-            $group = $workflow->groups()->create([
-                'name' => $groupData['name'],
-                'order' => $groupIndex,
-                'type' => $groupData['type'],
-                'min_approvals' => $minApprovals,
-            ]);
-
-            foreach ($groupData['steps'] ?? [] as $stepIndex => $stepData) {
-                $group->steps()->create([
-                    'label' => $stepData['label'],
-                    'order' => $stepIndex,
-                    'resolver_type' => $stepData['resolver_type'],
-                    'resolver_payload' => $stepData['resolver_payload'] ?? null,
-                ]);
-            }
-        }
+        $action->execute($workflow, $request->validated());
 
         return redirect()->route('admin.approval-workflows.index')
             ->with('success', 'Workflow template updated successfully.');
@@ -183,8 +132,10 @@ class ApprovalWorkflowController extends Controller
     /**
      * Disable a workflow template (set is_active = false).
      */
-    public function destroy(WorkflowTemplate $workflow): RedirectResponse
-    {
+    public function destroy(
+        WorkflowTemplate $workflow,
+        ToggleWorkflowTemplateAction $action
+    ): RedirectResponse {
         /** @var User|null $user */
         $user = auth()->user();
         $company = $user?->getActiveCompany();
@@ -193,7 +144,7 @@ class ApprovalWorkflowController extends Controller
             abort(403);
         }
 
-        $workflow->update(['is_active' => false]);
+        $action->disable($workflow);
 
         return redirect()->route('admin.approval-workflows.index')
             ->with('success', 'Workflow template disabled.');
@@ -202,8 +153,10 @@ class ApprovalWorkflowController extends Controller
     /**
      * Enable a workflow template (set is_active = true).
      */
-    public function restore(string $id): RedirectResponse
-    {
+    public function restore(
+        string $id,
+        ToggleWorkflowTemplateAction $action
+    ): RedirectResponse {
         /** @var User|null $user */
         $user = auth()->user();
         $company = $user?->getActiveCompany();
@@ -214,12 +167,7 @@ class ApprovalWorkflowController extends Controller
             abort(403);
         }
 
-        $workflow->update(['is_active' => true]);
-
-        // If it was in the trash, restore it too
-        if ($workflow->trashed()) {
-            $workflow->restore();
-        }
+        $action->enable($workflow);
 
         return redirect()->route('admin.approval-workflows.index')
             ->with('success', 'Workflow template enabled.');
@@ -228,8 +176,10 @@ class ApprovalWorkflowController extends Controller
     /**
      * Soft-delete a disabled workflow template.
      */
-    public function trash(WorkflowTemplate $workflow): RedirectResponse
-    {
+    public function trash(
+        WorkflowTemplate $workflow,
+        TrashWorkflowTemplateAction $action
+    ): RedirectResponse {
         /** @var User|null $user */
         $user = auth()->user();
         $company = $user?->getActiveCompany();
@@ -238,11 +188,7 @@ class ApprovalWorkflowController extends Controller
             abort(403);
         }
 
-        if ($workflow->is_active) {
-            abort(400, 'Only disabled templates can be deleted.');
-        }
-
-        $workflow->delete();
+        $action->execute($workflow);
 
         return redirect()->route('admin.approval-workflows.index')
             ->with('success', 'Workflow template deleted.');
@@ -251,8 +197,10 @@ class ApprovalWorkflowController extends Controller
     /**
      * Permanently delete a workflow template (force delete).
      */
-    public function softDelete(string $id): RedirectResponse
-    {
+    public function softDelete(
+        string $id,
+        ForceDeleteWorkflowTemplateAction $action
+    ): RedirectResponse {
         /** @var User|null $user */
         $user = auth()->user();
         $company = $user?->getActiveCompany();
@@ -263,7 +211,7 @@ class ApprovalWorkflowController extends Controller
             abort(403);
         }
 
-        $workflow->forceDelete();
+        $action->execute($workflow);
 
         return redirect()->route('admin.approval-workflows.index', ['trashed' => 1])
             ->with('success', 'Workflow template permanently deleted.');

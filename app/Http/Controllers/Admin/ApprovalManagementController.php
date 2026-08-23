@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Approvals\DelegateApprovalStepAction;
+use App\Actions\Approvals\SkipApprovalStepAction;
 use App\DataTables\ApprovalManagementDataTable;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Approval\DelegateApprovalStepRequest;
 use App\Models\Approval\ApprovalRequestStep;
 use App\Models\User;
-use App\Services\ApprovalEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class ApprovalManagementController
+class ApprovalManagementController extends Controller
 {
-    public function __construct(
-        private readonly ApprovalEngine $engine,
-    ) {}
-
     public function index(Request $request, ApprovalManagementDataTable $dataTable): View
     {
         $dataTable->handle($request);
@@ -31,28 +30,29 @@ class ApprovalManagementController
         ]);
     }
 
-    public function delegate(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
-    {
+    public function delegate(
+        DelegateApprovalStepRequest $request,
+        ApprovalRequestStep $step,
+        DelegateApprovalStepAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $request->user();
+        $approverId = (int) $request->validated('approver_id');
 
-        $httpRequest->validate([
-            'approver_id' => ['required', 'integer', 'exists:users,id'],
-        ]);
-
-        $newApprover = User::findOrFail((int) $httpRequest->input('approver_id'));
-
-        $this->engine->delegate($step, $newApprover, $user);
+        $action->execute($step, $approverId, $user);
 
         return redirect()->back()->with('success', 'Step delegated successfully.');
     }
 
-    public function skip(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
-    {
+    public function skip(
+        Request $request,
+        ApprovalRequestStep $step,
+        SkipApprovalStepAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $request->user();
 
-        $this->engine->skipStep($step, $user);
+        $action->execute($step, $user);
 
         return redirect()->back()->with('success', 'Step skipped successfully.');
     }

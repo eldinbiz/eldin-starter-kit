@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Approvals\ApproveStepAction;
+use App\Actions\Approvals\CancelApprovalRequestAction;
+use App\Actions\Approvals\DelegateApprovalStepAction;
+use App\Actions\Approvals\RejectStepAction;
+use App\Actions\Approvals\ResolvePreviousManagerAction;
 use App\DataTables\ApprovalHistoryDataTable;
 use App\DataTables\ApprovalInboxDataTable;
 use App\DataTables\ApprovalRequestsDataTable;
+use App\Http\Requests\Approval\ApproveStepRequest;
+use App\Http\Requests\Approval\DelegateApprovalStepRequest;
+use App\Http\Requests\Approval\RejectStepRequest;
+use App\Http\Requests\Approval\ResolvePreviousManagerRequest;
 use App\Models\Approval\ApprovalRequest;
 use App\Models\Approval\ApprovalRequestStep;
 use App\Models\User;
-use App\Services\ApprovalEngine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ApprovalController extends Controller
 {
-    public function __construct(
-        private readonly ApprovalEngine $engine,
-    ) {}
-
     /**
      * Inbox — pending steps where the current user is the approver.
      */
@@ -99,10 +103,13 @@ class ApprovalController extends Controller
     /**
      * Approve a step.
      */
-    public function approve(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
-    {
+    public function approve(
+        ApproveStepRequest $request,
+        ApprovalRequestStep $step,
+        ApproveStepAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $request->user();
 
         if ($step->approver_id !== $user->id) {
             abort(403);
@@ -112,11 +119,7 @@ class ApprovalController extends Controller
             return redirect()->back()->with('error', 'This step has already been processed. The approval request status may have changed.');
         }
 
-        $httpRequest->validate([
-            'notes' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $this->engine->approve($step, $user, $httpRequest->input('notes'));
+        $action->execute($step, $user, $request->validated('notes'));
 
         return redirect()->back()->with('success', 'Step approved.');
     }
@@ -124,10 +127,13 @@ class ApprovalController extends Controller
     /**
      * Reject a step.
      */
-    public function reject(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
-    {
+    public function reject(
+        RejectStepRequest $request,
+        ApprovalRequestStep $step,
+        RejectStepAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $request->user();
 
         if ($step->approver_id !== $user->id) {
             abort(403);
@@ -137,11 +143,7 @@ class ApprovalController extends Controller
             return redirect()->back()->with('error', 'This step has already been processed. The approval request status may have changed.');
         }
 
-        $httpRequest->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-        ]);
-
-        $this->engine->reject($step, $user, $httpRequest->input('reason'));
+        $action->execute($step, $user, (string) $request->validated('reason'));
 
         return redirect()->back()->with('success', 'Request rejected.');
     }
@@ -149,16 +151,15 @@ class ApprovalController extends Controller
     /**
      * Cancel an approval request (requestor only).
      */
-    public function cancel(Request $httpRequest, ApprovalRequest $request): RedirectResponse
-    {
+    public function cancel(
+        Request $httpRequest,
+        ApprovalRequest $request,
+        CancelApprovalRequestAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $httpRequest->user();
 
-        if ($request->requestor_id !== $user->id) {
-            abort(403);
-        }
-
-        $this->engine->cancel($request, $user);
+        $action->execute($request, $user);
 
         return redirect()->route('approvals.requests')->with('success', 'Approval request canceled.');
     }
@@ -166,22 +167,20 @@ class ApprovalController extends Controller
     /**
      * Delegate a step to a different approver.
      */
-    public function delegate(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
-    {
+    public function delegate(
+        DelegateApprovalStepRequest $request,
+        ApprovalRequestStep $step,
+        DelegateApprovalStepAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $request->user();
 
         if ($step->approver_id !== $user->id) {
             abort(403);
         }
 
-        $httpRequest->validate([
-            'approver_id' => ['required', 'integer', 'exists:users,id'],
-        ]);
-
-        $newApprover = User::findOrFail((int) $httpRequest->input('approver_id'));
-
-        $this->engine->delegate($step, $newApprover, $user);
+        $approverId = (int) $request->validated('approver_id');
+        $action->execute($step, $approverId, $user);
 
         return redirect()->back()->with('success', 'Step delegated successfully.');
     }
@@ -190,28 +189,25 @@ class ApprovalController extends Controller
      * Resolve the N+1_of_previous approver at runtime and redirect back.
      * Only the requestor or a platform admin can manually resolve stuck steps.
      */
-    public function resolvePreviousManager(Request $httpRequest, ApprovalRequestStep $step): RedirectResponse
-    {
+    public function resolvePreviousManager(
+        ResolvePreviousManagerRequest $httpRequest,
+        ApprovalRequestStep $step,
+        ResolvePreviousManagerAction $action
+    ): RedirectResponse {
         /** @var User $user */
-        $user = auth()->user();
+        $user = $httpRequest->user();
 
         if (! $step->isAwaitingPrevious()) {
             abort(403, 'This step is not awaiting resolution.');
         }
 
-        // Only admins or the requestor can manually resolve stuck steps
         $request = $step->loadMissing('request')->request;
         if ($request->requestor_id !== $user->id && ! $user->hasPlatformAccess()) {
             abort(403);
         }
 
-        $httpRequest->validate([
-            'approver_id' => ['required', 'integer', 'exists:users,id'],
-        ]);
-
-        $newApprover = User::findOrFail((int) $httpRequest->input('approver_id'));
-
-        $this->engine->resolvePreviousManager($step, $user, $newApprover);
+        $approverId = (int) $httpRequest->validated('approver_id');
+        $action->execute($step, $user, $approverId);
 
         return redirect()->back()->with('success', 'Approver resolved successfully.');
     }

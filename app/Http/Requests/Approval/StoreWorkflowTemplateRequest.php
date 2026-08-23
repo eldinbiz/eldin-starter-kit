@@ -4,13 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Approval;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreWorkflowTemplateRequest extends FormRequest
+final class StoreWorkflowTemplateRequest extends FormRequest
 {
     /**
-     * @return array<string, ValidationRule|array|string>
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return $this->user()?->can('manage-approval-workflows')
+            || ($this->user()?->hasPlatformAccess() ?? false);
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
@@ -18,7 +28,8 @@ class StoreWorkflowTemplateRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'approvable_type' => ['nullable', 'string', 'max:255'],
-            'is_active' => ['boolean'],
+            'is_active' => ['nullable', 'boolean'],
+            'scope' => ['nullable', 'string', 'in:this_company,this_and_descendants'],
             'groups' => ['required', 'array', 'min:1'],
             'groups.*.name' => ['required', 'string', 'max:255'],
             'groups.*.type' => ['required', 'string', 'in:sequential,parallel'],
