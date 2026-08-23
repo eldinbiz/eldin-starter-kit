@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\ApiTokens\CreateApiTokenAction;
+use App\Actions\ApiTokens\RevokeApiTokenAction;
 use App\DataTables\ApiTokensDataTable;
 use App\Http\Controllers\Controller;
-use App\Models\Company;
-use App\Models\Role;
-use App\Models\User;
+use App\Http\Requests\Admin\ApiTokens\StoreApiTokenRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class ApiTokenController extends Controller
 {
@@ -136,7 +135,7 @@ class ApiTokenController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, ApiTokensDataTable $dataTable)
+    public function index(Request $request, ApiTokensDataTable $dataTable): mixed
     {
         $dataTable->handle($request);
 
@@ -155,89 +154,23 @@ class ApiTokenController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreApiTokenRequest $request, CreateApiTokenAction $action): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'expiry' => 'nullable|in:30,60,90,365,never',
-            'abilities' => 'nullable|array',
-            'abilities.*' => 'string',
-        ]);
-
-        $expiresAt = match ($request->input('expiry')) {
-            '30' => now()->addDays(30),
-            '60' => now()->addDays(60),
-            '90' => now()->addDays(90),
-            '365' => now()->addYear(),
-            default => null,
-        };
-
-        $selectedAbilities = $request->input('abilities', []);
-        $abilities = (empty($selectedAbilities) || in_array('*', $selectedAbilities, true))
-            ? ['*']
-            : array_values(array_unique($selectedAbilities));
-
-        // Create or find a system user for this token
-        // We namespace it to avoid collisions.
-        $botEmail = 'bot.'.Str::slug($request->name).'@system.local';
-
-        $bot = User::firstOrCreate(
-            ['email' => $botEmail],
-            [
-                'name' => $request->name.' (System Bot)',
-                'password' => bcrypt(Str::random(32)),
-                'is_system' => true,
-                'auth_method' => 'local',
-            ]
-        );
-
-        // Make sure it's a system bot
-        if (! $bot->is_system) {
-            $bot->update(['is_system' => true]);
-        }
-
-        // Grant platform-admin role to bot so it can act across companies passed in API header
-        $platformRole = Role::firstOrCreate(
-            ['name' => 'platform-admin'],
-            [
-                'permissions' => ['*'],
-                'is_active' => true,
-            ]
-        );
-
-        $activeCompany = auth()->user()?->getActiveCompany() ?? Company::first();
-
-        if ($activeCompany) {
-            // Attach bot to active company if not already a member
-            if (! $bot->companies()->where('company_id', $activeCompany->id)->exists()) {
-                $bot->companies()->attach($activeCompany->id, ['status' => 'active']);
-            }
-
-            // Attach platform-admin role scoped to the company
-            if (! $bot->hasPlatformAccess()) {
-                $bot->companyRoles()->attach($platformRole->id, ['company_id' => $activeCompany->id]);
-            }
-        }
-
-        // Create the token with specified abilities and expiration
-        $token = $bot->createToken($request->name, $abilities, $expiresAt);
+        $token = $action->execute($request->validated(), $request->user());
 
         return back()->with('flash', [
             'type' => 'success',
             'message' => 'API Token generated successfully.',
-            'api_token' => $token->plainTextToken, // Pass the plain text token to show ONCE
+            'api_token' => $token->plainTextToken,
         ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id, RevokeApiTokenAction $action): RedirectResponse
     {
-        $token = PersonalAccessToken::findOrFail($id);
-
-        // Ensure we are only deleting system tokens for safety, or any token if admin.
-        $token->delete();
+        $action->execute($id);
 
         return back()->with('flash', [
             'type' => 'success',

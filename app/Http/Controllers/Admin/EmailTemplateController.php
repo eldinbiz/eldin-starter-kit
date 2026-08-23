@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\EmailTemplates\CreateEmailTemplateAction;
+use App\Actions\EmailTemplates\DeleteEmailTemplateAction;
+use App\Actions\EmailTemplates\RenderDraftEmailTemplateAction;
+use App\Actions\EmailTemplates\SendTestEmailTemplateAction;
+use App\Actions\EmailTemplates\UpdateEmailTemplateAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\EmailTemplates\PreviewDraftEmailTemplateRequest;
+use App\Http\Requests\Admin\EmailTemplates\SendTestEmailTemplateRequest;
+use App\Http\Requests\Admin\EmailTemplates\StoreEmailTemplateRequest;
+use App\Http\Requests\Admin\EmailTemplates\UpdateEmailTemplateRequest;
 use App\Models\Company;
 use App\Models\EmailTemplate;
 use App\Services\EmailTemplateService;
@@ -106,51 +115,15 @@ class EmailTemplateController extends Controller
     /**
      * Store a newly created template or company override.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreEmailTemplateRequest $request, CreateEmailTemplateAction $action): RedirectResponse
     {
-        $validated = $request->validate([
-            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'event' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9_\-]+$/'],
-            'name' => ['required', 'string', 'max:255'],
-            'subject' => ['required', 'string', 'max:255'],
-            'body_html' => ['required', 'string'],
-            'body_text' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
+        $template = $action->execute($request->validated());
 
-        $companyId = $request->filled('company_id') ? (int) $validated['company_id'] : null;
-        $event = $validated['event'];
-
-        // Prevent duplicate (company_id, event)
-        $exists = EmailTemplate::where('company_id', $companyId)->where('event', $event)->exists();
-        if ($exists) {
-            $message = $companyId
-                ? __('A template override for event ":event" already exists for this company.', ['event' => $event])
-                : __('A global template for event ":event" already exists.', ['event' => $event]);
-
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['event' => $message]);
-        }
-
-        $defaultVariables = ['user_name', 'user_email', 'company_name', 'title', 'approval_link', 'action_url', 'action_text', 'message', 'app_name', 'current_year'];
-
-        $template = EmailTemplate::create([
-            'company_id' => $companyId,
-            'event' => $event,
-            'name' => $validated['name'],
-            'subject' => $validated['subject'],
-            'body_html' => $validated['body_html'],
-            'body_text' => $validated['body_text'] ?? null,
-            'variables' => $defaultVariables,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
-
-        $successMsg = $companyId
+        $successMsg = $template->company_id !== null
             ? __("Company override for ':name' created successfully.", ['name' => $template->name])
             : __("Email template ':name' created successfully.", ['name' => $template->name]);
 
-        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $companyId])
+        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $template->company_id])
             ->with('success', $successMsg);
     }
 
@@ -167,89 +140,42 @@ class EmailTemplateController extends Controller
     /**
      * Update an email template.
      */
-    public function update(Request $request, EmailTemplate $emailTemplate): RedirectResponse
-    {
-        $validated = $request->validate([
-            'name' => ['nullable', 'string', 'max:255'],
-            'subject' => ['required', 'string', 'max:255'],
-            'body_html' => ['required', 'string'],
-            'body_text' => ['nullable', 'string'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
+    public function update(
+        UpdateEmailTemplateRequest $request,
+        EmailTemplate $emailTemplate,
+        UpdateEmailTemplateAction $action
+    ): RedirectResponse {
+        $template = $action->execute($emailTemplate, $request->validated());
 
-        $emailTemplate->update([
-            'name' => $validated['name'] ?? $emailTemplate->name,
-            'subject' => $validated['subject'],
-            'body_html' => $validated['body_html'],
-            'body_text' => $validated['body_text'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
-        ]);
-
-        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $emailTemplate->company_id])
-            ->with('success', __("Email template ':name' updated successfully.", ['name' => $emailTemplate->name]));
+        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $template->company_id])
+            ->with('success', __("Email template ':name' updated successfully.", ['name' => $template->name]));
     }
 
     /**
      * Delete custom template or reset company override to system default.
      */
-    public function destroy(EmailTemplate $emailTemplate): RedirectResponse
+    public function destroy(EmailTemplate $emailTemplate, DeleteEmailTemplateAction $action): RedirectResponse
     {
-        $companyId = $emailTemplate->company_id;
-        $isOverride = $companyId !== null;
-        $templateName = $emailTemplate->name;
+        $result = $action->execute($emailTemplate);
 
-        $emailTemplate->delete();
+        $message = $result['is_override']
+            ? __("Company override ':name' has been reset to the system default.", ['name' => $result['name']])
+            : __("Email template ':name' deleted successfully.", ['name' => $result['name']]);
 
-        $message = $isOverride
-            ? __("Company override ':name' has been reset to the system default.", ['name' => $templateName])
-            : __("Email template ':name' deleted successfully.", ['name' => $templateName]);
-
-        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $companyId])
+        return redirect()->route('admin.settings.email-templates.index', ['company_id' => $result['company_id']])
             ->with('success', $message);
     }
 
     /**
      * Live preview of rendered unsaved draft template.
      */
-    public function previewDraft(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'subject' => ['required', 'string'],
-            'body_html' => ['required', 'string'],
-            'company_id' => ['nullable', 'integer'],
-        ]);
+    public function previewDraft(
+        PreviewDraftEmailTemplateRequest $request,
+        RenderDraftEmailTemplateAction $action
+    ): JsonResponse {
+        $rendered = $action->execute($request->validated());
 
-        $companyId = ! empty($validated['company_id']) ? (int) $validated['company_id'] : null;
-        $companyName = 'Acme Corporation';
-        if ($companyId !== null) {
-            $company = Company::find($companyId);
-            if ($company) {
-                $companyName = $company->name;
-            }
-        }
-
-        $dummyData = [
-            'user_name' => 'Jane Doe',
-            'user_email' => 'jane.doe@example.com',
-            'company_name' => $companyName,
-            'title' => 'Purchase Request PR-2026-0042',
-            'request_title' => 'Office Workstation Hardware Upgrade',
-            'approval_link' => url('/approvals/inbox'),
-            'action_url' => url('/dashboard'),
-            'action_text' => 'Review Request',
-            'message' => 'A new request has been submitted and requires your approval.',
-            'app_name' => (string) config('app.name', 'Scaffolding App'),
-            'app_url' => config('app.url', 'http://localhost'),
-            'current_year' => date('Y'),
-        ];
-
-        $renderedSubject = $this->templateService->interpolate($validated['subject'], $dummyData);
-        $renderedHtml = $this->templateService->interpolate($validated['body_html'], $dummyData);
-
-        return response()->json([
-            'subject' => $renderedSubject,
-            'html' => $renderedHtml,
-        ]);
+        return response()->json($rendered);
     }
 
     /**
@@ -287,44 +213,40 @@ class EmailTemplateController extends Controller
     /**
      * Send test email for this template.
      */
-    public function test(Request $request, EmailTemplate $emailTemplate): JsonResponse|RedirectResponse
-    {
-        $validated = $request->validate([
-            'recipient_email' => ['required', 'email', 'max:255'],
-        ]);
-
-        $recipientEmail = $validated['recipient_email'];
+    public function test(
+        SendTestEmailTemplateRequest $request,
+        EmailTemplate $emailTemplate,
+        SendTestEmailTemplateAction $action
+    ): JsonResponse|RedirectResponse {
+        $recipientEmail = (string) $request->validated('recipient_email');
 
         try {
-            $this->templateService->sendTest(
-                $emailTemplate->event,
-                $recipientEmail,
-                $emailTemplate->company_id
-            );
+            $action->execute($emailTemplate, $recipientEmail);
+
+            $message = __("Test email for ':name' dispatched to :email", [
+                'name' => $emailTemplate->name,
+                'email' => $recipientEmail,
+            ]);
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => __("Test email for ':name' dispatched to :email", [
-                        'name' => $emailTemplate->name,
-                        'email' => $recipientEmail,
-                    ]),
+                    'message' => $message,
                 ]);
             }
 
-            return redirect()->back()->with('success', __("Test email for ':name' dispatched to :email", [
-                'name' => $emailTemplate->name,
-                'email' => $recipientEmail,
-            ]));
+            return redirect()->back()->with('success', $message);
         } catch (Throwable $e) {
+            $errorMessage = __('Failed to send test email: ').$e->getMessage();
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => __('Failed to send test email: ').$e->getMessage(),
+                    'message' => $errorMessage,
                 ], 422);
             }
 
-            return redirect()->back()->with('error', __('Failed to send test email: ').$e->getMessage());
+            return redirect()->back()->with('error', $errorMessage);
         }
     }
 }
