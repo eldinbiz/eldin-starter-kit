@@ -17,8 +17,8 @@
     {{-- ApexCharts CDN (Loaded before Alpine) --}}
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-    {{-- Alpine.js (via CDN, deferred, zero-build) --}}
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- Livewire Styles --}}
+    @livewireStyles
 
     {{-- Tailwind CSS and custom scripts via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -140,5 +140,7 @@
         })();
     </script>
     @endauth
+
+    @livewireScripts
 </body>
 </html>

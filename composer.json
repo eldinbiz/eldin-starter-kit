@@ -19,6 +19,7 @@
         "laravel/socialite": "^5.29",
         "laravel/telescope": "^5.22",
         "laravel/tinker": "^3.0",
+        "livewire/livewire": "^4.4",
         "modules/purchase-requests": "*",
         "romalytar/yammi-audit-log-laravel": "^2.2",
         "socialiteproviders/auth0": "^4.2",
