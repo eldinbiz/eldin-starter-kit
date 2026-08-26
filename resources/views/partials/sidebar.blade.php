@@ -10,7 +10,7 @@
         :class="sidebarToggle ? (sidebarHover ? 'justify-between' : 'justify-center') : 'justify-between'"
         class="flex items-center gap-2 pt-8 pb-7 sidebar-header"
     >
-        <a href="{{ url('/') }}" class="flex items-center gap-3">
+        <a href="{{ url('/') }}" wire:navigate class="flex items-center gap-3">
             <span class="logo flex items-center gap-2 font-bold text-xl text-gray-800 dark:text-white" x-show="!sidebarToggle || sidebarHover" x-cloak>
                 @php $sidebarLogo = $activeCompanyLogo ?: $appLogo; @endphp
                 @if (!empty($sidebarLogo))
@@ -61,6 +61,7 @@
                     <li>
                         <a
                             href="{{ url('/') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('/') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             {{-- Dashboard Icon --}}
@@ -80,6 +81,7 @@
                     <li>
                         <a
                             href="{{ route('purchase-requests.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('purchase-requests*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             {{-- Shopping Cart / Purchase Icon --}}
@@ -117,6 +119,7 @@
                     <li>
                         <a
                             href="{{ route('approvals.inbox') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('approvals/inbox*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -134,6 +137,7 @@
                     <li>
                         <a
                             href="{{ route('approvals.history') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('approvals/history*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -151,6 +155,7 @@
                     <li>
                         <a
                             href="{{ route('approvals.requests') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('approvals/requests*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -168,6 +173,7 @@
                     <li>
                         <a
                             href="{{ route('admin.approval-management.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/approval-management*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -185,6 +191,7 @@
                     <li>
                         <a
                             href="{{ route('admin.approval-workflows.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/approval-workflows*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -217,6 +224,7 @@
                     <li>
                         <a
                             href="{{ route('admin.users.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/users*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -235,6 +243,7 @@
                     <li>
                         <a
                             href="{{ route('admin.roles.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/roles*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -253,6 +262,7 @@
                     <li>
                         <a
                             href="{{ route('admin.companies.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/companies*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -271,6 +281,7 @@
                     <li>
                         <a
                             href="{{ route('admin.org-chart.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/org-chart*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -289,6 +300,7 @@
                     <li>
                         <a
                             href="{{ route('admin.settings.general') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ (Request::is('admin/settings*') && !Request::is('admin/settings/auth-providers*')) ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -307,6 +319,7 @@
                     <li>
                         <a
                             href="{{ route('admin.settings.auth-providers.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/settings/auth-providers*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -326,6 +339,7 @@
                     <li>
                         <a
                             href="{{ route('admin.api-tokens.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/api-tokens*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
@@ -366,6 +380,7 @@
                     <li>
                         <a
                             href="{{ route('admin.audit-trail.index') }}"
+                            wire:navigate.hover
                             class="menu-item group {{ Request::is('admin/audit-trail*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">

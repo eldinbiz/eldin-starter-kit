@@ -20,6 +20,7 @@
         <div>
             <a
                 href="{{ route('admin.users.create') }}"
+                wire:navigate
                 class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 focus:outline-hidden"
             >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,6 +31,6 @@
         </div>
     </div>
 
-    <x-data-table :datatable="$dataTable" deferred />
+    <livewire:admin.users.user-table />
 </div>
 @endsection

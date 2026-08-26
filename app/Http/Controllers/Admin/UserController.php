@@ -28,17 +28,9 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request, UsersDataTable $dataTable): View
+    public function index(): View
     {
-        $dataTable->handle($request);
-
-        if ($dataTable->isPartialRequest($request)) {
-            return $dataTable->renderPartialView();
-        }
-
-        return view('admin.users.index', [
-            'dataTable' => $dataTable,
-        ]);
+        return view('admin.users.index');
     }
 
     /**

@@ -1,5 +1,5 @@
 <header
-    x-data="{ menuToggle: false, userDropdown: false, notificationDropdown: false, messageDropdown: false }"
+    x-data="{ menuToggle: false, userDropdown: false, confirmLogout: false, notificationDropdown: false, messageDropdown: false }"
     class="sticky top-0 z-99 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
 >
     <div class="flex grow flex-col justify-between lg:flex-row lg:px-6 w-full">
@@ -73,184 +73,14 @@
                     </svg>
                 </button>
 
-                {{-- Notification Bell Dropdown Widget --}}
+                {{-- Notification Bell Livewire Component --}}
                 @auth
-                <div
-                    class="relative"
-                    x-data="notificationBell({
-                        latestUrl: '{{ route('notifications.latest') }}',
-                        readAllUrl: '{{ route('notifications.read-all') }}',
-                        csrfToken: '{{ csrf_token() }}'
-                    })"
-                    @click.outside="open = false"
-                >
-                    <button
-                        @click="open = !open"
-                        class="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-hidden"
-                        title="Notifications"
-                    >
-                        <svg class="fill-current text-gray-500 dark:text-gray-400" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.64 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16ZM16 17H8V11C8 8.52 9.51 6.5 12 6.5C14.49 6.5 16 8.52 16 11V17Z"/>
-                        </svg>
-
-                        {{-- Unread Count Badge --}}
-                        <span
-                            x-show="unreadCount > 0"
-                            x-cloak
-                            x-text="unreadCount > 99 ? '99+' : unreadCount"
-                            class="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-error-500 px-1 text-[10px] font-bold text-white shadow-xs"
-                        ></span>
-                    </button>
-
-                    {{-- Notification Dropdown Popover --}}
-                    <div
-                        x-show="open"
-                        x-cloak
-                        class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 z-9999 text-gray-800 dark:text-gray-200"
-                    >
-                        {{-- Popover Header --}}
-                        <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
-                            <div class="flex items-center gap-2">
-                                <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h4>
-                                <span
-                                    x-show="unreadCount > 0"
-                                    class="rounded-full bg-brand-500/10 px-2 py-0.5 text-xs font-medium text-brand-500"
-                                    x-text="`${unreadCount} unread`"
-                                ></span>
-                            </div>
-                            <div class="flex items-center gap-2 text-xs">
-                                <button
-                                    @click="manualRefresh()"
-                                    class="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
-                                    title="Manual Refresh"
-                                >
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    <span x-text="`${timer}s`" class="font-mono text-[11px] text-gray-400"></span>
-                                </button>
-                                <button
-                                    @click="markAllAsRead()"
-                                    class="text-brand-500 hover:underline font-medium text-[11px]"
-                                >
-                                    Mark all read
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Notification List --}}
-                        <div class="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800 my-1">
-                            <template x-if="notifications.length === 0">
-                                <div class="py-6 text-center text-xs text-gray-400 dark:text-gray-500">
-                                    No notifications available
-                                </div>
-                            </template>
-
-                            <template x-for="item in notifications" :key="item.id">
-                                <div
-                                    @click="markAsRead(item)"
-                                    class="flex flex-col gap-1 p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
-                                    :class="!item.read_at ? 'bg-brand-50/40 dark:bg-brand-500/5' : ''"
-                                >
-                                    <div class="flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-1.5 min-w-0">
-                                            <span
-                                                x-show="!item.read_at"
-                                                class="h-2 w-2 rounded-full bg-brand-500 shrink-0"
-                                            ></span>
-                                            <span
-                                                x-show="item.company_name"
-                                                class="rounded-md bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-gray-300 truncate"
-                                                x-text="item.company_name"
-                                            ></span>
-                                            <span class="text-xs font-semibold text-gray-900 dark:text-white truncate" x-text="item.title"></span>
-                                        </div>
-                                        <span class="text-[10px] text-gray-400 shrink-0" x-text="item.created_at"></span>
-                                    </div>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 pl-3.5" x-text="item.message"></p>
-                                </div>
-                            </template>
-                        </div>
-
-                        {{-- Popover Footer --}}
-                        <div class="pt-2 border-t border-gray-100 dark:border-gray-800 text-center">
-                            <a
-                                href="{{ route('notifications.index') }}"
-                                class="text-xs font-semibold text-brand-500 hover:text-brand-600 hover:underline inline-block py-1"
-                            >
-                                View All Notifications &rarr;
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                {{-- Company Selector Dropdown --}}
-                @auth
-                @if($userCompanies->count() > 0)
-                <div class="relative" x-data="{ companyDropdown: false }" @click.outside="companyDropdown = false">
-                    <button
-                        @click="companyDropdown = !companyDropdown"
-                        class="flex h-10 items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 text-sm text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-hidden"
-                    >
-                        <svg class="fill-current text-brand-500" width="16" height="16" viewBox="0 0 24 24" fill="none">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 6C2 4.34315 3.34315 3 5 3H19C20.6569 3 22 4.34315 22 6V18C22 19.6569 20.6569 21 19 21H5C3.34315 21 2 19.6569 2 18V6ZM5 4.5C4.17157 4.5 3.5 5.17157 3.5 6V7.5H20.5V6C20.5 5.17157 19.8284 4.5 19 4.5H5ZM3.5 9V18C3.5 18.8284 4.17157 19.5 5 19.5H19C19.8284 19.5 20.5 18.8284 20.5 18V9H3.5Z" />
-                        </svg>
-                        <span class="max-w-[120px] truncate"><strong class="text-gray-800 dark:text-white">{{ $activeCompany?->name ?? 'Select Company' }}</strong></span>
-                        <svg class="fill-current text-gray-500" width="10" height="6" viewBox="0 0 12 8" fill="none">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M1.41 0.589966L6 5.17997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" />
-                        </svg>
-                    </button>
-                    <div
-                        x-show="companyDropdown"
-                        x-cloak
-                        class="absolute right-0 mt-2 flex w-[220px] flex-col rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-gray-700 dark:text-gray-300 z-9999"
-                    >
-                        @foreach($userCompanies as $company)
-                            <form action="{{ route('switch-company') }}" method="POST" class="w-full">
-                                @csrf
-                                <input type="hidden" name="company_id" value="{{ $company->id }}">
-                                <button type="submit" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/5 {{ ($activeCompany?->id === $company->id) ? 'text-brand-500 font-semibold' : '' }}">
-                                    {{ $company->name }}
-                                </button>
-                            </form>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
+                    <livewire:navigation.notification-bell />
                 @endauth
 
-                {{-- Role Selector Dropdown --}}
+                {{-- Company & Role Selector Livewire Component --}}
                 @auth
-                @if($activeCompany)
-                <div class="relative" x-data="{ roleDropdown: false }" @click.outside="roleDropdown = false">
-                    <button
-                        @click="roleDropdown = !roleDropdown"
-                        class="flex h-10 items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 text-sm text-gray-500 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-hidden"
-                    >
-                        <span>Role: <strong class="text-gray-800 dark:text-white">{{ ucfirst($activeRole?->name ?? 'user') }}</strong></span>
-                        <svg class="fill-current text-gray-500" width="10" height="6" viewBox="0 0 12 8" fill="none">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M1.41 0.589966L6 5.17997L10.59 0.589966L12 1.99997L6 7.99997L0 1.99997L1.41 0.589966Z" />
-                        </svg>
-                    </button>
-                    {{-- Dropdown Panel --}}
-                    <div
-                        x-show="roleDropdown"
-                        x-cloak
-                        class="absolute right-0 mt-2 flex w-[160px] flex-col rounded-xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-800 dark:bg-gray-900 text-gray-700 dark:text-gray-300 z-9999"
-                    >
-                        @foreach(Auth::user()->getCompanyRoles($activeCompany) as $role)
-                            <form action="{{ route('switch-role') }}" method="POST" class="w-full">
-                                @csrf
-                                <input type="hidden" name="role" value="{{ $role->name }}">
-                                <button type="submit" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-white/5 {{ ($activeRole?->name ?? 'user') === $role->name ? 'text-brand-500 font-semibold' : '' }}">
-                                    {{ ucfirst($role->name) }}
-                                </button>
-                            </form>
-                        @endforeach
-                    </div>
-                </div>
-                @endif
+                    <livewire:navigation.company-role-switcher />
                 @endauth
 
                 {{-- 2. User Profile Dropdown --}}
@@ -303,13 +133,80 @@
                             </li>
                         </ul>
                         <div class="mt-2.5 border-t border-gray-100 pt-2.5 dark:border-gray-800">
-                            <form action="{{ route('logout') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="flex w-full items-center gap-3.5 rounded-lg px-3.5 py-2 text-sm font-medium text-error-600 hover:bg-error-50 dark:text-error-400 dark:hover:bg-error-500/10">
+                            <button
+                                type="button"
+                                @click="confirmLogout = true; userDropdown = false"
+                                class="flex w-full items-center gap-3.5 rounded-lg px-3.5 py-2 text-sm font-medium text-error-600 hover:bg-error-50 dark:text-error-400 dark:hover:bg-error-500/10 cursor-pointer"
+                            >
+                                Log Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Logout Confirmation Modal --}}
+                <div
+                    x-show="confirmLogout"
+                    x-cloak
+                    x-trap.noscroll="confirmLogout"
+                    class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                >
+                    <div
+                        @click.outside="confirmLogout = false"
+                        class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900"
+                    >
+                        {{-- Icon --}}
+                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-500/10 mb-4">
+                            <svg class="h-7 w-7 text-error-600 dark:text-error-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                            </svg>
+                        </div>
+
+                        {{-- Header Text --}}
+                        <h3 class="text-center text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
+                            Log Out
+                        </h3>
+
+                        {{-- Description --}}
+                        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+                            Are you sure you want to log out of your account?
+                        </p>
+
+                        {{-- Action Buttons --}}
+                        <form
+                            action="{{ route('logout') }}"
+                            method="POST"
+                            @submit="
+                                if ('BroadcastChannel' in window) {
+                                    try {
+                                        new BroadcastChannel('session-expired').postMessage({
+                                            type: 'LOGOUT',
+                                            senderTabId: window.__tabId
+                                        });
+                                    } catch(e){}
+                                }
+                                try {
+                                    localStorage.setItem('auth_logout_event', Date.now().toString());
+                                } catch(e){}
+                            "
+                        >
+                            @csrf
+                            <div class="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    @click="confirmLogout = false"
+                                    class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center justify-center rounded-lg bg-error-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-700 shadow-theme-xs transition cursor-pointer"
+                                >
                                     Log Out
                                 </button>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 @endauth
@@ -317,89 +214,4 @@
         </div>
     </div>
 </header>
-
-@auth
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('notificationBell', (config = {}) => ({
-            open: false,
-            unreadCount: 0,
-            notifications: [],
-            timer: 30,
-            interval: null,
-
-            init() {
-                this.fetchNotifications();
-                this.interval = setInterval(() => {
-                    this.timer--;
-                    if (this.timer <= 0) {
-                        this.timer = 30;
-                        this.fetchNotifications();
-                    }
-                }, 1000);
-            },
-
-            async fetchNotifications() {
-                try {
-                    const res = await fetch(config.latestUrl, {
-                        headers: { 'Accept': 'application/json' }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        this.unreadCount = data.unread_count;
-                        this.notifications = data.notifications;
-                    }
-                } catch (e) {
-                    console.error('Failed to fetch notifications:', e);
-                }
-            },
-
-            async markAsRead(notification) {
-                try {
-                    const res = await fetch(`/notifications/${notification.id}/read`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': config.csrfToken,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
-                        } else {
-                            this.fetchNotifications();
-                        }
-                    }
-                } catch (e) {
-                    console.error('Failed to mark notification as read:', e);
-                }
-            },
-
-            async markAllAsRead() {
-                try {
-                    const res = await fetch(config.readAllUrl, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': config.csrfToken,
-                            'Accept': 'application/json'
-                        }
-                    });
-                    if (res.ok) {
-                        this.fetchNotifications();
-                    }
-                } catch (e) {
-                    console.error('Failed to mark all as read:', e);
-                }
-            },
-
-            manualRefresh() {
-                this.timer = 30;
-                this.fetchNotifications();
-            }
-        }));
-    });
-</script>
-@endauth
 

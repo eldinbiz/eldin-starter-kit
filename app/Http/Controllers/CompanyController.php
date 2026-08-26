@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Companies\SwitchActiveCompanyAction;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +16,9 @@ class CompanyController extends Controller
     /**
      * Switch the currently active company.
      */
-    public function switch(Request $request): RedirectResponse
+    public function switch(Request $request, SwitchActiveCompanyAction $action): RedirectResponse
     {
+        /** @var User $user */
         $user = Auth::user();
 
         $request->validate([
@@ -30,7 +33,7 @@ class CompanyController extends Controller
 
         $companyId = (int) $request->input('company_id');
 
-        session(['active_company_id' => $companyId]);
+        $action->execute($user, $companyId);
 
         return redirect()->back()->with('success', 'Company switched successfully.');
     }

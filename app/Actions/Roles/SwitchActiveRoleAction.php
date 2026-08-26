@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\Roles;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 final class SwitchActiveRoleAction
@@ -15,7 +14,7 @@ final class SwitchActiveRoleAction
      *
      * @throws HttpException
      */
-    public function execute(Request $request, User $user, string $roleName): void
+    public function execute(User $user, string $roleName): void
     {
         $company = $user->getActiveCompany();
 
@@ -29,6 +28,6 @@ final class SwitchActiveRoleAction
         }
 
         // Update active role in session (scoped to active company)
-        $request->session()->put("active_role.{$company->id}", $roleName);
+        session(["active_role.{$company->id}" => $roleName]);
     }
 }

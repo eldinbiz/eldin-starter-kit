@@ -45,6 +45,8 @@
             @can('manage-system-settings')
             <a
                 href="{{ route('admin.settings.general') }}"
+                wire:navigate
+                wire:navigate.hover
                 class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.general*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
             >
                 ⚙️ General & Branding
@@ -52,6 +54,8 @@
 
             <a
                 href="{{ route('admin.settings.mail') }}"
+                wire:navigate
+                wire:navigate.hover
                 class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.mail*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
             >
                 ✉️ Mail & SMTP
@@ -59,6 +63,8 @@
 
             <a
                 href="{{ route('admin.settings.email-templates.index') }}"
+                wire:navigate
+                wire:navigate.hover
                 class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.email-templates*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
             >
                 📄 Email Templates
@@ -66,6 +72,8 @@
 
             <a
                 href="{{ route('admin.settings.custom-variables') }}"
+                wire:navigate
+                wire:navigate.hover
                 class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.custom-variables*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
             >
                 🎛️ Custom Variables
@@ -75,6 +83,8 @@
             @can('manage-platform')
             <a
                 href="{{ route('admin.settings.features') }}"
+                wire:navigate
+                wire:navigate.hover
                 class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.features*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
             >
                 🧩 Feature Toggles
@@ -84,6 +94,8 @@
             @can('manage-company-settings')
             <a
                 href="{{ route('admin.settings.company') }}"
+                wire:navigate
+                wire:navigate.hover
                 class="whitespace-nowrap border-b-2 py-3 px-1 text-sm font-medium transition-colors {{ Request::routeIs('admin.settings.company*') ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300' }}"
             >
                 🏢 Company Preferences

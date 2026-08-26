@@ -103,39 +103,49 @@
 
     <script>
         window.isImpersonationTransition = false;
+        if (!window.__tabId) {
+            window.__tabId = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+        }
     </script>
 
-    {{-- Session Expiry Monitor & Modal --}}
-    @include('partials.session-monitor')
+    {{-- Session Expiry Monitor & Modal (only for authenticated users) --}}
+    @auth
+        @include('partials.session-monitor')
+    @endauth
 
     @auth
     <script>
         (function () {
             if (!('BroadcastChannel' in window)) return;
 
-            const tabId = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-            const bc = new BroadcastChannel('impersonation_channel');
+            if (!window.__impersonationChannelInit) {
+                window.__impersonationChannelInit = true;
+                const tabId = window.__tabId;
+                const bc = new BroadcastChannel('impersonation_channel');
 
-            bc.onmessage = function (event) {
-                if (event.data && event.data.type === 'IMPERSONATION_CHANGED' && event.data.senderTabId && event.data.senderTabId !== tabId) {
+                bc.onmessage = function (event) {
+                    if (event.data && event.data.type === 'IMPERSONATION_CHANGED' && event.data.senderTabId && event.data.senderTabId !== tabId) {
+                        window.isImpersonationTransition = true;
+                        window.location.replace("{{ route('dashboard') }}");
+                    }
+                };
+
+                window.broadcastImpersonationChange = function () {
                     window.isImpersonationTransition = true;
-                    window.location.replace("{{ route('dashboard') }}");
-                }
-            };
-
-            window.broadcastImpersonationChange = function () {
-                window.isImpersonationTransition = true;
-                try {
-                    bc.postMessage({
-                        type: 'IMPERSONATION_CHANGED',
-                        senderTabId: tabId,
-                        timestamp: Date.now()
-                    });
-                } catch (e) {}
-            };
+                    try {
+                        bc.postMessage({
+                            type: 'IMPERSONATION_CHANGED',
+                            senderTabId: tabId,
+                            timestamp: Date.now()
+                        });
+                    } catch (e) {}
+                };
+            }
 
             @if(session('impersonation_switched'))
-                window.broadcastImpersonationChange();
+                if (typeof window.broadcastImpersonationChange === 'function') {
+                    window.broadcastImpersonationChange();
+                }
             @endif
         })();
     </script>

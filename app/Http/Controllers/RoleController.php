@@ -21,7 +21,7 @@ class RoleController extends Controller
         $user = Auth::user();
         $roleName = $request->string('role')->toString();
 
-        $action->execute($request, $user, $roleName);
+        $action->execute($user, $roleName);
 
         // Redirect back with success message
         return redirect()->back()->with('success', 'Switched to '.ucfirst($roleName).' role.');

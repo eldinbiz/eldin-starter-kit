@@ -1,7 +1,18 @@
 <div
     x-data="{ sessionExpired: false }"
     x-init="
-        const channel = new BroadcastChannel('session-expired');
+        const triggerExpired = () => {
+            if (window.isImpersonationTransition) return;
+            sessionExpired = true;
+            if (window.__sessionMonitorInterval) {
+                clearInterval(window.__sessionMonitorInterval);
+            }
+        };
+
+        if (!window.__sessionExpiredChannel && 'BroadcastChannel' in window) {
+            window.__sessionExpiredChannel = new BroadcastChannel('session-expired');
+        }
+        const channel = window.__sessionExpiredChannel;
 
         // Verify session via backend — does NOT renew (route excludes StartSession)
         const check = () => {
@@ -18,37 +29,69 @@
                         return;
                     }
 
-                    sessionExpired = ! data.authenticated;
-
-                    if (sessionExpired) {
-                        // Wake up other tabs so they verify independently
-                        channel.postMessage({ type: 'check-now' });
+                    if (! data.authenticated) {
+                        triggerExpired();
+                        if (channel) {
+                            // Notify other tabs to verify independently
+                            channel.postMessage({ type: 'CHECK_SESSION', senderTabId: window.__tabId });
+                        }
                     }
                 })
                 .catch(() => {}); // Network error — silently ignore (user may be offline)
         };
 
-        // Listen for wake-up signals from other tabs — verify independently
-        channel.onmessage = (e) => {
-            if (e.data.type === 'check-now' && ! window.isImpersonationTransition) {
-                check();
-            }
-        };
+        // Custom window event listener to connect global events with component scope
+        window.addEventListener('app:session-expired', () => triggerExpired());
 
-        // Poll every 30 seconds
-        const interval = setInterval(check, 30000);
+        if (channel) {
+            channel.onmessage = (e) => {
+                if (window.isImpersonationTransition) return;
 
-        // Check immediately when the user switches to this tab
-        document.addEventListener('visibilitychange', () => {
-            if (! document.hidden) {
-                check();
-            }
-        });
+                // Ignore messages originating from the same tab
+                if (e.data && e.data.senderTabId && window.__tabId && e.data.senderTabId === window.__tabId) {
+                    return;
+                }
+
+                if (e.data && e.data.type === 'LOGOUT') {
+                    // Explicit user logout from another tab: trigger immediately
+                    window.dispatchEvent(new CustomEvent('app:session-expired'));
+                } else if (e.data && (e.data.type === 'CHECK_SESSION' || e.data.type === 'check-now')) {
+                    // Inactivity detected on another tab: verify independently
+                    check();
+                }
+            };
+        }
+
+        // Singleton storage listener for cross-tab logout fallback
+        if (!window.__sessionStorageBound) {
+            window.__sessionStorageBound = true;
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'auth_logout_event') {
+                    window.dispatchEvent(new CustomEvent('app:session-expired'));
+                }
+            });
+        }
+
+        // Singleton interval guard across Livewire SPA navigations
+        if (window.__sessionMonitorInterval) {
+            clearInterval(window.__sessionMonitorInterval);
+        }
+        window.__sessionMonitorInterval = setInterval(check, 30000);
+
+        // Check immediately when user switches to this tab (bind only once)
+        if (!window.__sessionVisibilityBound) {
+            window.__sessionVisibilityBound = true;
+            document.addEventListener('visibilitychange', () => {
+                if (! document.hidden) {
+                    check();
+                }
+            });
+        }
 
         // Stop polling once expired — no point checking further
         $watch('sessionExpired', (val) => {
-            if (val) {
-                clearInterval(interval);
+            if (val && window.__sessionMonitorInterval) {
+                clearInterval(window.__sessionMonitorInterval);
             }
         });
     "
