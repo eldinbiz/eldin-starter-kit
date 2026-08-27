@@ -170,9 +170,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('approval-workflows/{workflow}/trash', [ApprovalWorkflowController::class, 'trash'])->name('approval-workflows.trash');
     });
 
-    // API Token Governance
+    // API Token Governance & Interactive Documentation
     Route::middleware(['can:manage-api-tokens', 'feature:api_access'])->group(function () {
         Route::resource('api-tokens', ApiTokenController::class)->only(['index', 'store', 'destroy']);
+        Route::get('api-docs', fn () => view('admin.api-docs.index'))->name('api-docs.index');
     });
 });
 

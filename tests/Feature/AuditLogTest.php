@@ -52,7 +52,7 @@ it('fakes and records audit log entries when AuditLog package is loaded', functi
     AuditLog::assertRecorded(User::class, $user->id, 'updated');
 });
 
-it('renders the embedded audit trail iframe page for authorized admins', function (): void {
+it('renders the embedded audit trail page for authorized admins', function (): void {
     $company = Company::factory()->create(['is_active' => true]);
     $adminRole = Role::factory()->admin()->create();
 
@@ -67,8 +67,7 @@ it('renders the embedded audit trail iframe page for authorized admins', functio
 
     $response->assertStatus(200);
     $response->assertSee('System Audit Trail');
-    $response->assertSee('<iframe', false);
-    $response->assertSee('/audit-log');
+    $response->assertSeeLivewire(\App\Livewire\Admin\AuditTrail\AuditTrailViewer::class);
 });
 
 it('records access audit log entry when user impersonation starts and stops', function (): void {

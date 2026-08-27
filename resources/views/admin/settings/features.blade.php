@@ -5,5 +5,5 @@
 ])
 
 @section('settings-content')
-    <livewire:admin.settings.feature-toggles />
+    @livewire('admin.settings.feature-toggles')
 @endsection

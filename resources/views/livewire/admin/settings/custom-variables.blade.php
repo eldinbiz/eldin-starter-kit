@@ -263,6 +263,7 @@
                         <div id="custom_var_ace_editor" style="height: 220px; min-height: 220px; width: 100%; position: relative;" class="rounded-lg border border-gray-300 dark:border-gray-700 overflow-hidden">
                             <textarea
                                 id="formValue_json"
+                                name="value"
                                 wire:model="formValue"
                                 rows="8"
                                 placeholder='{"enabled": true, "threshold": 50}'

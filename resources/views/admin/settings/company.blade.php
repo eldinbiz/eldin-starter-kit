@@ -5,5 +5,5 @@
 ])
 
 @section('settings-content')
-    <livewire:admin.settings.company-settings />
+    @livewire('admin.settings.company-settings')
 @endsection

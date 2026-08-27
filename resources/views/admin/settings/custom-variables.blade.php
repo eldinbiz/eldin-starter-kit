@@ -5,5 +5,5 @@
 ])
 
 @section('settings-content')
-    <livewire:admin.settings.custom-variables />
+    @livewire('admin.settings.custom-variables')
 @endsection

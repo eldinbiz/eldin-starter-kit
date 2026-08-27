@@ -352,22 +352,19 @@
                         </a>
                     </li>
 
-                    {{-- API Docs (Scramble) --}}
+                    {{-- API Docs & OpenAPI Explorer --}}
                     <li>
                         <a
-                            href="{{ url('/docs/api') }}"
-                            target="_blank"
-                            class="menu-item group menu-item-inactive"
+                            href="{{ route('admin.api-docs.index') }}"
+                            wire:navigate.hover
+                            class="menu-item group {{ Request::is('admin/api-docs*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
                                 {{-- Book / Docs Icon --}}
-                                <svg class="fill-current menu-item-icon-inactive" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <svg class="fill-current {{ Request::is('admin/api-docs*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 4.5C9.79086 4.5 7.72893 3.65961 6.16434 2.27493C5.52044 1.70511 4.5 2.16238 4.5 3.02324V18.1402C4.5 18.7303 4.88764 19.2483 5.45423 19.4147C7.43324 19.9959 9.6192 20.25 12 20.25C14.3808 20.25 16.5668 19.9959 18.5458 19.4147C19.1124 19.2483 19.5 18.7303 19.5 18.1402V3.02324C19.5 2.16238 18.4796 1.70511 17.8357 2.27493C16.2711 3.65961 14.2091 4.5 12 4.5ZM6 4.60098C7.6834 5.56847 9.7564 6 12 6C14.2436 6 16.3166 5.56847 18 4.60098V17.7505C16.208 18.3619 14.1884 18.75 12 18.75C9.81156 18.75 7.79198 18.3619 6 17.7505V4.60098Z" />
                                 </svg>
-                                <span class="menu-item-text flex items-center gap-1.5" x-show="!sidebarToggle || sidebarHover" x-cloak>
-                                    API Docs
-                                    <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                                </span>
+                                <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>API Explorer</span>
                             </span>
                         </a>
                     </li>

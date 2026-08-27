@@ -5,8 +5,8 @@
 ])
 
 @section('settings-content')
-    <livewire:admin.settings.email-templates.template-editor
-        :target-event="request()->query('event')"
-        :target-company-id="request()->filled('company_id') ? (int) request()->query('company_id') : null"
-    />
+    @livewire('admin.settings.email-templates.template-editor', [
+        'targetEvent' => request()->query('event'),
+        'targetCompanyId' => request()->filled('company_id') ? (int) request()->query('company_id') : null,
+    ])
 @endsection

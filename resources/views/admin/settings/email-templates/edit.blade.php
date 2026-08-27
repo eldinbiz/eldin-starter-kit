@@ -5,7 +5,5 @@
 ])
 
 @section('settings-content')
-    <livewire:admin.settings.email-templates.template-editor
-        :template-id="$template->id"
-    />
+    @livewire('admin.settings.email-templates.template-editor', ['templateId' => $template->id])
 @endsection

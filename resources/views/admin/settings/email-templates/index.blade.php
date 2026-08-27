@@ -5,8 +5,8 @@
 ])
 
 @section('settings-content')
-    <livewire:admin.settings.email-templates.template-list
-        :selected-company-id="request()->filled('company_id') ? (int) request()->query('company_id') : null"
-        :search="request()->query('search', request()->query('q', ''))"
-    />
+    @livewire('admin.settings.email-templates.template-list', [
+        'selectedCompanyId' => request()->filled('company_id') ? (int) request()->query('company_id') : null,
+        'search' => request()->query('search', request()->query('q', '')),
+    ])
 @endsection
