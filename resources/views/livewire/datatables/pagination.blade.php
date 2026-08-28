@@ -22,7 +22,7 @@
         {{-- Pagination Links --}}
         @if ($paginator->hasPages())
             <div>
-                {{ $paginator->links() }}
+                {{ $paginator->onEachSide(1)->links() }}
             </div>
         @endif
     </div>
