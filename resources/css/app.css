@@ -473,3 +473,50 @@ span.flatpickr-weekday,
     margin-right: -60px !important;
   }
 }
+
+/* Livewire wire:navigate NProgress Loading Bar Enhancements */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: linear-gradient(90deg, var(--color-brand-600, #3641f5), var(--color-brand-500, #465fff), var(--color-brand-400, #7592ff), #a855f7) !important;
+  position: fixed !important;
+  z-index: 999999 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 4px !important;
+  box-shadow: 0 1px 4px rgba(70, 95, 255, 0.4);
+}
+
+#nprogress .peg {
+  display: block !important;
+  position: absolute !important;
+  right: 0px !important;
+  width: 120px !important;
+  height: 100% !important;
+  box-shadow: 0 0 16px var(--color-brand-400, #7592ff), 0 0 8px var(--color-brand-500, #465fff) !important;
+  opacity: 1 !important;
+  transform: rotate(3deg) translate(0px, -4px) !important;
+}
+
+#nprogress .spinner {
+  display: block;
+  position: fixed;
+  z-index: 999999;
+  top: 16px;
+  right: 16px;
+}
+
+#nprogress .spinner-icon {
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: solid 2.5px transparent;
+  border-top-color: var(--color-brand-500, #465fff);
+  border-left-color: var(--color-brand-500, #465fff);
+  border-radius: 50%;
+  animation: nprogress-spinner 400ms linear infinite;
+}
+
