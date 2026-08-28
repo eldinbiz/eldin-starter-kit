@@ -80,35 +80,45 @@
 </div>
 
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('approvalSubmitModal', (previewRoute = '', initialTemplateId = null) => ({
-            open: false,
-            selectedTemplate: initialTemplateId,
-            previewHtml: '',
-            loading: false,
-            submitted: false,
+    (function () {
+        const registerModal = () => {
+            if (typeof Alpine === 'undefined') return;
 
-            init() {
-                this.$watch('open', (val) => {
-                    if (val && !this.previewHtml) {
-                        this.loadPreview();
+            Alpine.data('approvalSubmitModal', (previewRoute = '', initialTemplateId = null) => ({
+                open: false,
+                selectedTemplate: initialTemplateId,
+                previewHtml: '',
+                loading: false,
+                submitted: false,
+
+                init() {
+                    this.$watch('open', (val) => {
+                        if (val && !this.previewHtml) {
+                            this.loadPreview();
+                        }
+                    });
+                },
+
+                async loadPreview() {
+                    if (!this.selectedTemplate || !previewRoute) return;
+                    this.loading = true;
+                    try {
+                        const url = previewRoute + '?template_id=' + this.selectedTemplate;
+                        const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                        this.previewHtml = await resp.text();
+                    } catch (e) {
+                        this.previewHtml = '<p class="text-sm text-error-500">Failed to load workflow preview.</p>';
                     }
-                });
-            },
-
-            async loadPreview() {
-                if (!this.selectedTemplate || !previewRoute) return;
-                this.loading = true;
-                try {
-                    const url = previewRoute + '?template_id=' + this.selectedTemplate;
-                    const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                    this.previewHtml = await resp.text();
-                } catch (e) {
-                    this.previewHtml = '<p class="text-sm text-error-500">Failed to load workflow preview.</p>';
+                    this.loading = false;
                 }
-                this.loading = false;
-            }
-        }));
-    });
+            }));
+        };
+
+        if (window.Alpine) {
+            registerModal();
+        } else {
+            document.addEventListener('alpine:init', registerModal);
+        }
+    })();
 </script>
 

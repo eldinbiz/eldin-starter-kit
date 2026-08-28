@@ -25,7 +25,13 @@ class MetricsDashboard extends Component
     {
         if (in_array($period, ['7d', '30d', '90d', '1y'], true)) {
             $this->period = $period;
+            $this->dispatch('chart-data-updated', chartData: $this->chartData);
         }
+    }
+
+    public function updatedPeriod(): void
+    {
+        $this->dispatch('chart-data-updated', chartData: $this->chartData);
     }
 
     #[Computed]

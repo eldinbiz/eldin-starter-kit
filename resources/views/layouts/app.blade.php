@@ -17,6 +17,11 @@
     {{-- ApexCharts CDN (Loaded before Alpine) --}}
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+    {{-- D3 & Org Chart CDN (Loaded before Alpine) --}}
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3"></script>
+
     {{-- Livewire Styles --}}
     @livewireStyles
 

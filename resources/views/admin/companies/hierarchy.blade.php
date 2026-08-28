@@ -109,11 +109,6 @@
     </div>
 </div>
 
-{{-- D3 & Org Chart CDN Scripts --}}
-<script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3"></script>
-
 {{-- Company Hierarchy Initialization --}}
 <script>
 function companyHierarchy() {
@@ -214,6 +209,11 @@ function companyHierarchy() {
         },
 
         initChart() {
+            if (typeof d3 === 'undefined' || typeof d3.OrgChart === 'undefined') {
+                setTimeout(() => this.initChart(), 50);
+                return;
+            }
+
             const self = this;
 
             this.chart = new d3.OrgChart()

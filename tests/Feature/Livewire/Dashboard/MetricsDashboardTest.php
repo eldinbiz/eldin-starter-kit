@@ -38,15 +38,17 @@ it('renders dashboard with company metrics counters', function () {
         ->assertSee('Pending Approvals');
 });
 
-it('updates period and recalculates chart data', function () {
+it('updates period, recalculates chart data, and dispatches chart-data-updated event', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
     Livewire::test(MetricsDashboard::class)
         ->set('period', '7d')
         ->assertSet('period', '7d')
+        ->assertDispatched('chart-data-updated')
         ->call('setPeriod', '90d')
-        ->assertSet('period', '90d');
+        ->assertSet('period', '90d')
+        ->assertDispatched('chart-data-updated');
 });
 
 it('correctly calculates pending approvals count', function () {

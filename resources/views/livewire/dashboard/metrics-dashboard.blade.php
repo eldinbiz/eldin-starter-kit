@@ -126,13 +126,15 @@
                 </div>
             </div>
             <div
+                wire:ignore
                 x-data="chartComponent({
                     type: 'area',
-                    categories: {{ json_encode($this->chartData['categories']) }},
-                    series: [{ name: 'System Events', data: {{ json_encode($this->chartData['activity']) }} }],
+                    categories: @js($this->chartData['categories']),
+                    series: [{ name: 'System Events', data: @js($this->chartData['activity']) }],
                     colors: ['#465FFF'],
                     height: 300
                 })"
+                @chart-data-updated.window="updateChart($event.detail)"
                 class="w-full min-h-[300px]"
             ></div>
         </div>
@@ -146,16 +148,18 @@
                 </div>
             </div>
             <div
+                wire:ignore
                 x-data="donutChartComponent({
                     series: [
-                        {{ $this->chartData['approvalDistribution']['approved'] }},
-                        {{ $this->chartData['approvalDistribution']['pending'] }},
-                        {{ $this->chartData['approvalDistribution']['rejected'] }}
+                        @js($this->chartData['approvalDistribution']['approved']),
+                        @js($this->chartData['approvalDistribution']['pending']),
+                        @js($this->chartData['approvalDistribution']['rejected'])
                     ],
                     labels: ['Approved', 'Pending', 'Rejected'],
                     colors: ['#10B981', '#F59E0B', '#EF4444'],
                     height: 280
                 })"
+                @chart-data-updated.window="updateChart($event.detail)"
                 class="flex items-center justify-center min-h-[280px]"
             ></div>
         </div>
@@ -268,68 +272,117 @@
 </div>
 
 <script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('chartComponent', (config) => ({
-            chart: null,
-            init() {
-                if (typeof ApexCharts === 'undefined') return;
+    (function () {
+        const registerDashboardCharts = () => {
+            if (typeof Alpine === 'undefined') return;
 
-                const options = {
-                    chart: {
-                        type: config.type || 'area',
-                        height: config.height || 300,
-                        toolbar: { show: false },
-                        fontFamily: 'inherit',
-                    },
-                    series: config.series || [],
-                    xaxis: {
-                        categories: config.categories || [],
-                        labels: { style: { colors: '#9CA3AF', fontSize: '11px' } }
-                    },
-                    colors: config.colors || ['#465FFF'],
-                    stroke: { curve: 'smooth', width: 2.5 },
-                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 } },
-                    grid: { borderColor: '#E5E7EB', strokeDashArray: 3 },
-                    markers: { size: 3 }
-                };
+            Alpine.data('chartComponent', (config) => ({
+                chart: null,
+                init() {
+                    this.$nextTick(() => this.mountChart());
+                },
+                mountChart() {
+                    if (typeof ApexCharts === 'undefined') {
+                        setTimeout(() => this.mountChart(), 50);
+                        return;
+                    }
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
 
-                this.chart = new ApexCharts(this.$el, options);
-                this.chart.render();
-            },
-            destroy() {
-                if (this.chart) {
-                    this.chart.destroy();
+                    const options = {
+                        chart: {
+                            type: config.type || 'area',
+                            height: config.height || 300,
+                            toolbar: { show: false },
+                            fontFamily: 'inherit',
+                        },
+                        series: config.series || [],
+                        xaxis: {
+                            categories: config.categories || [],
+                            labels: { style: { colors: '#9CA3AF', fontSize: '11px' } }
+                        },
+                        colors: config.colors || ['#465FFF'],
+                        stroke: { curve: 'smooth', width: 2.5 },
+                        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 } },
+                        grid: { borderColor: '#E5E7EB', strokeDashArray: 3 },
+                        markers: { size: 3 }
+                    };
+
+                    this.chart = new ApexCharts(this.$el, options);
+                    this.chart.render();
+                },
+                updateChart(payload) {
+                    const chartData = payload?.chartData || payload;
+                    if (!this.chart || typeof ApexCharts === 'undefined' || !chartData) return;
+                    this.chart.updateOptions({
+                        xaxis: { categories: chartData.categories || [] }
+                    });
+                    this.chart.updateSeries([{
+                        name: 'System Events',
+                        data: chartData.activity || []
+                    }]);
+                },
+                destroy() {
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
                 }
-            }
-        }));
+            }));
 
-        Alpine.data('donutChartComponent', (config) => ({
-            chart: null,
-            init() {
-                if (typeof ApexCharts === 'undefined') return;
+            Alpine.data('donutChartComponent', (config) => ({
+                chart: null,
+                init() {
+                    this.$nextTick(() => this.mountChart());
+                },
+                mountChart() {
+                    if (typeof ApexCharts === 'undefined') {
+                        setTimeout(() => this.mountChart(), 50);
+                        return;
+                    }
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
 
-                const options = {
-                    chart: {
-                        type: 'donut',
-                        height: config.height || 280,
-                        fontFamily: 'inherit',
-                    },
-                    series: config.series || [],
-                    labels: config.labels || [],
-                    colors: config.colors || ['#10B981', '#F59E0B', '#EF4444'],
-                    legend: { position: 'bottom', fontSize: '12px' },
-                    plotOptions: { pie: { donut: { size: '65%' } } },
-                    dataLabels: { enabled: false }
-                };
+                    const options = {
+                        chart: {
+                            type: 'donut',
+                            height: config.height || 280,
+                            fontFamily: 'inherit',
+                        },
+                        series: config.series || [],
+                        labels: config.labels || [],
+                        colors: config.colors || ['#10B981', '#F59E0B', '#EF4444'],
+                        legend: { position: 'bottom', fontSize: '12px' },
+                        plotOptions: { pie: { donut: { size: '65%' } } },
+                        dataLabels: { enabled: false }
+                    };
 
-                this.chart = new ApexCharts(this.$el, options);
-                this.chart.render();
-            },
-            destroy() {
-                if (this.chart) {
-                    this.chart.destroy();
+                    this.chart = new ApexCharts(this.$el, options);
+                    this.chart.render();
+                },
+                updateChart(payload) {
+                    const chartData = payload?.chartData || payload;
+                    if (!this.chart || typeof ApexCharts === 'undefined' || !chartData || !chartData.approvalDistribution) return;
+                    const dist = chartData.approvalDistribution;
+                    this.chart.updateSeries([
+                        dist.approved || 0,
+                        dist.pending || 0,
+                        dist.rejected || 0
+                    ]);
+                },
+                destroy() {
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
                 }
-            }
-        }));
-    });
+            }));
+        };
+
+        if (window.Alpine) {
+            registerDashboardCharts();
+        } else {
+            document.addEventListener('alpine:init', registerDashboardCharts);
+        }
+    })();
 </script>
