@@ -18,44 +18,45 @@ Welcome to the application architecture and developer handbook. This guide defin
 
 ## 1. Core Architectural Philosophy
 
-This project is built as a **Modular Monolith** using **Laravel 13**, **PHP 8.4**, and [`internachi/modular`](https://github.com/InterNACHI/modular). 
+This project is built as a **Modular Monolith** using **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and [`internachi/modular`](https://github.com/InterNACHI/modular). 
 
-To ensure long-term maintainability, testability, and reuse across Web, REST API, CLI, and Queue layers, we enforce a strict separation of concerns:
+To ensure long-term maintainability, testability, and reuse across Web SPA, REST API, CLI, and Queue layers, we enforce a strict separation of concerns:
 
 - **Core vs. Domain Boundary**:
   - `app/` is reserved for cross-cutting multi-tenant platform infrastructure (Authentication, User/Company models, Roles & Permissions, Approval Engine, Notification Engine, System Settings, Feature Toggles).
   - `app-modules/<module-name>/` houses all isolated business domains (e.g. Purchase Requests, Invoices, HR/Leave, Inventory).
-- **The 3-Layer Pattern**:
-  - **Form Requests**: Validate inputs and enforce request-level authorization gates.
-  - **Domain Actions**: Encapsulate single-purpose business operations, transactions, and event dispatches.
-  - **Thin Controllers**: Act purely as HTTP orchestrators that bind requests to actions and return responses.
+- **The 3-Layer + Livewire SPA Architecture**:
+  - **Interactive Presentation Layer**:
+    - **Livewire v4 Components**: Reactive Single Page Application (SPA) orchestrators managing UI state, inputs, search debouncing, and modal dialogs with instant `wire:navigate` transitions.
+    - **Thin Controllers**: Traditional HTTP orchestrators for non-SPA endpoints, exports, and redirect flows.
+  - **Validation & Authorization Layer**:
+    - **Form Requests / #[Validate]**: Validate inputs and enforce request-level authorization gates.
+  - **Domain Business Layer**:
+    - **Domain Actions**: Encapsulate single-purpose business operations, multi-table database transactions, and event dispatches.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      HTTP Request / CLI                     │
+│          HTTP Request / wire:navigate / Reactive UI         │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│       1. Form Request (Validation & Authorization Gate)     │
+│  1. Presentation Layer (Thin Controller / Livewire v4 Comp) │
+│  - Livewire: UI State, #[Url], #[Computed], Form Binding   │
+│  - Controller / Request: Form Request Validation & Auth     │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ validated()
+                               │ validated data & execute()
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│       2. Controller (Thin HTTP Orchestrator)                │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ execute($data)
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│       3. Domain Action (Single Responsibility & DB Tx)      │
+│  2. Domain Action (Single Responsibility & DB Transaction)  │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │ DB::transaction, Models, Events, Notifications, Media │  │
 │  └───────────────────────────────────────────────────────┘  │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ Returns Model / DTO / Result
+                               │ Returns Model / Result
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│           Response (Redirect, Blade View, API JSON)         │
+│    3. Presentation Output (Reactive DOM Diff / API JSON)    │
 └─────────────────────────────────────────────────────────────┘
 ```
 

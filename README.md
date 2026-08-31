@@ -1,8 +1,10 @@
 # Scaffolding App
 
+Multi-tenant enterprise SaaS scaffolding platform built on **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and **Pest 5**.
+
 ## Prerequisites
 
-- PHP 8.3+
+- PHP 8.4+
 - Composer 2
 - Node.js 22+
 - **Docker + Docker Compose** (for Docker mode only)
@@ -230,16 +232,22 @@ docker compose up -d --build
 
 ---
 
-### Local Mode
+### Running Tests
 
-The `composer dev` command already runs `php artisan queue:listen` alongside the server and Vite. Jobs are processed automatically as you work.
+Run the full automated test suite (Pest 5):
+
+```bash
+./test
+```
+*(or `php artisan test`)*
 
 ---
 
 ## Architecture & Developer Guides
 
+- **Developer & Architecture Handbook**: See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for the 3-Layer + Livewire v4 SPA architecture, domain actions, and coding standards.
+- **Livewire v4 SPA Skill**: See [.agents/skills/livewire-spa/SKILL.md](.agents/skills/livewire-spa/SKILL.md) for component conventions, `wire:navigate`, and Pest 5 component testing.
 - **Modular Architecture Guide (`internachi/modular`)**: See [docs/MODULAR_ARCHITECTURE_GUIDE.md](docs/MODULAR_ARCHITECTURE_GUIDE.md) for module lifecycle, anatomy, CLI commands with `--module`, and core integrations.
-  - Upstream package documentation: [InterNACHI/modular on GitHub](https://github.com/InterNACHI/modular/blob/main/README.md).
 - **API Developer Guide & OpenAPI (Scramble)**: See [docs/API_LAYER_GUIDE.md](docs/API_LAYER_GUIDE.md) for REST API architecture, multi-tenant scoping (`X-Company-ID`), and code templates.
   - Interactive Swagger/OpenAPI 3.1 docs: [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (or `http://localhost:8080/docs/api` in Docker).
   - Bruno API collection: located in `bruno/` for instant API testing in the VS Code Bruno extension.
