@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\ApiDocs;
 
-use App\Livewire\Admin\ApiDocs\ApiDocsViewer;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -28,7 +27,7 @@ it('renders api docs explorer with endpoint list and snippets', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(ApiDocsViewer::class)
+    Livewire::test('admin.api-docs.api-docs-viewer')
         ->assertSuccessful()
         ->assertSee('REST API Explorer')
         ->assertSee('/api/v1/me')
@@ -40,7 +39,7 @@ it('filters endpoints by module tag', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(ApiDocsViewer::class)
+    Livewire::test('admin.api-docs.api-docs-viewer')
         ->call('setTag', 'users')
         ->assertSet('selectedTag', 'users')
         ->assertSee('/api/v1/users')
@@ -51,7 +50,7 @@ it('switches snippet language to php and javascript', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(ApiDocsViewer::class)
+    Livewire::test('admin.api-docs.api-docs-viewer')
         ->call('setSnippetLanguage', 'js')
         ->assertSet('snippetLanguage', 'js')
         ->assertSee('fetch(')
@@ -64,7 +63,7 @@ it('executes api request against subrequest handler', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(ApiDocsViewer::class)
+    Livewire::test('admin.api-docs.api-docs-viewer')
         ->call('selectEndpoint', 'auth_me')
         ->call('executeRequest')
         ->assertSet('responseStatus', 200)

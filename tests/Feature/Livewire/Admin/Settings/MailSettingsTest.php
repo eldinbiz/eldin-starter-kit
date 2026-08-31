@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
-use App\Livewire\Admin\Settings\MailSettings;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -33,7 +32,7 @@ beforeEach(function (): void {
 it('renders mail settings component with transport options', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(MailSettings::class)
+    Livewire::test('admin.settings.mail-settings')
         ->assertSuccessful()
         ->assertSee('Active Mail Transport Driver')
         ->assertSee('SMTP Transport')
@@ -44,7 +43,7 @@ it('renders mail settings component with transport options', function (): void {
 it('saves SMTP settings', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(MailSettings::class)
+    Livewire::test('admin.settings.mail-settings')
         ->call('selectMailer', 'smtp')
         ->set('mail_host', 'smtp.example.com')
         ->set('mail_port', '465')
@@ -67,7 +66,7 @@ it('dispatches live test email successfully', function (): void {
     Mail::fake();
     $this->actingAs($this->adminUser);
 
-    Livewire::test(MailSettings::class)
+    Livewire::test('admin.settings.mail-settings')
         ->set('test_recipient', 'tester@example.com')
         ->call('sendTestEmail')
         ->assertSet('testStatus', 'success');

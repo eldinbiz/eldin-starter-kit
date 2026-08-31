@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
-use App\Livewire\Admin\Settings\CompanySettings;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -35,7 +34,7 @@ beforeEach(function (): void {
 it('renders company settings component with available companies', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(CompanySettings::class)
+    Livewire::test('admin.settings.company-settings')
         ->assertSuccessful()
         ->assertSee('Alpha Holdings')
         ->assertSee('Brand Theme Palette');
@@ -47,7 +46,7 @@ it('updates brand theme and localization overrides for specific company', functi
 
     $logo = UploadedFile::fake()->image('alpha_logo.png', 200, 50);
 
-    Livewire::test(CompanySettings::class)
+    Livewire::test('admin.settings.company-settings')
         ->set('selectedCompanyId', $this->companyA->id)
         ->call('setTheme', 'emerald')
         ->set('default_timezone', 'Asia/Jakarta')
@@ -68,7 +67,7 @@ it('switches companies and loads correct settings', function (): void {
     $settingService = app(SettingService::class);
     $settingService->set('brand_theme', 'purple', 'text', 'company', $this->companyB->id);
 
-    Livewire::test(CompanySettings::class)
+    Livewire::test('admin.settings.company-settings')
         ->set('selectedCompanyId', $this->companyB->id)
         ->assertSet('brand_theme', 'purple');
 });

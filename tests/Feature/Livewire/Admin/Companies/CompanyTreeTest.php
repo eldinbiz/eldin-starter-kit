@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Companies;
 
-use App\Livewire\Admin\Companies\CompanyTree;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -27,7 +26,7 @@ it('renders company tree component with hierarchy data', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->holding->id]);
 
-    $component = Livewire::test(CompanyTree::class)
+    $component = Livewire::test('admin.companies.company-tree')
         ->assertSuccessful();
 
     $treeData = $component->get('treeData');
@@ -39,7 +38,7 @@ it('toggles subsidiary company active status', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->holding->id]);
 
-    Livewire::test(CompanyTree::class)
+    Livewire::test('admin.companies.company-tree')
         ->call('toggleCompanyActive', $this->subsidiary->id)
         ->assertSee('disabled');
 
@@ -51,7 +50,7 @@ it('prevents disabling parent company if active children exist', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->holding->id]);
 
-    Livewire::test(CompanyTree::class)
+    Livewire::test('admin.companies.company-tree')
         ->call('toggleCompanyActive', $this->holding->id)
         ->assertSee('All child companies must be disabled before disabling this company');
 
@@ -65,7 +64,7 @@ it('reparents a company to a new parent', function () {
 
     $newParent = Company::factory()->create(['name' => 'International Holding', 'type' => 'holding', 'is_active' => true]);
 
-    Livewire::test(CompanyTree::class)
+    Livewire::test('admin.companies.company-tree')
         ->call('reparentCompany', $this->subsidiary->id, $newParent->id)
         ->assertSee('Company parent structure successfully updated');
 

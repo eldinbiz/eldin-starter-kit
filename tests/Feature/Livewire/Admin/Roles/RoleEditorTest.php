@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Roles;
 
-use App\Livewire\Admin\Roles\RoleEditor;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -29,7 +28,7 @@ it('renders create role form with permission groups', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(RoleEditor::class)
+    Livewire::test('admin.roles.role-editor')
         ->assertSuccessful()
         ->assertSee('Create New Role')
         ->assertSee('Permissions Matrix')
@@ -46,7 +45,7 @@ it('renders edit role form with existing role attributes', function () {
         'permissions' => ['manage-users'],
     ]);
 
-    Livewire::test(RoleEditor::class, ['roleId' => $role->id])
+    Livewire::test('admin.roles.role-editor', ['roleId' => $role->id])
         ->assertSuccessful()
         ->assertSee('Edit Role: Moderator')
         ->assertSet('name', 'moderator')
@@ -57,7 +56,7 @@ it('toggles permission group selection', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    $component = Livewire::test(RoleEditor::class)
+    $component = Livewire::test('admin.roles.role-editor')
         ->call('toggleGroup', 'User Management');
 
     // Should contain manage-users
@@ -72,7 +71,7 @@ it('always keeps dashboard permission selected', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    $component = Livewire::test(RoleEditor::class);
+    $component = Livewire::test('admin.roles.role-editor');
     expect($component->get('selectedPermissions'))->toContain('view-dashboard');
 
     // Attempt to toggle off always_enabled
@@ -86,12 +85,12 @@ it('validates name uniqueness and required field on role creation', function () 
 
     Role::factory()->create(['name' => 'existing-role']);
 
-    Livewire::test(RoleEditor::class)
+    Livewire::test('admin.roles.role-editor')
         ->set('name', '')
         ->call('save')
         ->assertHasErrors(['name' => 'required']);
 
-    Livewire::test(RoleEditor::class)
+    Livewire::test('admin.roles.role-editor')
         ->set('name', 'existing-role')
         ->call('save')
         ->assertHasErrors(['name' => 'unique']);
@@ -101,7 +100,7 @@ it('stores a new role with selected permissions', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(RoleEditor::class)
+    Livewire::test('admin.roles.role-editor')
         ->set('name', 'compliance-officer')
         ->call('togglePermission', 'view-audit-logs')
         ->call('save')
@@ -122,7 +121,7 @@ it('updates an existing role with modified permissions', function () {
         'permissions' => ['view-org-chart'],
     ]);
 
-    Livewire::test(RoleEditor::class, ['roleId' => $role->id])
+    Livewire::test('admin.roles.role-editor', ['roleId' => $role->id])
         ->set('name', 'lead-analyst')
         ->call('togglePermission', 'view-audit-logs')
         ->call('save')

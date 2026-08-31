@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
-use App\Livewire\Admin\Settings\FeatureToggles;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -33,7 +32,7 @@ beforeEach(function (): void {
 it('renders feature toggles component with global and company sections', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(FeatureToggles::class)
+    Livewire::test('admin.settings.feature-toggles')
         ->assertSuccessful()
         ->assertSee('Global Defaults')
         ->assertSee('Per-Company Overrides');
@@ -52,7 +51,7 @@ it('toggles global features reactively', function (): void {
         $all[$firstKey]['default_enabled'] ?? true
     );
 
-    Livewire::test(FeatureToggles::class)
+    Livewire::test('admin.settings.feature-toggles')
         ->call('toggleGlobal', $firstKey)
         ->assertSet('flashSuccess', 'Global feature toggles updated.');
 
@@ -70,7 +69,7 @@ it('saves per company overrides', function (): void {
     $all = $featureService->all();
     $firstKey = array_key_first($all);
 
-    Livewire::test(FeatureToggles::class)
+    Livewire::test('admin.settings.feature-toggles')
         ->set('selectedCompanyId', $this->company->id)
         ->set("companyValues.{$firstKey}", '0')
         ->call('saveCompany')

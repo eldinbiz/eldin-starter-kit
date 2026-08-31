@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Admin\OrgChart;
 
 use App\Actions\OrgChart\TraceReportingLineAction;
-use App\Livewire\Admin\OrgChart\OrgChartViewer;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -33,7 +32,7 @@ it('renders org chart viewer component with active company chart data', function
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    $component = Livewire::test(OrgChartViewer::class)
+    $component = Livewire::test('admin.org-chart.org-chart-viewer')
         ->assertSuccessful()
         ->assertSee('Acme Global');
 
@@ -45,7 +44,7 @@ it('reassigns employee manager and updates reporting line', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(OrgChartViewer::class)
+    Livewire::test('admin.org-chart.org-chart-viewer')
         ->call('updateManager', $this->engineer->id, $this->admin->id, 'Lead Dev', 'active')
         ->assertSee('Reporting line successfully updated');
 
@@ -59,7 +58,8 @@ it('traces reporting line from engineer up to CEO', function () {
     session(['active_company_id' => $this->company->id]);
 
     $traceAction = app(TraceReportingLineAction::class);
-    $chain = (new OrgChartViewer())->traceReportingChain($this->engineer->id, $traceAction);
+    $component = Livewire::test('admin.org-chart.org-chart-viewer');
+    $chain = $component->instance()->traceReportingChain($this->engineer->id, $traceAction);
 
     expect($chain)->not->toBeEmpty();
     $names = collect($chain)->pluck('name');

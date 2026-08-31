@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
-use App\Livewire\Admin\Settings\CustomVariables;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\SystemSetting;
@@ -37,7 +36,7 @@ it('renders custom variables list and filters by scope', function (): void {
     $settingService->set('global_var_1', 'val1', 'text', 'custom');
     $settingService->set('company_var_1', 'comp_val', 'text', 'custom', $this->company->id);
 
-    Livewire::test(CustomVariables::class)
+    Livewire::test('admin.settings.custom-variables')
         ->assertSuccessful()
         ->assertSee('global_var_1')
         ->set('selectedCompanyId', $this->company->id)
@@ -47,7 +46,7 @@ it('renders custom variables list and filters by scope', function (): void {
 it('creates new custom variable and handles json validation', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(CustomVariables::class)
+    Livewire::test('admin.settings.custom-variables')
         ->call('openCreateModal')
         ->set('formKey', 'max_upload_size')
         ->set('formType', 'numeric')
@@ -60,7 +59,7 @@ it('creates new custom variable and handles json validation', function (): void 
     expect($settingService->get('max_upload_size'))->toBe(100);
 
     // Invalid JSON validation test
-    Livewire::test(CustomVariables::class)
+    Livewire::test('admin.settings.custom-variables')
         ->call('openCreateModal')
         ->set('formKey', 'invalid_json_var')
         ->set('formType', 'json')
@@ -76,7 +75,7 @@ it('edits and deletes custom variable', function (): void {
     $settingService->set('to_delete_var', 'temp', 'text', 'custom');
     $var = SystemSetting::customVariables()->where('key', 'to_delete_var')->first();
 
-    Livewire::test(CustomVariables::class)
+    Livewire::test('admin.settings.custom-variables')
         ->call('openEditModal', $var->id)
         ->assertSet('formKey', 'to_delete_var')
         ->assertSet('formValue', 'temp')

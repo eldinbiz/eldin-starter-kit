@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
-use App\Livewire\Admin\Settings\GeneralSettings;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -34,7 +33,7 @@ beforeEach(function (): void {
 it('renders general settings component with initial values', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(GeneralSettings::class)
+    Livewire::test('admin.settings.general-settings')
         ->assertSuccessful()
         ->assertSet('app_name', config('app.name', 'Scaffolding App'))
         ->assertSee('Application Name');
@@ -47,7 +46,7 @@ it('saves updated general settings and uploads assets', function (): void {
     $logo = UploadedFile::fake()->image('custom_app_logo.png', 300, 100);
     $favicon = UploadedFile::fake()->image('favicon.ico', 32, 32);
 
-    Livewire::test(GeneralSettings::class)
+    Livewire::test('admin.settings.general-settings')
         ->set('app_name', 'Acme ERP Enterprise')
         ->set('default_timezone', 'Asia/Tokyo')
         ->set('date_format', 'd M Y')
@@ -68,7 +67,7 @@ it('saves updated general settings and uploads assets', function (): void {
 it('validates input parameters correctly', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(GeneralSettings::class)
+    Livewire::test('admin.settings.general-settings')
         ->set('app_name', '')
         ->call('save')
         ->assertHasErrors(['app_name' => 'required']);

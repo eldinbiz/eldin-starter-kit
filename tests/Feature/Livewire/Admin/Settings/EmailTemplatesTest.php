@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
-use App\Livewire\Admin\Settings\EmailTemplates\TemplateEditor;
-use App\Livewire\Admin\Settings\EmailTemplates\TemplateList;
 use App\Models\Company;
 use App\Models\EmailTemplate;
 use App\Models\Role;
@@ -50,7 +48,7 @@ it('renders template list and filters by scope and search', function (): void {
         'is_active' => true,
     ]);
 
-    Livewire::test(TemplateList::class)
+    Livewire::test('admin.settings.email-templates.template-list')
         ->assertSuccessful()
         ->assertSee('Purchase Request Submitted')
         ->set('selectedCompanyId', $this->company->id)
@@ -62,7 +60,7 @@ it('renders template list and filters by scope and search', function (): void {
 it('prompts delete and deletes a template', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(TemplateList::class)
+    Livewire::test('admin.settings.email-templates.template-list')
         ->call('promptDelete', $this->globalTemplate->id)
         ->assertSet('templateToDeleteId', $this->globalTemplate->id)
         ->call('deleteTemplate')
@@ -74,7 +72,7 @@ it('prompts delete and deletes a template', function (): void {
 it('creates and edits a template via TemplateEditor component', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(TemplateEditor::class)
+    Livewire::test('admin.settings.email-templates.template-editor')
         ->set('name', 'Invoice Generated')
         ->set('event', 'invoice_generated')
         ->set('subject', 'Invoice #{{ invoice_num }} Ready')
@@ -89,7 +87,7 @@ it('creates and edits a template via TemplateEditor component', function (): voi
 it('generates live preview and manages variables in TemplateEditor', function (): void {
     $this->actingAs($this->adminUser);
 
-    Livewire::test(TemplateEditor::class, ['templateId' => $this->globalTemplate->id])
+    Livewire::test('admin.settings.email-templates.template-editor', ['templateId' => $this->globalTemplate->id])
         ->assertSet('name', 'Purchase Request Submitted')
         ->set('newVariable', 'custom_field')
         ->call('addVariable')
