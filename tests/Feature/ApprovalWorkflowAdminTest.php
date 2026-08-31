@@ -128,7 +128,8 @@ it('shows list of workflow templates', function () {
 
     $this->get(route('admin.approval-workflows.index'))
         ->assertSuccessful()
-        ->assertSee('Approval Workflows');
+        ->assertSee('Workflow Templates')
+        ->assertSee(route('admin.approval-workflows.create'));
 
     $this->get(route('admin.approval-workflows.index'), ['X-DataTable-Partial' => 'true'])
         ->assertSuccessful()

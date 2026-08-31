@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Create Approval Workflow')
+@section('title', 'Create Workflow Template')
 
 @section('content')
-<div x-data="{ pageName: 'Approval Workflows' }">
+<div x-data="{ pageName: 'Workflow Templates' }">
     @include('partials.breadcrumb')
 </div>
 
