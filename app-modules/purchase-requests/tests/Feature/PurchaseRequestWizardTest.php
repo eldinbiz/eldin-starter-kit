@@ -10,8 +10,6 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\PurchaseRequests\Livewire\PurchaseRequestTable;
-use Modules\PurchaseRequests\Livewire\PurchaseRequestWizard;
 use Modules\PurchaseRequests\Models\PurchaseRequest;
 
 uses(RefreshDatabase::class);
@@ -47,7 +45,7 @@ it('renders purchase request wizard on step 1', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(PurchaseRequestWizard::class)
+    Livewire::test('purchase-requests.purchase-request-wizard')
         ->assertSuccessful()
         ->assertSee('Step 1: General Information')
         ->assertSet('currentStep', 1);
@@ -57,7 +55,7 @@ it('calculates dynamic line items total in step 2', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(PurchaseRequestWizard::class)
+    Livewire::test('purchase-requests.purchase-request-wizard')
         ->set('title', 'Server Rack Hardware')
         ->set('department', 'IT')
         ->call('nextStep')
@@ -81,7 +79,7 @@ it('saves a purchase request as draft through the wizard', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(PurchaseRequestWizard::class)
+    Livewire::test('purchase-requests.purchase-request-wizard')
         ->set('title', 'Draft Cloud Infrastructure Request')
         ->set('department', 'Operations')
         ->set('lineItems', [
@@ -104,7 +102,7 @@ it('submits purchase request directly for approval from the wizard', function ()
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(PurchaseRequestWizard::class)
+    Livewire::test('purchase-requests.purchase-request-wizard')
         ->set('title', 'Production SSD Upgrades')
         ->set('department', 'IT')
         ->set('lineItems', [
@@ -145,7 +143,7 @@ it('renders purchase request table and filters by status', function () {
         'status' => 'draft',
     ]);
 
-    Livewire::test(PurchaseRequestTable::class)
+    Livewire::test('purchase-requests.purchase-request-table')
         ->assertSuccessful()
         ->assertSee('Approved Workstation')
         ->assertSee('Draft Office Supplies')

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Admin\Approvals;
 
 use App\Enums\TemplateScope;
-use App\Livewire\Admin\Approvals\WorkflowTemplateTable;
 use App\Models\Approval\WorkflowTemplate;
 use App\Models\Company;
 use App\Models\Role;
@@ -37,7 +36,7 @@ it('renders workflow template table with active templates', function () {
         'is_active' => true,
     ]);
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->assertSuccessful()
         ->assertSee('Purchase Order Standard Approval')
         ->assertSee('Active');
@@ -59,7 +58,7 @@ it('filters templates by search query', function () {
         'is_active' => true,
     ]);
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->set('search', 'Travel')
         ->assertSee('Travel Expense Approval')
         ->assertDontSee('Equipment Requisition');
@@ -83,7 +82,7 @@ it('filters templates by scope', function () {
         'is_active' => true,
     ]);
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->set('filterValues.scope', 'global')
         ->assertSee('Global Policy Review')
         ->assertDontSee('Local Branch Workflow');
@@ -99,13 +98,13 @@ it('toggles template active status', function () {
         'is_active' => true,
     ]);
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->call('toggleStatus', $template->id);
 
     $template->refresh();
     expect($template->is_active)->toBeFalse();
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->call('toggleStatus', $template->id);
 
     $template->refresh();
@@ -122,13 +121,13 @@ it('trashes and restores workflow templates', function () {
         'is_active' => false,
     ]);
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->call('trash', $template->id);
 
     $template->refresh();
     expect($template->trashed())->toBeTrue();
 
-    Livewire::test(WorkflowTemplateTable::class)
+    Livewire::test('admin.approvals.workflow-template-table')
         ->set('filterValues.trashed', true)
         ->assertSee('Archivable Workflow')
         ->call('restore', $template->id);

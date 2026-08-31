@@ -11,8 +11,6 @@ use App\Actions\Approvals\RejectStepAction;
 use App\Enums\ApprovalStatus;
 use App\Enums\ResolverType;
 use App\Enums\StepState;
-use App\Livewire\Approvals\ApprovalInbox;
-use App\Livewire\Approvals\ApprovalRequestViewer;
 use App\Models\Approval\ApprovalRequest;
 use App\Models\Approval\ApprovalRequestStep;
 use App\Models\Approval\WorkflowGroup;
@@ -85,7 +83,7 @@ it('renders approval inbox with pending steps for logged in approver', function 
         'order' => 1,
     ]);
 
-    Livewire::test(ApprovalInbox::class)
+    Livewire::test('approvals.approval-inbox')
         ->assertSuccessful()
         ->assertSee('Pending Approvals')
         ->assertSee('Requester User')
@@ -118,7 +116,7 @@ it('approves a step and updates state', function () {
         'order' => 1,
     ]);
 
-    Livewire::test(ApprovalInbox::class)
+    Livewire::test('approvals.approval-inbox')
         ->call('openApproveModal', $step->id, 'Acme Corp')
         ->set('approvalNotes', 'Looks great, approved.')
         ->call('approveStep')
@@ -155,7 +153,7 @@ it('rejects a step and updates state', function () {
         'order' => 1,
     ]);
 
-    Livewire::test(ApprovalInbox::class)
+    Livewire::test('approvals.approval-inbox')
         ->call('openRejectModal', $step->id, 'Acme Corp')
         ->set('rejectionReason', 'Budget allocation exceeded.')
         ->call('rejectStep')
@@ -192,7 +190,7 @@ it('delegates a step to another colleague', function () {
         'order' => 1,
     ]);
 
-    Livewire::test(ApprovalInbox::class)
+    Livewire::test('approvals.approval-inbox')
         ->call('openDelegateModal', $step->id, 'Acme Corp')
         ->set('delegateUserId', $this->colleague->id)
         ->call('delegateStep')
@@ -218,7 +216,7 @@ it('allows requester to cancel approval request', function () {
         'submitted_at' => now(),
     ]);
 
-    Livewire::test(ApprovalInbox::class, ['tab' => 'requests'])
+    Livewire::test('approvals.approval-inbox', ['tab' => 'requests'])
         ->call('openCancelModal', $approvalRequest->id, 'Acme Corp')
         ->call('cancelRequest')
         ->assertDispatched('notify');
@@ -253,7 +251,7 @@ it('renders approval request viewer with workflow steps timeline', function () {
         'order' => 1,
     ]);
 
-    Livewire::test(ApprovalRequestViewer::class, ['requestId' => $approvalRequest->id])
+    Livewire::test('approvals.approval-request-viewer', ['requestId' => $approvalRequest->id])
         ->assertSuccessful()
         ->assertSee('Workflow Progress')
         ->assertSee('Approver User')

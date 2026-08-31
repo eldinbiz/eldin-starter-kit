@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Admin\Approvals;
 
 use App\Enums\TemplateScope;
-use App\Livewire\Admin\Approvals\WorkflowTemplateEditor;
 use App\Models\Approval\WorkflowTemplate;
 use App\Models\Company;
 use App\Models\Role;
@@ -30,7 +29,7 @@ it('renders workflow template editor for creating a new template', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(WorkflowTemplateEditor::class)
+    Livewire::test('admin.approvals.workflow-template-editor')
         ->assertSuccessful()
         ->assertSee('New Workflow Template')
         ->assertSee('Group 1')
@@ -41,7 +40,7 @@ it('can add and remove step groups', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(WorkflowTemplateEditor::class)
+    Livewire::test('admin.approvals.workflow-template-editor')
         ->assertCount('groups', 1)
         ->call('addGroup')
         ->assertCount('groups', 2)
@@ -53,7 +52,7 @@ it('can add and remove steps within a group', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(WorkflowTemplateEditor::class)
+    Livewire::test('admin.approvals.workflow-template-editor')
         ->call('addStep', 0)
         ->assertCount('groups.0.steps', 2)
         ->call('removeStep', 0, 1)
@@ -67,7 +66,7 @@ it('creates a new multi-group workflow template successfully', function () {
     $specificApprover = User::factory()->create(['name' => 'Finance Director']);
     $specificApprover->companies()->attach($this->company->id, ['status' => 'active']);
 
-    Livewire::test(WorkflowTemplateEditor::class)
+    Livewire::test('admin.approvals.workflow-template-editor')
         ->set('name', 'Capital Expenditure Workflow')
         ->set('description', 'High value capex multi-tier review')
         ->set('scope', TemplateScope::Global->value)
