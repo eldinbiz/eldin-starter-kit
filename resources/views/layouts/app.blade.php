@@ -108,15 +108,16 @@
 
     <script>
         window.isImpersonationTransition = false;
+        window.__isImpersonating = {{ app('impersonate')->isImpersonating() ? 'true' : 'false' }};
         if (!window.__tabId) {
             window.__tabId = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
         }
     </script>
 
-    {{-- Session Expiry Monitor & Modal (only for authenticated users) --}}
-    @auth
+    {{-- Session Expiry Monitor & Modal (only for authenticated users not currently impersonating) --}}
+    @if(auth()->check() && !app('impersonate')->isImpersonating())
         @include('partials.session-monitor')
-    @endauth
+    @endif
 
     @auth
     <script>
@@ -125,11 +126,10 @@
 
             if (!window.__impersonationChannelInit) {
                 window.__impersonationChannelInit = true;
-                const tabId = window.__tabId;
                 const bc = new BroadcastChannel('impersonation_channel');
 
                 bc.onmessage = function (event) {
-                    if (event.data && event.data.type === 'IMPERSONATION_CHANGED' && event.data.senderTabId && event.data.senderTabId !== tabId) {
+                    if (event.data && event.data.type === 'IMPERSONATION_CHANGED' && event.data.senderTabId && event.data.senderTabId !== window.__tabId) {
                         window.isImpersonationTransition = true;
                         window.location.replace("{{ route('dashboard') }}");
                     }
@@ -140,7 +140,7 @@
                     try {
                         bc.postMessage({
                             type: 'IMPERSONATION_CHANGED',
-                            senderTabId: tabId,
+                            senderTabId: window.__tabId,
                             timestamp: Date.now()
                         });
                     } catch (e) {}

@@ -2,7 +2,7 @@
     x-data="{ sessionExpired: false }"
     x-init="
         const triggerExpired = () => {
-            if (window.isImpersonationTransition) return;
+            if (window.isImpersonationTransition || window.__isImpersonating) return;
             sessionExpired = true;
             if (window.__sessionMonitorInterval) {
                 clearInterval(window.__sessionMonitorInterval);
@@ -16,16 +16,17 @@
 
         // Verify session via backend — does NOT renew (route excludes StartSession)
         const check = () => {
-            if (window.isImpersonationTransition) {
+            if (window.isImpersonationTransition || window.__isImpersonating) {
                 return Promise.resolve();
             }
 
             return fetch('{{ route('session.status') }}', {
                 headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
             })
                 .then(res => res.json())
                 .then(data => {
-                    if (window.isImpersonationTransition) {
+                    if (window.isImpersonationTransition || window.__isImpersonating) {
                         return;
                     }
 
@@ -40,12 +41,20 @@
                 .catch(() => {}); // Network error — silently ignore (user may be offline)
         };
 
-        // Custom window event listener to connect global events with component scope
-        window.addEventListener('app:session-expired', () => triggerExpired());
+        // Custom window event listener to connect global events with component scope (singleton bound)
+        window.__triggerSessionExpired = triggerExpired;
+        if (!window.__sessionExpiredBound) {
+            window.__sessionExpiredBound = true;
+            window.addEventListener('app:session-expired', () => {
+                if (typeof window.__triggerSessionExpired === 'function') {
+                    window.__triggerSessionExpired();
+                }
+            });
+        }
 
         if (channel) {
             channel.onmessage = (e) => {
-                if (window.isImpersonationTransition) return;
+                if (window.isImpersonationTransition || window.__isImpersonating) return;
 
                 // Ignore messages originating from the same tab
                 if (e.data && e.data.senderTabId && window.__tabId && e.data.senderTabId === window.__tabId) {
@@ -66,6 +75,7 @@
         if (!window.__sessionStorageBound) {
             window.__sessionStorageBound = true;
             window.addEventListener('storage', (e) => {
+                if (window.__isImpersonating) return;
                 if (e.key === 'auth_logout_event') {
                     window.dispatchEvent(new CustomEvent('app:session-expired'));
                 }

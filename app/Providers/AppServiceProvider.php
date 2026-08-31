@@ -17,8 +17,10 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use App\Auth\ImpersonationSessionGuard;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -49,6 +51,35 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register resilient ImpersonationSessionGuard for seamless session transitions
+        Auth::extend('session', function ($app, $name, array $config) {
+            $provider = Auth::createUserProvider($config['provider'] ?? null);
+
+            $guard = new ImpersonationSessionGuard(
+                $name,
+                $provider,
+                $app['session.store'],
+                $app['request'],
+                rehashOnLogin: (bool) $app['config']->get('hashing.rehash_on_login', true),
+                timeboxDuration: (int) $app['config']->get('auth.timebox_duration', 200000),
+                hashKey: $app['config']->get('app.key'),
+            );
+
+            if (method_exists($guard, 'setCookieJar')) {
+                $guard->setCookieJar($app['cookie']);
+            }
+
+            if (method_exists($guard, 'setDispatcher')) {
+                $guard->setDispatcher($app['events']);
+            }
+
+            if (method_exists($guard, 'setRequest')) {
+                $guard->setRequest($app->refresh('request', $guard, 'setRequest'));
+            }
+
+            return $guard;
+        });
+
         app(SettingService::class)->applyRuntimeAppConfig();
 
         // Catch N+1 lazy loading violations loudly during development
@@ -140,7 +171,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             if (class_exists(AuditLog::class)) {
-                AuditLog::recordAccess($impersonated);
+                AuditLog::recordAccess($impersonator);
             }
         });
 
