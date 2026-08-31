@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Navigation;
 
-use App\Livewire\Navigation\NotificationBell;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -27,7 +26,7 @@ beforeEach(function () {
 it('renders the notification bell component with zero notifications initially', function () {
     $this->actingAs($this->user);
 
-    Livewire::test(NotificationBell::class)
+    Livewire::test('navigation.notification-bell')
         ->assertSuccessful()
         ->assertSet('open', false)
         ->assertDontSee('unread');
@@ -51,7 +50,7 @@ it('displays unread notification badges and popover details', function () {
         'read_at' => null,
     ]);
 
-    Livewire::test(NotificationBell::class)
+    Livewire::test('navigation.notification-bell')
         ->call('toggleDropdown')
         ->assertSet('open', true)
         ->assertSee('Purchase Request Approved')
@@ -77,7 +76,7 @@ it('marks a single notification as read and auto-switches company context if app
         'read_at' => null,
     ]);
 
-    Livewire::test(NotificationBell::class)
+    Livewire::test('navigation.notification-bell')
         ->call('markAsRead', $notification->id)
         ->assertRedirect('/dashboard');
 
@@ -108,7 +107,7 @@ it('marks all notifications as read', function () {
 
     expect($this->user->unreadNotifications()->count())->toBe(2);
 
-    Livewire::test(NotificationBell::class)
+    Livewire::test('navigation.notification-bell')
         ->call('markAllAsRead');
 
     expect($this->user->fresh()->unreadNotifications()->count())->toBe(0);

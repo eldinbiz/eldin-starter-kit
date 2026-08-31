@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Dashboard;
 
 use App\Enums\ApprovalStatus;
-use App\Livewire\Dashboard\MetricsDashboard;
 use App\Models\Approval\ApprovalRequest;
 use App\Models\Company;
 use App\Models\Role;
@@ -30,7 +29,7 @@ it('renders dashboard with company metrics counters', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(MetricsDashboard::class)
+    Livewire::test('dashboard.metrics-dashboard')
         ->assertSuccessful()
         ->assertSee('Dashboard Overview')
         ->assertSee('Acme Corp')
@@ -42,7 +41,7 @@ it('updates period, recalculates chart data, and dispatches chart-data-updated e
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(MetricsDashboard::class)
+    Livewire::test('dashboard.metrics-dashboard')
         ->set('period', '7d')
         ->assertSet('period', '7d')
         ->assertDispatched('chart-data-updated')
@@ -65,6 +64,6 @@ it('correctly calculates pending approvals count', function () {
         'submitted_at' => now(),
     ]);
 
-    $component = Livewire::test(MetricsDashboard::class);
+    $component = Livewire::test('dashboard.metrics-dashboard');
     expect($component->get('metrics')['pending_approvals'])->toBe(1);
 });

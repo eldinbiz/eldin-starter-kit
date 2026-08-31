@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Navigation;
 
-use App\Livewire\Navigation\CompanyRoleSwitcher;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -38,7 +37,7 @@ it('renders company and role options in the switcher component', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->companyA->id]);
 
-    Livewire::test(CompanyRoleSwitcher::class)
+    Livewire::test('navigation.company-role-switcher')
         ->assertSuccessful()
         ->call('toggleCompanyDropdown')
         ->assertSee('Company Alpha')
@@ -53,7 +52,7 @@ it('switches the active company successfully via Livewire action', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->companyA->id]);
 
-    Livewire::test(CompanyRoleSwitcher::class)
+    Livewire::test('navigation.company-role-switcher')
         ->call('switchCompany', $this->companyB->id)
         ->assertRedirect(route('dashboard'));
 
@@ -64,7 +63,7 @@ it('rejects switching to an unauthorized company', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->companyA->id]);
 
-    Livewire::test(CompanyRoleSwitcher::class)
+    Livewire::test('navigation.company-role-switcher')
         ->call('switchCompany', $this->unauthorizedCompany->id)
         ->assertForbidden();
 });
@@ -73,7 +72,7 @@ it('switches the active role successfully via Livewire action', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->companyA->id]);
 
-    Livewire::test(CompanyRoleSwitcher::class)
+    Livewire::test('navigation.company-role-switcher')
         ->call('switchRole', 'admin')
         ->assertRedirect(route('dashboard'));
 
