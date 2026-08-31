@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
-use App\Livewire\Admin\Users\UserTable;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -37,7 +36,7 @@ it('renders user table component with user list', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->assertSuccessful()
         ->assertSee('Admin User')
         ->assertSee('Alice Johnson');
@@ -47,7 +46,7 @@ it('filters users by search query reactively', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->set('search', 'Alice')
         ->assertSee('Alice Johnson')
         ->assertDontSee('Admin User');
@@ -57,7 +56,7 @@ it('toggles column sorting direction', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->set('sortField', 'name')
         ->set('sortDirection', 'asc')
         ->call('sortBy', 'name')
@@ -71,7 +70,7 @@ it('filters users by role selection', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->set('filterValues.roles', ['admin'])
         ->assertSee('Admin User')
         ->assertDontSee('Alice Johnson');
@@ -81,7 +80,7 @@ it('resets all active filters', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->set('search', 'Alice')
         ->set('filterValues.roles', ['user'])
         ->call('resetFilters')
@@ -93,7 +92,7 @@ it('prompts delete modal and deletes user', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->call('promptDelete', $this->userA->id)
         ->assertSet('userToDeleteId', $this->userA->id)
         ->assertSet('userToDeleteName', 'Alice Johnson')
@@ -108,7 +107,7 @@ it('prevents admin from deleting themselves', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(UserTable::class)
+    Livewire::test('admin.users.user-table')
         ->call('promptDelete', $this->admin->id)
         ->call('deleteUser')
         ->assertSee('You cannot delete your own account');

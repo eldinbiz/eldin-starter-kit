@@ -67,7 +67,7 @@ it('renders the embedded audit trail page for authorized admins', function (): v
 
     $response->assertStatus(200);
     $response->assertSee('System Audit Trail');
-    $response->assertSeeLivewire(\App\Livewire\Admin\AuditTrail\AuditTrailViewer::class);
+    $response->assertSeeLivewire('admin.audit-trail.audit-trail-viewer');
 });
 
 it('records access audit log entry when user impersonation starts and stops', function (): void {

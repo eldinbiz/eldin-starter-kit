@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Roles;
 
-use App\Livewire\Admin\Roles\RoleTable;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -29,7 +28,7 @@ it('renders role table component with roles list', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->assertSuccessful()
         ->assertSee('Admin')
         ->assertSee('Manager');
@@ -39,7 +38,7 @@ it('filters roles by search query reactively', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->set('search', 'manager')
         ->assertSee('Manager')
         ->assertDontSee('Admin');
@@ -49,7 +48,7 @@ it('toggles column sorting direction', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->set('sortField', 'name')
         ->set('sortDirection', 'asc')
         ->call('sortBy', 'name')
@@ -65,7 +64,7 @@ it('filters roles by status', function () {
 
     $disabledRole = Role::factory()->create(['name' => 'auditor', 'is_active' => false]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->set('filterValues.status', 'disabled')
         ->assertSee('Auditor')
         ->assertDontSee('Manager');
@@ -78,7 +77,7 @@ it('filters roles by trashed filter', function () {
     $deletedRole = Role::factory()->create(['name' => 'archived-role', 'is_active' => false]);
     $deletedRole->delete();
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->set('filterValues.trashed', '1')
         ->assertSee('Archived role')
         ->assertDontSee('Manager');
@@ -90,7 +89,7 @@ it('disables an active role and updates status', function () {
 
     $customRole = Role::factory()->create(['name' => 'editor', 'is_active' => true]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->call('toggleStatus', $customRole->id)
         ->assertSee('has been disabled');
 
@@ -102,7 +101,7 @@ it('prevents disabling the default user role', function () {
     $this->actingAs($this->admin);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->call('toggleStatus', $this->userRole->id)
         ->assertSee('The "user" role cannot be disabled');
 
@@ -116,7 +115,7 @@ it('enables a disabled role and updates status', function () {
 
     $disabledRole = Role::factory()->create(['name' => 'supervisor', 'is_active' => false]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->call('toggleStatus', $disabledRole->id)
         ->assertSee('has been enabled');
 
@@ -131,7 +130,7 @@ it('restores a soft-deleted role', function () {
     $trashedRole = Role::factory()->create(['name' => 'trashed-custom', 'is_active' => false]);
     $trashedRole->delete();
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->call('restoreRole', $trashedRole->id)
         ->assertSee('has been restored');
 
@@ -146,7 +145,7 @@ it('prompts delete modal and soft-deletes a disabled role with type-to-confirm',
 
     $roleToDelete = Role::factory()->create(['name' => 'obsolete-role', 'is_active' => false]);
 
-    Livewire::test(RoleTable::class)
+    Livewire::test('admin.roles.role-table')
         ->call('promptDelete', $roleToDelete->id)
         ->assertSet('roleToDeleteId', $roleToDelete->id)
         ->assertSet('roleToDeleteName', 'obsolete-role')

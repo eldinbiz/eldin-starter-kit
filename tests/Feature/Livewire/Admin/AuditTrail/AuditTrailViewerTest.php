@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\AuditTrail;
 
-use App\Livewire\Admin\AuditTrail\AuditTrailViewer;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -74,7 +73,7 @@ it('renders audit trail table and filters by event', function () {
         ],
     ]);
 
-    Livewire::test(AuditTrailViewer::class)
+    Livewire::test('admin.audit-trail.audit-trail-viewer')
         ->assertSuccessful()
         ->assertSee('Super Admin')
         ->assertSee('User #1')
@@ -101,7 +100,7 @@ it('opens diff modal with recorded changes', function () {
         'created_at' => now(),
     ]);
 
-    Livewire::test(AuditTrailViewer::class)
+    Livewire::test('admin.audit-trail.audit-trail-viewer')
         ->call('openDiffModal', $id)
         ->assertSet('diffModalOpen', true)
         ->assertSet('selectedLogId', $id)
@@ -113,7 +112,7 @@ it('filters by correlation ID from modal', function () {
     $this->actingAs($this->user);
     session(['active_company_id' => $this->company->id]);
 
-    Livewire::test(AuditTrailViewer::class)
+    Livewire::test('admin.audit-trail.audit-trail-viewer')
         ->call('filterByCorrelation', 'corr-target-99')
         ->assertSet('filterValues.correlation_id', 'corr-target-99')
         ->assertSet('diffModalOpen', false);
