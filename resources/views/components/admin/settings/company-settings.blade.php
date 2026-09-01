@@ -96,10 +96,9 @@ new class extends Component
 
         $action->execute($data, $logoFile);
 
-        $this->loadCompanySettings($settingService);
+        session()->flash('success', 'Company preferences and theme updated successfully.');
 
-        $this->flashSuccess = 'Company preferences and theme updated successfully.';
-        $this->flashError = null;
+        $this->redirect(route('admin.settings.company', ['company_id' => $this->selectedCompanyId]), navigate: false);
     }
 
     public function dismissFlash(): void

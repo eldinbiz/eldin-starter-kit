@@ -55,8 +55,8 @@ it('saves updated general settings and uploads assets', function (): void {
         ->set('logo', $logo)
         ->set('favicon', $favicon)
         ->call('save')
-        ->assertSet('flashSuccess', 'General & localization settings updated successfully.')
-        ->assertSet('app_name', 'Acme ERP Enterprise');
+        ->assertRedirect(route('admin.settings.general'))
+        ->assertSessionHas('success', 'General & localization settings updated successfully.');
 
     $settingService = app(SettingService::class);
     expect($settingService->get('app_name'))->toBe('Acme ERP Enterprise')

@@ -73,14 +73,9 @@ final class GeneralSettings extends Component
 
         $action->execute($data, $logoFile, $faviconFile);
 
-        // Reload existing paths
-        $this->existing_logo = (string) $settingService->get('app_logo', null, '');
-        $this->existing_favicon = (string) $settingService->get('app_favicon', null, '');
-        $this->logo = null;
-        $this->favicon = null;
+        session()->flash('success', 'General & localization settings updated successfully.');
 
-        $this->flashSuccess = 'General & localization settings updated successfully.';
-        $this->flashError = null;
+        $this->redirect(route('admin.settings.general'), navigate: false);
     }
 
     public function dismissFlash(): void

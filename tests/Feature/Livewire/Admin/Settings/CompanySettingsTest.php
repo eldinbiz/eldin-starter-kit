@@ -53,8 +53,8 @@ it('updates brand theme and localization overrides for specific company', functi
         ->set('date_format', 'd/m/Y')
         ->set('logo', $logo)
         ->call('save')
-        ->assertSet('flashSuccess', 'Company preferences and theme updated successfully.')
-        ->assertSet('brand_theme', 'emerald');
+        ->assertRedirect(route('admin.settings.company', ['company_id' => $this->companyA->id]))
+        ->assertSessionHas('success', 'Company preferences and theme updated successfully.');
 
     $settingService = app(SettingService::class);
     expect($settingService->get('brand_theme', $this->companyA->id))->toBe('emerald')
