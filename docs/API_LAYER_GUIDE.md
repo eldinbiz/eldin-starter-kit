@@ -6,9 +6,11 @@ This guide provides developers with instructions, best practices, and architectu
 
 ## Table of Contents
 1. [Architecture & Request Lifecycle](#1-architecture--request-lifecycle)
+   - [1.1 Livewire Web SPA vs REST API Boundary](#11-livewire-web-spa-vs-rest-api-boundary)
 2. [Authentication & Authorization](#2-authentication--authorization)
 3. [Multi-Tenant Scoping (`X-Company-ID`)](#3-multi-tenant-scoping-x-company-id)
 4. [Building an API Endpoint (5-Step Walkthrough)](#4-building-an-api-endpoint-5-step-walkthrough)
+   - [Core Infrastructure vs Domain Modules](#core-infrastructure-vs-domain-modules)
 5. [Interactive API Documentation (Dedoc Scramble)](#5-interactive-api-documentation-dedoc-scramble)
 6. [Testing with Bruno (VS Code Extension)](#6-testing-with-bruno-vs-code-extension)
 7. [Automated Testing with Pest](#7-automated-testing-with-pest)
@@ -20,14 +22,14 @@ This guide provides developers with instructions, best practices, and architectu
 All REST APIs reside under the `/api/v1/` route prefix and follow a strict, layered request pipeline:
 
 ```
-[ HTTP Client / Integration ]
+[ HTTP Client / External Bot ]
             │
             │ Headers:
             │   Authorization: Bearer <token>
             │   X-Company-ID: <company_id>
             │   Accept: application/json
             ▼
- [ routes/api.php ]
+ [ routes/api.php or <module>-routes.php ]
             │
             ▼
  [ auth:sanctum ] ──────────── Validates API token and resolves User (Human or Bot)
@@ -39,7 +41,7 @@ All REST APIs reside under the `/api/v1/` route prefix and follow a strict, laye
  [ api.company ] ───────────── Validates company membership & binds App::get('active_company_id')
             │
             ▼
- [ Api\v1\*Controller ] ────── Executes query scoped to active_company_id
+ [ Api\v1\*Controller ] ────── Validates FormRequest & delegates mutations to Domain Action
             │
             ▼
  [ Api\v1\*Resource ] ──────── Serializes data according to OpenAPI 3.1 specification
@@ -47,6 +49,23 @@ All REST APIs reside under the `/api/v1/` route prefix and follow a strict, laye
             ▼
  [ JSON HTTP Response ]
 ```
+
+### 1.1 Livewire Web SPA vs REST API Boundary
+
+Our system maintains two distinct presentation channels sharing a unified business domain:
+
+| Aspect | Web UI Presentation (Livewire v4) | External REST API Layer (`/api/v1/`) |
+|---|---|---|
+| **Audience** | Human browser users | External systems, third-party integrations, bots, mobile apps |
+| **Authentication** | Session cookie & CSRF tokens | Laravel Sanctum Bearer tokens |
+| **Tenant Context** | Active company in session (`getActiveCompany()`) | `X-Company-ID` HTTP header via `api.company` middleware |
+| **Navigation / Flow** | SPA client-side morph with `wire:navigate` | Stateless HTTP JSON Request / Response |
+| **Validation** | Livewire Form Objects / `#[Validate]` | Laravel Form Requests (`app/Http/Requests/...`) |
+| **Mutations** | Delegates to **Domain Actions** (`execute()`) | Delegates to **Domain Actions** (`execute()`) |
+| **Documentation** | Blade views / TailAdmin UI | Dedoc Scramble OpenAPI 3.1 (`/docs/api`) |
+
+> [!NOTE]
+> Livewire components do **not** make HTTP calls to `/api/v1/` endpoints. Both Livewire components and REST API controllers are thin presentation layers that inject and execute the exact same **Domain Actions** (`App\Actions\*` or `Modules\<Module>\Actions\*`).
 
 ---
 
@@ -81,8 +100,26 @@ Our application is strictly multi-company. For any tenant-specific API endpoint:
 
 ## 4. Building an API Endpoint (5-Step Walkthrough)
 
+### Core Infrastructure vs Domain Modules
+
+Depending on whether you are building an API for core infrastructure or an isolated domain module, place your files according to this layout:
+
+| Component | Core Platform (`app/`) | Domain Module (`app-modules/<name>/`) |
+|---|---|---|
+| **API Controller** | `app/Http/Controllers/Api/v1/<Name>Controller.php` | `app-modules/<name>/src/Http/Controllers/Api/v1/<Name>Controller.php` |
+| **API Resource** | `app/Http/Resources/Api/v1/<Name>Resource.php` | `app-modules/<name>/src/Http/Resources/Api/v1/<Name>Resource.php` |
+| **Form Request** | `app/Http/Requests/Api/v1/<Name>Request.php` | `app-modules/<name>/src/Http/Requests/Api/v1/<Name>Request.php` |
+| **Domain Action** | `app/Actions/<Group>/<Action>.php` | `app-modules/<name>/src/Actions/<Action>.php` |
+| **API Routes** | `routes/api.php` | `app-modules/<name>/routes/<name>-routes.php` |
+| **Pest Tests** | `tests/Feature/Api/v1/<Name>Test.php` | `app-modules/<name>/tests/Feature/<Name>ApiTest.php` |
+
+> [!IMPORTANT]
+> If building for a domain module, ensure the module has been linked into Composer by running `composer update modules/<name>` before running tests or migrations.
+
+---
+
 ### Step 1: Create the Eloquent API Resource
-Generate or create a Resource class in `app/Http/Resources/Api/v1/`:
+Generate or create a Resource class in your API resource directory:
 
 ```php
 <?php
@@ -113,8 +150,41 @@ class ExpenseReportResource extends JsonResource
 }
 ```
 
-### Step 2: Create the API Controller
-Place your controller in `app/Http/Controllers/Api/v1/`:
+### Step 2: Create Form Request (Validation & Scramble OpenAPI Reflection)
+Dedoc Scramble automatically reads the `rules()` method of Form Requests to document body parameters:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Api\v1;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+final class StoreExpenseReportRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true; // Ability gating is enforced via middleware in routes
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'notes' => ['nullable', 'string'],
+        ];
+    }
+}
+```
+
+### Step 3: Create the API Controller (Delegating Mutations to Domain Actions)
+Place your controller in the corresponding API controllers directory:
 
 ```php
 <?php
@@ -123,7 +193,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Actions\Expenses\CreateExpenseReportAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\v1\StoreExpenseReportRequest;
 use App\Http\Resources\Api\v1\ExpenseReportResource;
 use App\Models\ExpenseReport;
 use Illuminate\Http\JsonResponse;
@@ -154,14 +226,26 @@ class ExpenseReportController extends Controller
 
         return (new ExpenseReportResource($expenseReport))->response();
     }
+
+    public function store(StoreExpenseReportRequest $request, CreateExpenseReportAction $action): JsonResponse
+    {
+        $report = $action->execute(array_merge(
+            $request->validated(),
+            ['company_id' => App::get('active_company_id')]
+        ));
+
+        return (new ExpenseReportResource($report))
+            ->response()
+            ->setStatusCode(201);
+    }
 }
 ```
 
-### Step 3: Register the Routes in `routes/api.php`
+### Step 4: Register the Routes
 Add the routes into the `v1` prefix group with granular `ability:<scope>` gating:
 
 ```php
-// routes/api.php
+// routes/api.php (or app-modules/<name>/routes/<name>-routes.php)
 
 Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api.v1'])->group(function () {
     
@@ -169,11 +253,12 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api.v1'])->group(func
     Route::middleware(['api.company'])->group(function () {
         Route::get('expenses', [ExpenseReportController::class, 'index'])->middleware('ability:expenses:index');
         Route::get('expenses/{expenseReport}', [ExpenseReportController::class, 'show'])->middleware('ability:expenses:show');
+        Route::post('expenses', [ExpenseReportController::class, 'store'])->middleware('ability:expenses:store');
     });
 });
 ```
 
-### Step 4: Register Endpoints in Token Permissions Registry
+### Step 5: Register Endpoints in Token Permissions Registry
 
 To allow administrators to generate scoped API tokens for this new module, register your endpoints in `App\Http\Controllers\Admin\ApiTokenController::AVAILABLE_ENDPOINTS`:
 

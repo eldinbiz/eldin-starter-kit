@@ -6,7 +6,7 @@ Welcome to the application architecture and developer handbook. This guide defin
 
 ## Table of Contents
 1. [Core Architectural Philosophy](#1-core-architectural-philosophy)
-2. [The 3-Layer Standard (Requests, Actions, Controllers)](#2-the-3-layer-standard)
+2. [The 3-Layer Standard (Presentation, Validation, Domain Actions)](#2-the-3-layer-standard)
 3. [Modular Monolith Architecture (`app-modules/`)](#3-modular-monolith-architecture)
 4. [Multi-Tenancy & Authorization Boundaries](#4-multi-tenancy--authorization-boundaries)
 5. [Core Platform Subsystem Integrations](#5-core-platform-subsystem-integrations)
@@ -25,39 +25,46 @@ To ensure long-term maintainability, testability, and reuse across Web SPA, REST
 - **Core vs. Domain Boundary**:
   - `app/` is reserved for cross-cutting multi-tenant platform infrastructure (Authentication, User/Company models, Roles & Permissions, Approval Engine, Notification Engine, System Settings, Feature Toggles).
   - `app-modules/<module-name>/` houses all isolated business domains (e.g. Purchase Requests, Invoices, HR/Leave, Inventory).
-- **The 3-Layer + Livewire SPA Architecture**:
-  - **Interactive Presentation Layer**:
+- **The 3-Layer + Dual Presentation Architecture**:
+  - **Presentation Layer (Web SPA & REST API)**:
     - **Livewire v4 Components**: Reactive Single Page Application (SPA) orchestrators managing UI state, inputs, search debouncing, and modal dialogs with instant `wire:navigate` transitions.
-    - **Thin Controllers**: Traditional HTTP orchestrators for non-SPA endpoints, exports, and redirect flows.
+    - **REST API v1 Controllers**: Stateless, rate-limited HTTP endpoints for external integrations, mobile clients, and system bots authenticated via Sanctum Bearer tokens and `X-Company-ID`.
+    - **Thin HTTP Controllers**: Minimal orchestrators for traditional file downloads, exports, and redirect flows.
   - **Validation & Authorization Layer**:
-    - **Form Requests / #[Validate]**: Validate inputs and enforce request-level authorization gates.
+    - **Form Requests & Livewire Validation**: Form Requests (`app/Http/Requests` or `Modules\<Module>\Http\Requests`) enforce permission gates and provide validation rules reflected by Dedoc Scramble for OpenAPI documentation.
   - **Domain Business Layer**:
-    - **Domain Actions**: Encapsulate single-purpose business operations, multi-table database transactions, and event dispatches.
+    - **Domain Actions**: Single-purpose, transaction-safe classes (`app/Actions` or `Modules\<Module>\Actions`) that encapsulate all state-modifying business logic, multi-table database transactions, and event dispatches.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│          HTTP Request / wire:navigate / Reactive UI         │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  1. Presentation Layer (Thin Controller / Livewire v4 Comp) │
-│  - Livewire: UI State, #[Url], #[Computed], Form Binding   │
-│  - Controller / Request: Form Request Validation & Auth     │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ validated data & execute()
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  2. Domain Action (Single Responsibility & DB Transaction)  │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │ DB::transaction, Models, Events, Notifications, Media │  │
-│  └───────────────────────────────────────────────────────┘  │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ Returns Model / Result
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│    3. Presentation Output (Reactive DOM Diff / API JSON)    │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
+│       Web SPA (Browser Users)        │     │     External API / System Bots       │
+│   Livewire v4 Component / Alpine     │     │    Sanctum Token + X-Company-ID      │
+└──────────────────┬───────────────────┘     └──────────────────┬───────────────────┘
+                   │                                            │
+                   │ validates input                            │ validates FormRequest
+                   ▼                                            ▼
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                     1. Thin Presentation & Validation Layer                       │
+│ - Livewire Component methods (save, submit) / API Controllers (store, update)     │
+│ - Livewire #[Validate] / Form Requests (authorize() & rules())                     │
+└─────────────────────────────────────────┬─────────────────────────────────────────┘
+                                          │
+                                          │ delegates execution ($action->execute())
+                                          ▼
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                      2. Domain Business Layer (Domain Actions)                    │
+│ ┌───────────────────────────────────────────────────────────────────────────────┐ │
+│ │  DB::transaction(), Eloquent mutations, Approval Engine, Events, Notifications│ │
+│ └───────────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────┬─────────────────────────────────────────┘
+                                          │
+                   ┌──────────────────────┴──────────────────────┐
+                   │                                             │
+                   ▼                                             ▼
+┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
+│        Reactive DOM Update           │     │          JSON HTTP Response          │
+│   (Livewire Morph / Alpine state)    │     │      (Eloquent API JsonResource)     │
+└──────────────────────────────────────┘     └──────────────────────────────────────┘
 ```
 
 ---
@@ -166,36 +173,29 @@ final class CreateUserAction
 
 ---
 
-### Layer 3: Thin Controllers (`app/Http/Controllers/...` or `Modules\<Module>\Http\Controllers\...`)
-- **Responsibility**: HTTP routing, parameter extraction, action execution, and returning responses (Blade view, Redirect, or JSON).
-- **Rules**:
-  - Controllers must not contain queries with business logic or direct model persistence.
-  - Type-hint Form Requests and Domain Actions in method signatures (dependency injection).
-  - Return explicit response types (`View`, `RedirectResponse`, `JsonResponse`).
+### Layer 3: Presentation Layer (Livewire v4 Components & Thin Controllers)
+- **Livewire v4 Components**: Manage interactive SPA UI state. In mutating actions, Livewire components **must delegate** to Domain Actions:
+  ```php
+  public function save(CreateUserAction $action): void
+  {
+      $validated = $this->validate();
+      $action->execute($validated);
+      $this->dispatch('user-saved');
+  }
+  ```
+- **Thin Controllers**: Used for REST APIs or non-SPA actions. Must inject Form Requests and Domain Actions without inline business logic:
+  ```php
+  final class UserController extends Controller
+  {
+      public function store(StoreUserRequest $request, CreateUserAction $action): RedirectResponse
+      {
+          $action->execute($request->validated());
 
-```php
-<?php
-
-declare(strict_types=1);
-
-namespace App\Http\Controllers\Admin;
-
-use App\Actions\Users\CreateUserAction;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Users\StoreUserRequest;
-use Illuminate\Http\RedirectResponse;
-
-final class UserController extends Controller
-{
-    public function store(StoreUserRequest $request, CreateUserAction $action): RedirectResponse
-    {
-        $action->execute($request->validated());
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully.');
-    }
-}
-```
+          return redirect()->route('admin.users.index')
+              ->with('success', 'User created successfully.');
+      }
+  }
+  ```
 
 ---
 
@@ -213,14 +213,14 @@ app-modules/<module-name>/
 │   ├── views/                             # Module views: view('<module>::index')
 │   │   ├── index.blade.php
 │   │   └── create.blade.php
-│   ├── components/                        # Blade components: <x-<module>::card />
+│   ├── components/                        # Livewire SFCs (<module>/) & Blade components
 │   └── lang/                              # Translations: __('<module>::messages.key')
 ├── database/
 │   ├── migrations/                        # Auto-discovered migrations
 │   ├── factories/                         # Model factories
 │   └── seeders/                           # Module seeders
 ├── src/
-│   ├── Actions/                           # Domain Actions
+│   ├── Actions/                           # Domain Actions (single-purpose execute() methods)
 │   │   ├── Create<Entity>Action.php
 │   │   └── Update<Entity>Action.php
 │   ├── Http/
@@ -235,9 +235,19 @@ app-modules/<module-name>/
 │   ├── Listeners/                         # Event listeners
 │   └── Policies/                          # Authorization policies
 └── tests/
-    └── Feature/                           # Pest / PHPUnit test suite
+    └── Feature/                           # Pest test suite
         └── <StudlyName>Test.php
 ```
+
+> [!IMPORTANT]
+> **Mandatory Composer Linking Step**:
+> Whenever you scaffold a new module using `php artisan make:module <name>`, you **MUST** run:
+> ```bash
+> composer update modules/<name>
+> # Or in Docker:
+> docker compose exec app composer update modules/<name>
+> ```
+> This command creates the Composer path repository symlink and compiles the autoloader. Skipping this step will cause `Class not found` or Service Provider discovery errors.
 
 ### Artisan Generators with Modules
 Always specify `--module=` when running `make:*` commands:
@@ -273,7 +283,7 @@ When a domain model requires multi-step sequential or parallel approvals:
 1. Implement the `App\Contracts\Approvable` interface on the Model.
 2. Submit for approval via `ApprovalEngine`:
    ```php
-   app(ApprovalEngine::class)->submit($model, $user, $workflowTemplate);
+   app(ApprovalEngine::class)->submit($model, $workflowTemplate);
    ```
 
 ### B. Feature Toggles (`config/features.php` & `@feature`)
@@ -285,7 +295,7 @@ When a domain model requires multi-step sequential or parallel approvals:
 3. Conditionally render UI elements in Blade:
    ```blade
    @feature('purchaserequests')
-       <a href="{{ route('purchaserequests.index') }}">Purchase Requests</a>
+       <a href="{{ route('purchaserequests.index') }}" wire:navigate>Purchase Requests</a>
    @endfeature
    ```
 
@@ -293,7 +303,7 @@ When a domain model requires multi-step sequential or parallel approvals:
 Dispatch events implementing `NotificationPayload` or fire `NotificationRequested`:
 ```php
 use App\Events\NotificationRequested;
-use App\Services\NotificationPayload;
+use App\ValueObjects\NotificationPayload;
 
 event(new NotificationRequested(
     new NotificationPayload(
@@ -331,7 +341,7 @@ event(new NotificationRequested(
    /**
     * @param array{name: string, is_active?: bool} $data
     */
-   public function execute(Company $company, array $data): WorkflowTemplate
+    public function execute(Company $company, array $data): WorkflowTemplate
    ```
 4. **Code Formatter (Laravel Pint)**:
    Always format code before committing:
@@ -343,7 +353,7 @@ event(new NotificationRequested(
 
 ## 7. Testing & Quality Assurance
 
-We enforce Test-Driven Development (TDD) using **Pest v4 / PHPUnit v12**.
+We enforce Test-Driven Development (TDD) using **Pest 5 / PHPUnit 12**.
 
 - **Running the Test Suite**:
   Always run tests from inside the Docker container using the `./test` runner script:
@@ -365,20 +375,28 @@ We enforce Test-Driven Development (TDD) using **Pest v4 / PHPUnit v12**.
 
 When creating a new feature in either root `app/` or `app-modules/<module>/`:
 
-1. **Create Form Request**:
-   `app/Http/Requests/<Subsystem>/Store<Feature>Request.php`
-   - Define validation rules and gate checks in `authorize()`.
+1. **Scaffold Module & Link Composer (If creating a domain feature)**:
+   ```bash
+   php artisan make:module <module-name>
+   composer update modules/<module-name>
+   ```
 2. **Create Domain Action**:
-   `app/Actions/<Subsystem>/Create<Feature>Action.php`
+   `app/Actions/<Subsystem>/Create<Feature>Action.php` or `Modules\<Module>\Actions\Create<Feature>Action.php`
    - Define `execute()` with `DB::transaction()` and model persistence.
-3. **Create/Update Controller**:
-   `app/Http/Controllers/<Subsystem>/<Feature>Controller.php`
-   - Inject the Request and Action; delegate logic and return response.
-4. **Write Pest Feature Test**:
-   `tests/Feature/<Feature>Test.php`
+3. **Create Validation Layer**:
+   `app/Http/Requests/<Subsystem>/Store<Feature>Request.php` (for API/Web FormRequest validation).
+4. **Build Interactive UI (Livewire v4 SPA)**:
+   Create reactive Livewire Single-File Components (`resources/views/components/<module>/<component>.blade.php`) or DataTable components.
+   - Inject the Domain Action into component methods (`save()`, `submit()`) and navigate using `wire:navigate`.
+5. **Expose REST API Endpoint (Optional)**:
+   `src/Http/Controllers/Api/v1/<Feature>Controller.php` & `src/Http/Resources/Api/v1/<Feature>Resource.php`.
+   - Apply `api.company` middleware and token abilities in routes.
+6. **Write Pest Feature Tests**:
+   `tests/Feature/<Feature>Test.php` or `app-modules/<module>/tests/Feature/<Feature>Test.php`.
    - Cover positive, negative, validation, and multi-tenant authorization scenarios.
-5. **Format & Verify**:
+7. **Format & Verify**:
    ```bash
    docker compose exec app vendor/bin/pint --format agent
    docker compose exec app ./test
    ```
+

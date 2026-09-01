@@ -92,7 +92,7 @@ The system uses an **event-driven, decoupled pipeline**:
 
 ## 3. The `NotificationPayload` Value Object
 
-Located at [`app/ValueObjects/NotificationPayload.php`](file:///c:/Users/eldin/Documents/MY%20PROJECTS/scaffolding-app-laravel/app/ValueObjects/NotificationPayload.php).
+Located at [`app/ValueObjects/NotificationPayload.php`](file:///c:/Users/Public/Downloads/projects/scaffolding-app-laravel/app/ValueObjects/NotificationPayload.php).
 
 ### Constructor Reference
 

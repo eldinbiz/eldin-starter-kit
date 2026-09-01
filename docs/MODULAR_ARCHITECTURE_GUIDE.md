@@ -132,13 +132,16 @@ app-modules/purchase-requests/
 │   │   ├── create.blade.php
 │   │   ├── show.blade.php
 │   │   └── _approval-preview.blade.php
-│   ├── components/                        # Anonymous Blade components (<x-purchase-requests::card />)
+│   ├── components/                        # Livewire SFCs (<module>/) & Blade components
 │   └── lang/                              # Translations (__('purchase-requests::messages.title'))
 ├── database/
 │   ├── migrations/                        # Auto-discovered database migrations
 │   ├── factories/                         # Model factories
 │   └── seeders/                           # Seeders (DatabaseSeeder.php, etc.)
 ├── src/
+│   ├── Actions/                           # Domain Actions (single-purpose execute() methods)
+│   │   ├── CreatePurchaseRequestAction.php
+│   │   └── UpdatePurchaseRequestAction.php
 │   ├── Http/
 │   │   ├── Controllers/                   # Web & API controllers
 │   │   │   ├── PurchaseRequestController.php
@@ -158,7 +161,7 @@ app-modules/purchase-requests/
 │   ├── Listeners/                         # Event listeners
 │   └── Policies/                          # Authorization policies
 └── tests/
-    └── Feature/                           # Pest / PHPUnit tests
+    └── Feature/                           # Pest tests
         └── PurchaseRequestTest.php
 ```
 
@@ -211,17 +214,15 @@ This command will:
 3. Generate `app-modules/inventory/src/Providers/InventoryServiceProvider.php`.
 4. Register `./app-modules/inventory` into root `composer.json` under `"repositories"` and `"require"`.
 
-### Update Composer Dependencies
-After scaffolding the module, link it by running:
-
-```bash
-composer update modules/inventory
-```
-
-Or when running inside Docker:
-```bash
-docker compose exec app composer update modules/inventory
-```
+> [!IMPORTANT]
+> **Mandatory Step: Link Composer Dependencies**
+> Immediately after running `php artisan make:module <module-name>`, you **MUST** run the Composer update command to establish the symlink into `vendor/modules/` and refresh the autoloader:
+> ```bash
+> composer update modules/<module-name>
+> # Or inside Docker:
+> docker compose exec app composer update modules/<module-name>
+> ```
+> If you omit this step, any classes created under `Modules\<ModuleName>\` will throw `Class not found` exceptions and Service Providers will not be discovered.
 
 ---
 
@@ -421,7 +422,10 @@ If the module represents a document requiring multi-step approvals (e.g. Purchas
    
    use App\Contracts\Approvable;
    use App\Models\Approval\ApprovalRequest;
+   use App\Models\Company;
+   use App\Models\User;
    use Illuminate\Database\Eloquent\Model;
+   use Illuminate\Database\Eloquent\Relations\BelongsTo;
    use Illuminate\Database\Eloquent\Relations\MorphMany;
    
    class PurchaseRequest extends Model implements Approvable
@@ -431,14 +435,37 @@ If the module represents a document requiring multi-step approvals (e.g. Purchas
            return $this->morphMany(ApprovalRequest::class, 'approvable');
        }
        
-       public function getApprovableTitle(): string { return $this->title; }
-       public function getApprovableTotal(): ?float { return (float) $this->total_amount; }
-       public function getApprovableDepartment(): ?string { return $this->department; }
-       public function getApprovableCompanyId(): int { return $this->company_id; }
-       public function getApprovableRequesterId(): int { return $this->requester_id; }
-       public function getApprovableUrl(): string { return route('purchase-requests.show', $this->id); }
+       public function requester(): BelongsTo
+       {
+           return $this->belongsTo(User::class, 'requester_id');
+       }
        
-       public function getApprovablePreviewData(): array
+       public function company(): BelongsTo
+       {
+           return $this->belongsTo(Company::class);
+       }
+       
+       public function getApprovalTitle(): string
+       {
+           return "Purchase Request #{$this->id}: {$this->title}";
+       }
+       
+       public function getApprovalUrl(): string
+       {
+           return route('purchase-requests.show', $this->id);
+       }
+       
+       public function getApprovalRequester(): User
+       {
+           return $this->requester;
+       }
+       
+       public function getApprovalCompany(): Company
+       {
+           return $this->company;
+       }
+       
+       public function getApprovalPreview(): ?array
        {
            return [
                'view' => 'purchase-requests::_approval-preview',
@@ -446,22 +473,32 @@ If the module represents a document requiring multi-step approvals (e.g. Purchas
            ];
        }
        
-       public function onApprovalCompleted(): void
+       public function onApprovalCompleted(ApprovalRequest $request): void
        {
            $this->update(['status' => 'approved']);
        }
        
-       public function onApprovalRejected(?string $reason = null): void
+       public function onApprovalRejected(ApprovalRequest $request): void
        {
            $this->update(['status' => 'rejected']);
        }
+
+       public function onApprovalCanceled(ApprovalRequest $request): void
+       {
+           $this->update(['status' => 'canceled']);
+       }
+
+       public static function getApprovalTypeLabel(): string
+       {
+           return 'Purchase Request';
+       }
    }
    ```
-2. Submit for approval in Controller:
+2. Submit for approval in Controller or Livewire Component:
    ```php
    public function submitForApproval(PurchaseRequest $purchaseRequest, ApprovalEngine $engine): RedirectResponse
    {
-       $engine->submit($purchaseRequest, auth()->user());
+       $engine->submit($purchaseRequest, $template);
        return redirect()->route('purchase-requests.show', $purchaseRequest->id);
    }
    ```
@@ -476,6 +513,7 @@ Expose domain endpoints under `/api/v1/` matching Scramble documentation convent
    Route::middleware(['api', 'auth:sanctum', 'api.company'])->prefix('api/v1')->group(function () {
        Route::get('inventory', [ItemApiController::class, 'index'])->middleware('ability:inventory:index');
        Route::get('inventory/{item}', [ItemApiController::class, 'show'])->middleware('ability:inventory:show');
+       Route::post('inventory', [ItemApiController::class, 'store'])->middleware('ability:inventory:store');
    });
    ```
 2. Create Eloquent API Resources in `src/Http/Resources/Api/v1/`:
@@ -498,7 +536,9 @@ Expose domain endpoints under `/api/v1/` matching Scramble documentation convent
        }
    }
    ```
-3. *See [docs/API_LAYER_GUIDE.md](API_LAYER_GUIDE.md) for full details.*
+3. **Delegate Mutating Operations to Domain Actions**:
+   In accordance with the 3-Layer architecture, API controllers for mutating endpoints (POST, PUT, DELETE) must inject Form Requests and delegate state modifications directly to `Modules\<StudlyName>\Actions\*` rather than writing inline database queries.
+4. *See [docs/API_LAYER_GUIDE.md](API_LAYER_GUIDE.md) for full details.*
 
 ---
 
@@ -635,12 +675,12 @@ docker compose restart queue
 When building a new business feature as a module, follow this 10-step checklist:
 
 - [ ] **1. Scaffold Module**: Run `php artisan make:module <name>`
-- [ ] **2. Link Composer**: Run `composer update modules/<name>`
+- [ ] **2. Link Composer (Mandatory)**: Run `composer update modules/<name>` to link path repository and refresh class autoloader
 - [ ] **3. Register Feature Toggle**: Add module definition to `config/features.php`
 - [ ] **4. Create Database Migration & Model**: `php artisan make:model <Model> -mfc --module=<name>`
 - [ ] **5. Add Multi-Tenancy Scoping**: Add `company_id` foreign key and tenant query scopes
-- [ ] **6. Build Web Routes & Views**: Add routes in `routes/<name>-routes.php` and Blade views in `resources/views/`
-- [ ] **7. Expose REST API (Optional)**: Add API controller, Form Requests, and Eloquent Resource in `src/Http/`
-- [ ] **8. Hook Into Approvals / Notifications (Optional)**: Implement `Approvable` and dispatch `NotificationRequested`
-- [ ] **9. Add Sidebar Link**: Add navigation link in `resources/views/partials/sidebar.blade.php` wrapped in `@feature('<name>')`
-- [ ] **10. Write Pest Tests**: Create tests in `tests/Feature/` and run `composer test`
+- [ ] **6. Build Domain Actions**: Create single-purpose action classes in `src/Actions/` (`Create<Entity>Action.php`)
+- [ ] **7. Build Reactive UI (Livewire v4 SPA)**: Create Livewire Single-File Components in `resources/views/components/<name>/` or DataTables, delegating to Domain Actions
+- [ ] **8. Expose REST API (Optional)**: Add API controller, Form Requests, and Eloquent Resource in `src/Http/` (delegating mutating operations to Domain Actions)
+- [ ] **9. Hook Into Approvals / Notifications (Optional)**: Implement `Approvable` and dispatch `NotificationRequested`
+- [ ] **10. Add Sidebar Link & Write Pest Tests**: Add navigation link in `resources/views/partials/sidebar.blade.php` with `@feature('<name>')` and write Pest tests in `tests/Feature/`
