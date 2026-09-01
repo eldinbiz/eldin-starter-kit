@@ -344,8 +344,9 @@ new class extends Component
                 @feature('audit_logs')
                 @can('view-audit-logs')
                     <a
-                        href="{{ route('admin.audit-trail.index') }}"
-                        wire:navigate
+                        href="{{ route('audit-log.dashboard') }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="text-xs font-semibold text-brand-600 hover:text-brand-700 dark:text-brand-400"
                     >
                         View Full Audit Trail &rarr;

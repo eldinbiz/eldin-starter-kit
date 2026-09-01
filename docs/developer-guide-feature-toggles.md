@@ -190,7 +190,7 @@ A custom Blade directive `@feature($key)` is registered in `AppServiceProvider`.
 ### In-Page Action Buttons & Widgets
 ```blade
 @feature('audit_logs')
-    <a href="{{ route('admin.audit-trail.index') }}" class="btn btn-secondary">
+    <a href="{{ route('audit-log.dashboard') }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
         View Audit Trail
     </a>
 @endfeature

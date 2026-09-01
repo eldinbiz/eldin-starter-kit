@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\ApiTokenController;
 use App\Http\Controllers\Admin\ApprovalManagementController;
 use App\Http\Controllers\Admin\ApprovalWorkflowController;
-use App\Http\Controllers\Admin\AuditTrailController;
 use App\Http\Controllers\Admin\AuthProviderSettingController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Admin\OrgChartController;
@@ -68,11 +67,6 @@ Route::middleware('auth')->group(function () {
 
 // Administration Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // System Audit Trail
-    Route::get('/audit-trail', [AuditTrailController::class, 'index'])
-        ->name('audit-trail.index')
-        ->middleware(['can:view-audit-logs', 'feature:audit_logs']);
-
     // System Auth Provider Settings
     Route::middleware('can:manage-auth-providers')->group(function () {
         Route::get('/settings/auth-providers', [AuthProviderSettingController::class, 'index'])->name('settings.auth-providers.index');

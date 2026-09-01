@@ -376,13 +376,14 @@
                     @can('view-audit-logs')
                     <li>
                         <a
-                            href="{{ route('admin.audit-trail.index') }}"
-                            wire:navigate.hover
-                            class="menu-item group {{ Request::is('admin/audit-trail*') ? 'menu-item-active' : 'menu-item-inactive' }}"
+                            href="{{ route('audit-log.dashboard') }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="menu-item group {{ Request::is('audit-log*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">
                                 {{-- Audit Trail / History Icon --}}
-                                <svg class="fill-current {{ Request::is('admin/audit-trail*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <svg class="fill-current {{ Request::is('audit-log*') ? 'menu-item-icon-active' : 'menu-item-icon-inactive' }}" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12ZM12 6C12.4142 6 12.75 6.33579 12.75 6.75V11.25H16.5C16.9142 11.25 17.25 11.5858 17.25 12C17.25 12.4142 16.9142 12.75 16.5 12.75H12C11.5858 12.75 11.25 12.4142 11.25 12V6.75C11.25 6.33579 11.5858 6 12 6Z" />
                                 </svg>
                                 <span class="menu-item-text" x-show="!sidebarToggle || sidebarHover" x-cloak>Audit Trail</span>

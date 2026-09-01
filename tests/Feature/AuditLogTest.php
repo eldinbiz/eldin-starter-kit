@@ -52,7 +52,7 @@ it('fakes and records audit log entries when AuditLog package is loaded', functi
     AuditLog::assertRecorded(User::class, $user->id, 'updated');
 });
 
-it('renders the embedded audit trail page for authorized admins', function (): void {
+it('renders the package audit log dashboard for authorized admins', function (): void {
     $company = Company::factory()->create(['is_active' => true]);
     $adminRole = Role::factory()->admin()->create();
 
@@ -63,11 +63,9 @@ it('renders the embedded audit trail page for authorized admins', function (): v
     $this->actingAs($user);
     session(['active_company_id' => $company->id]);
 
-    $response = $this->get(route('admin.audit-trail.index'));
+    $response = $this->get(route('audit-log.dashboard'));
 
     $response->assertStatus(200);
-    $response->assertSee('System Audit Trail');
-    $response->assertSeeLivewire('admin.audit-trail.audit-trail-viewer');
 });
 
 it('records access audit log entry when user impersonation starts and stops', function (): void {
@@ -109,7 +107,7 @@ it('denies audit trail access when user with sysadmin role switches active role 
         "active_role.{$company->id}" => 'sysadmin',
     ]);
     $this->actingAs($user)
-        ->get(route('admin.audit-trail.index'))
+        ->get(route('audit-log.dashboard'))
         ->assertSuccessful();
 
     // Switch active role to user -> Forbidden
@@ -118,6 +116,6 @@ it('denies audit trail access when user with sysadmin role switches active role 
         "active_role.{$company->id}" => 'user',
     ]);
     $this->actingAs($user)
-        ->get(route('admin.audit-trail.index'))
+        ->get(route('audit-log.dashboard'))
         ->assertForbidden();
 });
