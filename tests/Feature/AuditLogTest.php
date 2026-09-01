@@ -119,3 +119,26 @@ it('denies audit trail access when user with sysadmin role switches active role 
         ->get(route('audit-log.dashboard'))
         ->assertForbidden();
 });
+
+it('displays configured general branding app name and logo in audit log dashboard', function (): void {
+    $settingService = app(\App\Services\SettingService::class);
+    $settingService->set('app_name', 'Acme Enterprise', 'text', 'general');
+    $settingService->set('app_logo', 'https://example.com/branding-logo.png', 'text', 'general');
+
+    $company = Company::factory()->create(['is_active' => true]);
+    $adminRole = Role::factory()->admin()->create();
+
+    $user = User::factory()->create();
+    $user->companies()->attach($company->id, ['status' => 'active']);
+    $user->companyRoles()->attach($adminRole->id, ['company_id' => $company->id]);
+
+    $this->actingAs($user);
+    session(['active_company_id' => $company->id]);
+
+    $response = $this->get(route('audit-log.dashboard'));
+
+    $response->assertStatus(200)
+        ->assertSee('Acme Enterprise')
+        ->assertSee('https://example.com/branding-logo.png');
+});
+
