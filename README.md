@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/PHP-8.3%20%7C%208.4-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP Version">
   <img src="https://img.shields.io/badge/Tests-passing-22c55e?style=flat-square&logo=pest&logoColor=white" alt="Tests Passed">
   <img src="https://img.shields.io/badge/Pint-passing-22c55e?style=flat-square&logo=laravel&logoColor=white" alt="Pint Passing">
-  <img src="https://img.shields.io/badge/Filament-v4-FDAE17?style=flat-square&logo=filament&logoColor=white" alt="Filament Version">
+  <img src="https://img.shields.io/badge/Livewire-v4-FB70A9?style=flat-square&logo=livewire&logoColor=white" alt="Livewire Version">
   <img src="https://img.shields.io/badge/Security-pending%20audit-eab308?style=flat-square&logo=shield&logoColor=white" alt="Security Pending Audit">
 </p>
 
