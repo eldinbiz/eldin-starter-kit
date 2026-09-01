@@ -1,6 +1,15 @@
 # Enterprise Business Application Starter Kit
 
-A production-ready, multi-tenant scaffolding platform built on **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and **Pest 5**. 
+<p align="left">
+  <img src="https://img.shields.io/badge/Laravel-12.x%20%7C%2013.x-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel Version">
+  <img src="https://img.shields.io/badge/PHP-8.3%20%7C%208.4-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP Version">
+  <img src="https://img.shields.io/badge/Tests-passing-22c55e?style=flat-square&logo=pest&logoColor=white" alt="Tests Passed">
+  <img src="https://img.shields.io/badge/Pint-passing-22c55e?style=flat-square&logo=laravel&logoColor=white" alt="Pint Passing">
+  <img src="https://img.shields.io/badge/Filament-v4-FDAE17?style=flat-square&logo=filament&logoColor=white" alt="Filament Version">
+  <img src="https://img.shields.io/badge/Security-pending%20audit-eab308?style=flat-square&logo=shield&logoColor=white" alt="Security Pending Audit">
+</p>
+
+A multi-tenant Starter Kit app built on **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and **Pest 5**. 
 
 Designed as a comprehensive **Starter Kit for System Builders and Software Developers** building business-focused web applications—such as ERPs, CRMs, Procurement systems, HRMS portals, and multi-tenant SaaS products.
 
