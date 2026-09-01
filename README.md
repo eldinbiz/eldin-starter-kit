@@ -1,257 +1,209 @@
-# Scaffolding App
+# Enterprise Business Application Starter Kit
 
-Multi-tenant enterprise SaaS scaffolding platform built on **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and **Pest 5**.
+A production-ready, multi-tenant scaffolding platform built on **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and **Pest 5**. 
 
-## Prerequisites
-
-- PHP 8.4+
-- Composer 2
-- Node.js 22+
-- **Docker + Docker Compose** (for Docker mode only)
+Designed as a comprehensive **Starter Kit for System Builders and Software Developers** building business-focused web applications—such as ERPs, CRMs, Procurement systems, HRMS portals, and multi-tenant SaaS products.
 
 ---
 
-## Development Modes
+## 🎯 Purpose & Value Proposition
 
-Choose one depending on your workstation:
+When developing enterprise software, engineering teams typically spend **2 to 3 months** implementing standard plumbing before writing a single line of business logic. 
+
+This starter kit eliminates that repetitive effort by providing pre-built, battle-tested solutions for common business requirements:
+
+| Common Business Challenge | Pre-built Solution in This Starter Kit |
+|---|---|
+| **Multi-Tenancy & Corporate Structures** | Native company context resolution, parent-subsidiary organizational trees, and tenant-level theme branding overrides. |
+| **Document Approval Pipelines** | Polymorphic approval workflow engine supporting multi-step sequential and parallel approvals, manager escalations, and role resolvers. |
+| **Transactional Email & Notifications** | Dynamic database email templates with in-browser Quill WYSIWYG authoring, token interpolation, and in-app notification center. |
+| **Feature Flags & Modular Monetization** | 3-tier cascading feature toggle system with per-company runtime overrides, `@feature` Blade directives, and admin management UI. |
+| **Security, RBAC & Org Hierarchy** | Spatie permission management, company-scoped roles, interactive visual org chart, and manager cycle prevention. |
+| **Machine-to-Machine API Integrations** | Stateless REST API (`/api/v1/`) with Sanctum token abilities, auto-generated OpenAPI 3.1 docs via Dedoc Scramble, and Bruno test suites. |
+| **Compliance & Traceability** | Automated model, auth, and system event audit logging dashboard. |
+| **Single-Page Application UX** | Real-time Livewire v4 reactivity with instant `wire:navigate` SPA transitions, zero full-page reloads, and Alpine.js v3. |
+| **Clean Modular Architecture** | Modular monolith design powered by `internachi/modular`, isolating domain features inside `app-modules/` as standard local Composer packages. |
+
+---
+
+## 🏗️ Architectural Foundations
+
+### 1. Modular Monolith Architecture (`internachi/modular`)
+The application divides core platform infrastructure from domain-specific business features:
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   Application Core                     │
+│                        (app/)                          │
+│  - Multi-tenancy context & Active Company Resolution   │
+│  - Authentication & Spatie RBAC                        │
+│  - Feature Toggle Engine (config/features.php)         │
+│  - Centralized Approval Engine (Approvable contract)   │
+│  - Notification Engine & Dynamic Email Templates       │
+│  - Global Layouts & UI Theme (TailAdmin / Tailwind v4) │
+└────────────────────────────────────────────────────────┘
+                           ▲
+                           │ depends on core contracts
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│                   Domain Modules                       │
+│                    (app-modules/)                      │
+│  - app-modules/purchase-requests/                      │
+│  - app-modules/invoices/                               │
+│  - app-modules/inventory/                              │
+│  - app-modules/leave-management/                       │
+└────────────────────────────────────────────────────────┘
+```
+
+### 2. The 3-Layer + Dual Presentation Standard
+
+To prevent business logic duplication, both the **Web SPA (Livewire v4)** and **External REST API (`/api/v1/`)** serve as thin presentation layers that delegate state mutations to single-purpose **Domain Actions**:
+
+```
+┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
+│       Web SPA (Browser Users)        │     │     External API / System Bots       │
+│   Livewire v4 Component / Alpine     │     │    Sanctum Token + X-Company-ID      │
+└──────────────────┬───────────────────┘     └──────────────────┬───────────────────┘
+                   │                                            │
+                   │ validates input                            │ validates FormRequest
+                   ▼                                            ▼
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                     1. Thin Presentation & Validation Layer                       │
+│ - Livewire Component methods (save, submit) / API Controllers (store, update)     │
+│ - Livewire #[Validate] / Form Requests (authorize() & rules())                     │
+└─────────────────────────────────────────┬─────────────────────────────────────────┘
+                                          │
+                                          │ delegates execution ($action->execute())
+                                          ▼
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                      2. Domain Business Layer (Domain Actions)                    │
+│ ┌───────────────────────────────────────────────────────────────────────────────┐ │
+│ │  DB::transaction(), Eloquent mutations, Approval Engine, Events, Notifications│ │
+│ └───────────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────┬─────────────────────────────────────────┘
+                                          │
+                   ┌──────────────────────┴──────────────────────┐
+                   │                                             │
+                   ▼                                             ▼
+┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
+│        Reactive DOM Update           │     │          JSON HTTP Response          │
+│   (Livewire Morph / Alpine state)    │     │      (Eloquent API JsonResource)     │
+└──────────────────────────────────────┘     └──────────────────────────────────────┘
+```
+
+---
+
+## 📦 Built-in Core Subsystems
+
+### 🏢 1. Multi-Tenancy & Corporate Hierarchy
+- **Tenant Context**: Automatically resolves active company via session (`getActiveCompany()`) in Web requests, or via `api.company` middleware with `X-Company-ID` in API requests.
+- **Hierarchical Trees**: Support for multi-tier company structures (holding companies, subsidiaries, branch offices) with ancestor/descendant policy traversal.
+- **Dynamic Theming**: Per-company theme overrides (custom branding, logos, and dynamic CSS variables).
+
+### 🚦 2. Polymorphic Approval Workflow Engine
+- **Flexible Workflows**: Define sequential or parallel approval steps for any domain document (Purchase Requests, Invoices, Expenses, Leave).
+- **Resolver Strategies**: Direct reporting managers, specific users, or custom role-based resolvers.
+- **Approvable Contract**: Any model implementing `App\Contracts\Approvable` instantly integrates with central approval inboxes, history logs, and status badges.
+
+### 🔔 3. Notification & Dynamic Email Template Engine
+- **Event-Driven Dispatch**: Trigger notifications with a single line: `NotificationRequested::dispatch($user, $payload)`.
+- **Dual Channel**: Delivers instant in-app alerts (header notification bell + `/notifications` index) and multipart HTML/plain-text emails.
+- **Quill WYSIWYG Editor**: Admins can edit email templates live in the browser with token interpolation (e.g. `{{ user_name }}`, `{{ amount }}`) and per-company template overrides.
+
+### 🎛️ 4. Feature Toggles & Module Management
+- **3-Tier Cascade Resolution**: Per-Company Database Override ➔ Global Platform Setting ➔ `config/features.php` default.
+- **Granular Gating**: Route middleware (`feature:<key>`), Blade directives (`@feature('<key>')`), and programmatic checks (`FeatureService::isEnabled()`).
+- **No-Code Admin UI**: Toggle features on or off globally or per tenant without deploying code.
+
+### 🛡️ 5. Role-Based Access Control (RBAC) & Org Chart
+- **Granular Permissions**: Powered by Spatie Laravel Permission with company-scoped roles.
+- **System Bot Accounts**: Distinguishes human users from automated system bots (`is_system = true`).
+- **Interactive Org Chart**: Visualizes reporting lines, enables drag-and-drop manager reassignments, and automatically detects and prevents circular reporting dependencies.
+
+### ⚡ 6. Stateless REST API & OpenAPI 3.1 Documentation
+- **API Token Management**: Platform admins can provision scoped Sanctum Bearer tokens for external integrations.
+- **Zero-Annotation Docs (Dedoc Scramble)**: Scramble reflects PHP types, Form Requests, and Eloquent Resources into interactive OpenAPI 3.1 docs at `/docs/api`.
+- **Bruno Collection**: Includes version-controlled `.bru` request collections in `bruno/` for API testing.
+
+### 📋 7. Audit Trail & Compliance Logging
+- Comprehensive event and model activity trail logging for security auditing and operational tracking.
+
+### 🎨 8. TailAdmin UI & Reactive DataTables
+- Modern responsive dashboard powered by Tailwind CSS v4 and TailAdmin.
+- Dark mode support, accessible Alpine.js confirmation modals with focus trapping, and reactive Livewire v4 DataTables featuring real-time debounced search, column sorting, and pagination.
+
+---
+
+## 🧩 Domain Modules & Reference Implementation
+
+Business domains reside in `app-modules/<name>/`. The repository includes a complete reference module:
+
+### `app-modules/purchase-requests/`
+Demonstrates how to build an end-to-end domain feature:
+- **Model & Migrations**: Implements `App\Contracts\Approvable` with `company_id` tenant scoping.
+- **Livewire v4 SPA UI**: Multi-step purchase request creation wizard and reactive filtering table.
+- **Approval Integration**: Submits requests directly into the core `ApprovalEngine`.
+- **REST API v1 Endpoints**: Exposed under `/api/v1/purchases` with Scramble OpenAPI documentation.
+- **Pest 5 Feature Tests**: Full test suite verifying wizard calculations, draft saves, and approvals.
+
+---
+
+## 📚 Developer Documentation Hub
+
+Comprehensive architectural guides and specifications are located in the [`docs/`](docs/) directory:
+
+| Guide | Description |
+|---|---|
+| 🎓 [**Tutorial: Building Your First Module**](docs/TUTORIAL_BUILDING_YOUR_FIRST_MODULE.md) | **Recommended starting point.** Step-by-step tutorial building a complete domain module (`purchase-requests`) integrated with all core subsystems. |
+| 🚀 [**Environment Setup & Development Modes**](docs/ENVIRONMENT_SETUP_GUIDE.md) | Complete guide for Docker + MariaDB and Local PHP + SQLite workflows, branch switching, queue workers, and image rebuilds. |
+| 📐 [**Developer & Architecture Handbook**](docs/DEVELOPER_GUIDE.md) | Foundational 3-Layer + Livewire v4 SPA architecture, shared domain actions, coding standards, and blueprint checklist. |
+| 📦 [**Modular Architecture Guide (`internachi/modular`)**](docs/MODULAR_ARCHITECTURE_GUIDE.md) | Module lifecycle, directory anatomy, Composer path repositories, Artisan `--module` CLI, and scaffolding steps. |
+| ⚡ [**REST API Developer Guide & OpenAPI**](docs/API_LAYER_GUIDE.md) | REST API v1 architecture, multi-tenant headers (`X-Company-ID`), Sanctum tokens, Dedoc Scramble, and Bruno test collections. |
+| 🎛️ [**Feature Toggles & Module Management Guide**](docs/developer-guide-feature-toggles.md) | Feature registry, 3-tier cascade resolution, `@feature` Blade directive, and per-tenant overrides. |
+| 🔔 [**Notification & Email Templates Guide**](docs/developer-guide-notifications-and-emails.md) | In-app alerts, `NotificationPayload`, Quill WYSIWYG database templates, and dynamic SMTP/OAuth configurations. |
+
+---
+
+## ⚡ 30-Second Quick Start
+
+Choose either Docker or Local PHP mode:
 
 ### Option A: Docker + MariaDB (Full Stack)
-
 ```bash
-# First time only
 copy .env.example .env
 docker compose up -d --build
-
-# Wait for containers to be ready, then:
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan storage:link
 docker compose exec app php artisan migrate:fresh --seed
 docker compose exec app php artisan audit-log:ui enable
 ```
-
-The Docker setup auto-loads `.env.docker` which points to the MariaDB container — no manual `.env` edits needed.
-
-> **Note:** `audit-log:ui enable` is also run automatically by `entrypoint.sh` on every container start, so this step is only needed if you skipped it during first-time setup.
-
-Open **http://localhost:8080** — you're done.
-
----
+👉 Open **http://localhost:8080** *(API docs: http://localhost:8080/docs/api)*
 
 ### Option B: Local PHP + SQLite (Lightweight)
-
-No Docker required. Uses SQLite for the database, cache, sessions, and queue.
-
-```bash
-# First time only
-composer setup
-```
-
-After setup, start the dev server:
-
-```bash
-composer dev
-```
-
-Open **http://localhost:8000** — you're done.
-
----
-
-## Switching Between Modes
-
-### Local → Docker
-
-```bash
-docker compose up -d --build
-```
-
-Auto-loads `.env.docker` (MariaDB). No manual `.env` edits needed.
-
-**First time only** — run setup inside the container:
-
-```bash
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan storage:link
-docker compose exec app php artisan migrate:fresh --seed
-docker compose exec app php artisan audit-log:ui enable
-```
-
-### Docker → Local
-
-**First time only** — if `vendor/`, `node_modules/`, or the SQLite database are missing/stale:
-
 ```bash
 composer setup
-```
-
-**After initial setup** — start the dev server, queue, and Vite:
-
-```bash
 composer dev
 ```
+👉 Open **http://localhost:8000** *(API docs: http://localhost:8000/docs/api)*
+
+> For detailed environment switching, queue scaling, and container rebuild instructions, see the [Environment Setup Guide](docs/ENVIRONMENT_SETUP_GUIDE.md).
 
 ---
 
-## What You Get
+## 🧪 Testing & Quality Assurance
 
-| Service | Docker Mode | Local Mode |
-|---|---|---|
-| App | http://localhost:8080 | http://localhost:8000 |
-| Vite dev server (HMR) | http://localhost:5173 | http://localhost:5173 |
-| Database | MariaDB (localhost:3306) | SQLite (database/database.sqlite) |
-
-**Hot reload:** edit any PHP, Blade, CSS, or JS file — changes appear instantly, no restarts needed.
-
----
-
-## Switching Branches in Docker Mode
-
-When you `git checkout` a different branch, the files on disk update instantly (bind mount), but cached state inside the containers stays stale:
-**vendor**, **bootstrap/cache**, and compiled frontend assets still reference the old branch.
+We enforce Test-Driven Development (TDD) using **Pest 5**. Tests execute against an isolated in-memory SQLite database:
 
 ```bash
-# Step by step
-docker compose exec app composer install --no-interaction
-docker compose exec app php artisan optimize:clear
-docker compose exec app php artisan audit-log:ui enable
-docker compose exec vite npm install
-docker compose exec vite npm run build
-docker compose restart queue
-
-# If migrations changed
-docker compose exec app php artisan migrate
-```
-
-```bash
-# One-liner (skip migrate — run it separately if needed)
-docker compose exec app composer install --no-interaction && docker compose exec app php artisan optimize:clear && docker compose exec app php artisan audit-log:ui enable && docker compose exec vite npm install && docker compose exec vite npm run build && docker compose restart queue
-```
-
-> **What each command does:**
-> - `composer install` — syncs vendor to the new branch's `composer.lock`
-> - `optimize:clear` — flushes config, route, view, event, and compiled caches
-> - `audit-log:ui enable` — re-enables the Yammi audit trail dashboard (required after cache clear)
-> - `npm install && npm run build` — rebuilds frontend assets
-> - `restart queue` — forces the queue worker to reload new code
-
----
-
-## Daily Commands
-
-### Docker Mode
-
-```bash
-docker compose up -d                    # start
-docker compose down                     # stop
-docker compose logs -f                  # see all logs
-docker compose exec app php artisan ... # run artisan
-docker compose exec app composer ...    # run composer
-```
-
-### Local Mode
-
-```bash
-composer dev                            # start (server + queue + vite)
-# Ctrl+C to stop all three
-php artisan ...                         # run artisan
-composer ...                            # run composer
-```
-
----
-
-## Running Tests
-
-Tests run against an in-memory SQLite database — they never touch your development
-database (MariaDB or SQLite), so no separate test database setup is needed.
-
-### Docker Mode
-
-```bash
-docker compose exec app composer test
-```
-
-### Local Mode
-
-```bash
-composer test
-```
-
----
-
-## Queue Worker
-
-### Docker Mode
-
-```bash
-docker compose logs -f queue                   # watch worker logs
-docker compose exec app php artisan queue:failed   # see failed jobs
-docker compose exec app php artisan queue:retry all  # retry all
-docker compose up -d --scale queue=3           # run 3 workers
-
-```
-
-### Rebuilding Docker Images
-
-**Full rebuild (wipe database, start fresh):**
-
-```bash
-# Step by step
-docker compose down -v
-docker compose build --no-cache
-docker compose up -d
-docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate:fresh --seed
-docker compose exec app php artisan audit-log:ui enable
-```
-
-```bash
-# Inline (one-liner)
-docker compose down -v && docker compose build --no-cache && docker compose up -d && docker compose exec app php artisan key:generate && docker compose exec app php artisan migrate:fresh --seed && docker compose exec app php artisan audit-log:ui enable
-```
-
-> **Note:** `audit-log:ui enable` is also handled automatically by `entrypoint.sh`, so after `docker compose up -d` the dashboard should already be active. Run it manually only if the `/audit-log` route returns 404.
-
-**Rebuild images, keep database:**
-
-```bash
-# Step by step
-docker compose down
-docker compose build --no-cache
-docker compose up -d
-```
-
-```bash
-# Inline (one-liner)
-docker compose down && docker compose build --no-cache && docker compose up -d
-```
-
-**Normal restart (no rebuild, keep everything):**
-
-```bash
-docker compose up -d --build
-```
-
----
-
-### Running Tests
-
-Run the full automated test suite (Pest 5):
-
-```bash
+# Run the complete test suite (430+ tests)
 ./test
+
+# Or in Docker mode:
+docker compose exec app ./test
 ```
-*(or `php artisan test`)*
 
 ---
 
-## Architecture & Developer Guides
+## 📄 License
 
-- **Developer & Architecture Handbook**: See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for the 3-Layer + Livewire v4 SPA architecture, domain actions, and coding standards.
-- **Livewire v4 SPA Skill**: See [.agents/skills/livewire-spa/SKILL.md](.agents/skills/livewire-spa/SKILL.md) for component conventions, `wire:navigate`, and Pest 5 component testing.
-- **Modular Architecture Guide (`internachi/modular`)**: See [docs/MODULAR_ARCHITECTURE_GUIDE.md](docs/MODULAR_ARCHITECTURE_GUIDE.md) for module lifecycle, anatomy, CLI commands with `--module`, and core integrations.
-- **API Developer Guide & OpenAPI (Scramble)**: See [docs/API_LAYER_GUIDE.md](docs/API_LAYER_GUIDE.md) for REST API architecture, multi-tenant scoping (`X-Company-ID`), and code templates.
-  - Interactive Swagger/OpenAPI 3.1 docs: [http://localhost:8000/docs/api](http://localhost:8000/docs/api) (or `http://localhost:8080/docs/api` in Docker).
-  - Bruno API collection: located in `bruno/` for instant API testing in the VS Code Bruno extension.
-- **Feature Toggles & Module Management Guide**: See [docs/developer-guide-feature-toggles.md](docs/developer-guide-feature-toggles.md) for per-company module enablement, middleware, and `@feature` Blade directives.
-- **Notifications & Email Templates Guide**: See [docs/developer-guide-notifications-and-emails.md](docs/developer-guide-notifications-and-emails.md) for transactional emails, in-app alerts, and Quill WYSIWYG templates.
-
-
+This project is open-sourced software licensed under the [MIT license](LICENSE).
