@@ -144,71 +144,73 @@
                     </div>
                 </div>
 
-                {{-- Logout Confirmation Modal --}}
-                <div
-                    x-show="confirmLogout"
-                    x-cloak
-                    x-trap.noscroll="confirmLogout"
-                    class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-                >
+                {{-- Logout Confirmation Modal (Teleported to Body) --}}
+                <template x-teleport="body">
                     <div
-                        @click.outside="confirmLogout = false"
-                        class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900"
+                        x-show="confirmLogout"
+                        x-cloak
+                        x-trap.noscroll="confirmLogout"
+                        class="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 backdrop-blur-sm"
                     >
-                        {{-- Icon --}}
-                        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-500/10 mb-4">
-                            <svg class="h-7 w-7 text-error-600 dark:text-error-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                            </svg>
-                        </div>
-
-                        {{-- Header Text --}}
-                        <h3 class="text-center text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
-                            Log Out
-                        </h3>
-
-                        {{-- Description --}}
-                        <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-                            Are you sure you want to log out of your account?
-                        </p>
-
-                        {{-- Action Buttons --}}
-                        <form
-                            action="{{ route('logout') }}"
-                            method="POST"
-                            @submit="
-                                if ('BroadcastChannel' in window) {
-                                    try {
-                                        new BroadcastChannel('session-expired').postMessage({
-                                            type: 'LOGOUT',
-                                            senderTabId: window.__tabId
-                                        });
-                                    } catch(e){}
-                                }
-                                try {
-                                    localStorage.setItem('auth_logout_event', Date.now().toString());
-                                } catch(e){}
-                            "
+                        <div
+                            @click.outside="confirmLogout = false"
+                            class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900"
                         >
-                            @csrf
-                            <div class="flex items-center justify-end gap-3">
-                                <button
-                                    type="button"
-                                    @click="confirmLogout = false"
-                                    class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 cursor-pointer"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    class="inline-flex items-center justify-center rounded-lg bg-error-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-700 shadow-theme-xs transition cursor-pointer"
-                                >
-                                    Log Out
-                                </button>
+                            {{-- Icon --}}
+                            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-error-50 dark:bg-error-500/10 mb-4">
+                                <svg class="h-7 w-7 text-error-600 dark:text-error-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                                </svg>
                             </div>
-                        </form>
+
+                            {{-- Header Text --}}
+                            <h3 class="text-center text-lg font-semibold text-gray-800 dark:text-white/90 mb-2">
+                                Log Out
+                            </h3>
+
+                            {{-- Description --}}
+                            <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+                                Are you sure you want to log out of your account?
+                            </p>
+
+                            {{-- Action Buttons --}}
+                            <form
+                                action="{{ route('logout') }}"
+                                method="POST"
+                                @submit="
+                                    if ('BroadcastChannel' in window) {
+                                        try {
+                                            new BroadcastChannel('session-expired').postMessage({
+                                                type: 'LOGOUT',
+                                                senderTabId: window.__tabId
+                                            });
+                                        } catch(e){}
+                                    }
+                                    try {
+                                        localStorage.setItem('auth_logout_event', Date.now().toString());
+                                    } catch(e){}
+                                "
+                            >
+                                @csrf
+                                <div class="flex items-center justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        @click="confirmLogout = false"
+                                        class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 cursor-pointer"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center justify-center rounded-lg bg-error-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-700 shadow-theme-xs transition cursor-pointer"
+                                    >
+                                        Log Out
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
+                </template>
                 @endauth
             </div>
         </div>

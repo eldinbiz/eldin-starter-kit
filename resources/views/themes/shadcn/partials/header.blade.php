@@ -167,70 +167,72 @@
             </div>
         </div>
 
-        {{-- Logout Confirmation Dialog (shadcn Modal) --}}
-        <div
-            x-show="confirmLogout"
-            x-cloak
-            x-trap.noscroll="confirmLogout"
-            class="fixed inset-0 z-99999 flex items-center justify-center p-4"
-        >
+        {{-- Logout Confirmation Dialog (shadcn Modal Teleported to Body) --}}
+        <template x-teleport="body">
             <div
                 x-show="confirmLogout"
-                x-transition:enter="ease-out duration-200"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-150"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                @click="confirmLogout = false"
-                class="fixed inset-0 bg-black/50 backdrop-blur-xs"
-            ></div>
-
-            <div
-                x-show="confirmLogout"
-                x-transition:enter="ease-out duration-200"
-                x-transition:enter-start="opacity-0 scale-95"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="ease-in duration-150"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95"
-                @click.outside="confirmLogout = false"
-                class="relative w-full max-w-sm overflow-hidden rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+                x-cloak
+                x-trap.noscroll="confirmLogout"
+                class="fixed inset-0 z-99999 flex items-center justify-center p-4"
             >
-                <div class="flex flex-col items-center text-center">
-                    <div class="flex size-11 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 mb-3.5">
-                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                        Sign out of your account?
-                    </h3>
-                    <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                        Are you sure you want to log out? Any unsaved changes in progress will be lost.
-                    </p>
-                </div>
+                <div
+                    x-show="confirmLogout"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    @click="confirmLogout = false"
+                    class="fixed inset-0 bg-black/50 backdrop-blur-xs"
+                ></div>
 
-                <div class="mt-6 flex items-center justify-end gap-2.5">
-                    <button
-                        type="button"
-                        @click="confirmLogout = false"
-                        class="rounded-md border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
-                    >
-                        Cancel
-                    </button>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
+                <div
+                    x-show="confirmLogout"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    @click.outside="confirmLogout = false"
+                    class="relative w-full max-w-sm overflow-hidden rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+                >
+                    <div class="flex flex-col items-center text-center">
+                        <div class="flex size-11 items-center justify-center rounded-full bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 mb-3.5">
+                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            Sign out of your account?
+                        </h3>
+                        <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                            Are you sure you want to log out? Any unsaved changes in progress will be lost.
+                        </p>
+                    </div>
+
+                    <div class="mt-6 flex items-center justify-end gap-2.5">
                         <button
-                            type="submit"
-                            class="rounded-md bg-red-600 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 transition-colors shadow-2xs"
+                            type="button"
+                            @click="confirmLogout = false"
+                            class="rounded-md border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 transition-colors shadow-2xs"
                         >
-                            Sign out
+                            Cancel
                         </button>
-                    </form>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button
+                                type="submit"
+                                class="rounded-md bg-red-600 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 transition-colors shadow-2xs"
+                            >
+                                Sign out
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+        </template>
         @endauth
     </div>
 </header>
