@@ -6,12 +6,14 @@
         items: [
             { title: 'Dashboard', url: '{{ url('/') }}', group: 'Navigation', icon: 'layout' },
             { title: 'Purchase Requests', url: '{{ route('purchase-requests.index') }}', group: 'Navigation', icon: 'cart' },
+            @feature('approvals')
             @can('view-approval-inbox')
             { title: 'Approval Inbox', url: '{{ route('approvals.inbox') }}', group: 'Approvals', icon: 'inbox' },
             @endcan
             @can('view-approval-history')
             { title: 'Approval History', url: '{{ route('approvals.history') }}', group: 'Approvals', icon: 'history' },
             @endcan
+            @endfeature
             @can('manage-users')
             { title: 'User Management', url: '{{ route('admin.users.index') }}', group: 'Administration', icon: 'users' },
             @endcan

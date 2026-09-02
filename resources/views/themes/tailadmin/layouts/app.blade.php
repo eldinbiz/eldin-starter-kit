@@ -38,6 +38,7 @@
             }
         </style>
     @endif
+    @stack('styles')
 </head>
 <body
     x-data="{

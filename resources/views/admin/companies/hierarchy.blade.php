@@ -7,7 +7,7 @@
     .org-chart-container {
         height: 500px;
     }
-    .org-chart-container svg {
+    .org-chart-container > svg {
         width: 100%;
         height: 100%;
     }
@@ -257,7 +257,7 @@ function companyHierarchy() {
                     color:#fff;
                 ">
                     <div style="display:flex;align-items:center;gap:10px;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.9;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="width:24px;height:24px;flex-shrink:0;opacity:0.9;">
                             <path d="M3 21h18M3 10h18M7 3v4M17 3v4M5 3v4M19 3v4M5 10v11M19 10v11M9 10v11M15 10v11M3 21V10l9-7 9 7v11H3z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                         </svg>
                         <div style="flex:1;min-width:0;">

@@ -72,7 +72,7 @@
     >
         <div class="flex items-center gap-2">
             <span class="text-base">🎭</span>
-            <span>You are impersonating <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }}).</span>
+            <span>You are currently impersonating <strong>{{ auth()->user()->name }}</strong> ({{ auth()->user()->email }}).</span>
         </div>
         <a 
             href="{{ route('impersonate.leave') }}" 

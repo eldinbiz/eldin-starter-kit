@@ -19,6 +19,7 @@
 
     {{-- Tailwind CSS and custom scripts via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 <body
     x-data="{
