@@ -8,179 +8,145 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-8">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Edit User Details</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Modify information or adjust roles for this user.</p>
-        </div>
-        <a
-            href="{{ route('admin.users.index') }}"
-            class="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-        >
-            Back to List
-        </a>
-    </div>
-
-    @if(session('success'))
-        <div class="mb-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm text-green-700 dark:text-green-300">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="mb-4 rounded-lg bg-error-50 dark:bg-error-500/10 border border-error-200 dark:border-error-800 px-4 py-3 text-sm text-error-700 dark:text-error-400">
-            {{ session('error') }}
-        </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="mb-4 rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
-        @csrf
-        @method('PUT')
-        <div class="space-y-6">
-            {{-- Full Name --}}
+    <x-ui::card>
+        <div class="flex items-center justify-between mb-6">
             <div>
-                <label for="name" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Full Name <span class="text-error-500">*</span>
-                </label>
-                <input
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Edit User Details</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Modify information or adjust roles for this user.</p>
+            </div>
+            <a href="{{ route('admin.users.index') }}">
+                <x-ui::button variant="outline" size="sm">
+                    Back to List
+                </x-ui::button>
+            </a>
+        </div>
+
+        @if(session('success'))
+            <x-ui::alert type="success" class="mb-4">
+                {{ session('success') }}
+            </x-ui::alert>
+        @endif
+
+        @if(session('error'))
+            <x-ui::alert type="error" class="mb-4">
+                {{ session('error') }}
+            </x-ui::alert>
+        @endif
+
+        @if ($errors->any())
+            <x-ui::alert type="error" class="mb-4">
+                <ul class="list-disc pl-5">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-ui::alert>
+        @endif
+
+        <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="space-y-6">
+                {{-- Full Name --}}
+                <x-ui::input
                     type="text"
                     id="name"
                     name="name"
+                    label="Full Name"
                     value="{{ old('name', $user->name) }}"
                     placeholder="Enter full name"
                     required
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
-            </div>
 
-            {{-- Email Address --}}
-            <div>
-                <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Email Address <span class="text-error-500">*</span>
-                </label>
-                <input
+                {{-- Email Address --}}
+                <x-ui::input
                     type="email"
                     id="email"
                     name="email"
+                    label="Email Address"
                     value="{{ old('email', $user->email) }}"
                     placeholder="name@example.com"
                     required
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
-            </div>
 
-            {{-- Password (Optional) --}}
-            <div>
-                <label for="password" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Password <span class="text-xs text-gray-400 font-normal">(Leave blank to keep current password)</span>
-                </label>
-                <input
+                {{-- Password (Optional) --}}
+                <x-ui::input
                     type="password"
                     id="password"
                     name="password"
+                    label="Password"
+                    helper="(Leave blank to keep current password)"
                     placeholder="New password (optional)"
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
-            </div>
 
-            {{-- Authentication Method --}}
-            <div>
-                <label for="auth_method" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Authentication Method <span class="text-error-500">*</span>
-                </label>
-                <select
+                {{-- Authentication Method --}}
+                <x-ui::select
                     id="auth_method"
                     name="auth_method"
+                    label="Authentication Method"
                     required
-                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
                 >
                     @foreach (\App\Models\User::AUTH_METHODS as $key => $label)
                         <option value="{{ $key }}" {{ old('auth_method', $user->auth_method ?? 'local') === $key ? 'selected' : '' }}>
                             {{ $label }} ({{ $key }})
                         </option>
                     @endforeach
-                </select>
-            </div>
+                </x-ui::select>
 
-            {{-- Assign Roles --}}
-            <div>
-                <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Assign Roles
-                    @if($activeCompany)
-                        <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
-                            {{ $activeCompany->name }}
-                        </span>
-                    @endif
-                    <span class="text-error-500">*</span>
-                </label>
-                <div class="flex flex-col gap-3">
-                    {{-- Default User Role (Checked & Disabled) --}}
-                    <label class="flex items-center cursor-not-allowed select-none text-sm text-gray-500 dark:text-gray-400">
-                        <div class="relative mr-2.5">
-                            <input type="checkbox" checked disabled class="sr-only" />
-                            <div class="box flex h-5 w-5 items-center justify-center rounded border border-gray-300 bg-gray-100 dark:border-gray-700 dark:bg-gray-800">
-                                <span class="text-gray-400 text-xs">✔</span>
-                            </div>
+                {{-- Assign Roles --}}
+                <div>
+                    <label class="mb-3 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Assign Roles
+                        @if($activeCompany)
+                            <x-ui::badge variant="neutral" class="ml-1.5">
+                                {{ $activeCompany->name }}
+                            </x-ui::badge>
+                        @endif
+                        <span class="text-error-500">*</span>
+                    </label>
+                    <div class="flex flex-col gap-3">
+                        {{-- Default User Role (Checked & Disabled) --}}
+                        <div class="flex items-center">
+                            <x-ui::checkbox
+                                label="User (Default Role)"
+                                checked
+                                disabled
+                            />
                             <input type="hidden" name="roles[]" value="{{ $roles->firstWhere('name', 'user')->id ?? '' }}" />
                         </div>
-                        <span>User (Default Role)</span>
-                    </label>
 
-                    {{-- Additional Roles --}}
-                    @foreach($roles->where('name', '!=', 'user') as $role)
-                        @php
-                            $hasRole = in_array($role->id, $userRoleIds);
-                        @endphp
-                        <label class="flex items-center cursor-pointer select-none text-sm text-gray-700 dark:text-gray-300">
-                            <div class="relative mr-2.5" x-data="{ checked: {{ $hasRole ? 'true' : 'false' }} }">
-                                <input
-                                    type="checkbox"
-                                    name="roles[]"
-                                    value="{{ $role->id }}"
-                                    id="role_{{ $role->id }}"
-                                    class="sr-only"
-                                    {{ $hasRole ? 'checked' : '' }}
-                                    @change="checked = $el.checked"
-                                />
-                                <div
-                                    :class="checked ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'"
-                                    class="box flex h-5 w-5 items-center justify-center rounded border transition"
-                                >
-                                    <span x-show="checked" class="text-white text-xs">✔</span>
-                                </div>
-                            </div>
-                            <span>{{ ucfirst($role->name) }}</span>
-                        </label>
-                    @endforeach
+                        {{-- Additional Roles --}}
+                        @foreach($roles->where('name', '!=', 'user') as $role)
+                            @php
+                                $hasRole = in_array($role->id, $userRoleIds);
+                            @endphp
+                            <x-ui::checkbox
+                                name="roles[]"
+                                value="{{ $role->id }}"
+                                id="role_{{ $role->id }}"
+                                label="{{ ucfirst($role->name) }}"
+                                :checked="$hasRole"
+                            />
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Submit Button --}}
+                <div class="pt-4">
+                    <x-ui::button
+                        type="submit"
+                        variant="primary"
+                        class="w-full py-3"
+                    >
+                        Update User
+                    </x-ui::button>
                 </div>
             </div>
-
-            {{-- Submit Button --}}
-            <div class="pt-4">
-                <button
-                    type="submit"
-                    class="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 focus:outline-hidden"
-                >
-                    Update User
-                </button>
-            </div>
-        </div>
-    </form>
-</div>
+        </form>
+    </x-ui::card>
 
     {{-- Company Assignments Section --}}
-    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-8">
+    <x-ui::card>
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Company Assignments</h4>
@@ -205,16 +171,16 @@
                             <td class="px-3 py-2 font-medium text-gray-800 dark:text-white">
                                 {{ $company->name }}
                                 @if(!$company->is_active)
-                                    <span class="ml-1.5 inline-flex items-center rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">Inactive</span>
+                                    <x-ui::badge variant="neutral" class="ml-1.5">Inactive</x-ui::badge>
                                 @endif
                             </td>
                             <td class="px-3 py-2 text-gray-500 dark:text-gray-400">
                                 @if($company->user_roles->isNotEmpty())
                                     <div class="flex flex-wrap gap-1">
                                         @foreach($company->user_roles as $role)
-                                            <span class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-500/15 dark:text-purple-400">
+                                            <x-ui::badge variant="neutral">
                                                 {{ ucfirst($role->name) }}
-                                            </span>
+                                            </x-ui::badge>
                                         @endforeach
                                     </div>
                                 @else
@@ -226,14 +192,14 @@
                                 <div x-data="{ confirming: false, typedName: '' }">
                                     <button type="button"
                                             @click="confirming = true; typedName = ''"
-                                            class="text-xs text-error-500 hover:text-error-700 font-medium">
+                                            class="text-xs text-error-500 hover:text-error-700 font-medium cursor-pointer">
                                         Remove
                                     </button>
 
                                     <div x-show="confirming" x-cloak x-trap.noscroll="confirming"
-                                         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                                         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs">
                                         <div @click.outside="confirming = false; typedName = ''"
-                                             class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-white/[0.03]">
+                                             class="mx-4 w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl dark:border-gray-700 dark:bg-gray-900">
                                             <p class="text-center text-sm font-medium text-gray-800 dark:text-white/90 mb-1">
                                                 Remove from {{ $company->name }}?
                                             </p>
@@ -246,22 +212,29 @@
                                             <form action="{{ route('admin.users.remove-company', [$user->id, $company->id]) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
-                                                <input type="text" x-model="typedName" placeholder="Type {{ $company->name }}"
-                                                       class="mb-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-error-500 focus:outline-none focus:ring-1 focus:ring-error-500 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
-                                                <div class="flex justify-end gap-2">
-                                                    <button type="button"
-                                                            @click="confirming = false; typedName = ''"
-                                                            class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-white/[0.03] dark:text-gray-300">
+                                                <x-ui::input
+                                                    type="text"
+                                                    x-model="typedName"
+                                                    placeholder="Type {{ $company->name }}"
+                                                    class="mb-4"
+                                                />
+                                                <div class="flex justify-end gap-2 mt-4">
+                                                    <x-ui::button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        @click="confirming = false; typedName = ''"
+                                                    >
                                                         Cancel
-                                                    </button>
-                                                    <button type="submit"
-                                                            :disabled="typedName !== '{{ addslashes($company->name) }}'"
-                                                            :class="typedName === '{{ addslashes($company->name) }}'
-                                                                ? 'bg-error-500 hover:bg-error-600 cursor-pointer'
-                                                                : 'bg-gray-300 cursor-not-allowed dark:bg-gray-700'"
-                                                            class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors">
+                                                    </x-ui::button>
+                                                    <x-ui::button
+                                                        type="submit"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        ::disabled="typedName !== '{{ addslashes($company->name) }}'"
+                                                    >
                                                         Remove
-                                                    </button>
+                                                    </x-ui::button>
                                                 </div>
                                             </form>
                                         </div>
@@ -283,25 +256,27 @@
                 <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Assign to a Company</h5>
                 <form action="{{ route('admin.users.assign-company', $user->id) }}" method="POST" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     @csrf
-                    <select name="company_id" required
-                        class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white">
+                    <x-ui::select name="company_id" required>
                         <option value="">Select Company</option>
                         @foreach($availableCompanies as $company)
                             <option value="{{ $company->id }}">{{ $company->name }}</option>
                         @endforeach
-                    </select>
+                    </x-ui::select>
                     <div class="flex flex-wrap gap-2">
                         @foreach($roles as $role)
-                        <label class="flex items-center gap-1.5 text-sm">
-                            <input type="checkbox" name="roles[]" value="{{ $role->id }}" class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" />
-                            <span class="text-gray-700 dark:text-gray-300">{{ ucfirst($role->name) }}</span>
-                        </label>
+                            <x-ui::checkbox
+                                name="roles[]"
+                                value="{{ $role->id }}"
+                                label="{{ ucfirst($role->name) }}"
+                            />
                         @endforeach
                     </div>
-                    <input type="text" name="job_title" placeholder="Job Title"
-                        class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white" />
-                    <select name="manager_id"
-                        class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-hidden focus:border-brand-500 dark:border-gray-800 dark:bg-gray-950 dark:text-white">
+                    <x-ui::input
+                        type="text"
+                        name="job_title"
+                        placeholder="Job Title"
+                    />
+                    <x-ui::select name="manager_id">
                         <option value="">No Manager</option>
                         @php
                             $allAssignedUsers = $user->companies()
@@ -316,17 +291,21 @@
                         @foreach($allAssignedUsers as $u)
                             <option value="{{ $u->id }}">{{ $u->name }}</option>
                         @endforeach
-                    </select>
+                    </x-ui::select>
                     <div class="sm:col-span-4 pt-1">
-                        <button type="submit" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
+                        <x-ui::button
+                            type="submit"
+                            variant="primary"
+                            size="sm"
+                        >
                             Assign to Company
-                        </button>
+                        </x-ui::button>
                     </div>
                 </form>
             </div>
         @else
             <p class="text-xs text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-800 pt-5 mt-5">This user is already assigned to all active companies.</p>
         @endif
-    </div>
+    </x-ui::card>
 </div>
 @endsection

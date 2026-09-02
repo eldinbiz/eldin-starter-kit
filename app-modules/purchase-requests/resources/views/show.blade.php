@@ -10,25 +10,25 @@
 <div class="space-y-6">
     {{-- Flash Messages --}}
     @if (session('error'))
-        <div class="rounded-lg bg-error-50 p-4 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+        <x-ui::alert type="error">
             {{ session('error') }}
-        </div>
+        </x-ui::alert>
     @endif
 
     @if (session('success'))
-        <div class="rounded-lg bg-success-50 p-4 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-500">
+        <x-ui::alert type="success">
             {{ session('success') }}
-        </div>
+        </x-ui::alert>
     @endif
 
     {{-- PR Header Card --}}
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+    <x-ui::card>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <div class="flex items-center gap-3">
-                    <span class="rounded-md bg-brand-50 px-2.5 py-1 text-xs font-bold text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
+                    <x-ui::badge variant="brand">
                         {{ $purchaseRequest->pr_number }}
-                    </span>
+                    </x-ui::badge>
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                         {{ $purchaseRequest->title }}
                     </h2>
@@ -40,15 +40,15 @@
 
             <div class="flex items-center gap-3">
                 @if ($purchaseRequest->status === 'draft')
-                    <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">Draft</span>
+                    <x-ui::badge variant="neutral">Draft</x-ui::badge>
                 @elseif ($purchaseRequest->status === 'pending_approval')
-                    <span class="inline-flex rounded-full bg-warning-50 px-3 py-1 text-xs font-semibold text-warning-600 dark:bg-warning-500/15 dark:text-warning-500">Pending Approval</span>
+                    <x-ui::badge variant="warning">Pending Approval</x-ui::badge>
                 @elseif ($purchaseRequest->status === 'approved')
-                    <span class="inline-flex rounded-full bg-success-50 px-3 py-1 text-xs font-semibold text-success-600 dark:bg-success-500/15 dark:text-success-500">Approved</span>
+                    <x-ui::badge variant="success">Approved</x-ui::badge>
                 @elseif ($purchaseRequest->status === 'rejected')
-                    <span class="inline-flex rounded-full bg-error-50 px-3 py-1 text-xs font-semibold text-error-600 dark:bg-error-500/15 dark:text-error-400">Rejected</span>
+                    <x-ui::badge variant="danger">Rejected</x-ui::badge>
                 @elseif ($purchaseRequest->status === 'canceled')
-                    <span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">Canceled</span>
+                    <x-ui::badge variant="neutral">Canceled</x-ui::badge>
                 @endif
 
                 @if ($purchaseRequest->status === 'draft' && $purchaseRequest->requester_id === auth()->id())
@@ -84,14 +84,14 @@
                 <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">{{ $purchaseRequest->description }}</p>
             </div>
         @endif
-    </div>
+    </x-ui::card>
 
     {{-- Workflow Progress Table --}}
     @if ($latestRequest)
-        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
+        <x-ui::card>
             <h3 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">Approval Workflow Status</h3>
             @include('approvals._workflow-progress-table', ['approvalRequest' => $latestRequest])
-        </div>
+        </x-ui::card>
     @endif
 </div>
 @endsection
