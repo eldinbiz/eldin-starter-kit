@@ -1,7 +1,7 @@
 {{-- shadcn Top Header --}}
 <header
     x-data="{ userDropdown: false, confirmLogout: false }"
-    class="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-zinc-200 bg-white/90 px-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90"
+    class="sticky top-0 z-40 flex h-14 shrink-0 w-full items-center justify-between border-b border-zinc-200 bg-white/90 px-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90"
 >
     {{-- Left: Sidebar Toggle & Breadcrumb --}}
     <div class="flex items-center gap-3">
