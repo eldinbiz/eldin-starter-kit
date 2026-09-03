@@ -85,7 +85,33 @@ it('resets all active filters', function () {
         ->set('filterValues.roles', ['user'])
         ->call('resetFilters')
         ->assertSet('search', '')
-        ->assertSet('filterValues', []);
+        ->assertSet('filterValues', ['roles' => []]);
+});
+
+it('initializes roles filter as an array and handles checking multiple roles independently', function () {
+    $this->actingAs($this->admin);
+    session(['active_company_id' => $this->company->id]);
+
+    $component = Livewire::test('admin.users.user-table')
+        ->assertSet('filterValues.roles', []);
+
+    // Check single role
+    $component->set('filterValues.roles', ['admin'])
+        ->assertSet('filterValues.roles', ['admin'])
+        ->assertSee('Admin User')
+        ->assertDontSee('Alice Johnson');
+
+    // Check second role
+    $component->set('filterValues.roles', ['admin', 'user'])
+        ->assertSet('filterValues.roles', ['admin', 'user'])
+        ->assertSee('Admin User')
+        ->assertSee('Alice Johnson');
+
+    // Uncheck first role
+    $component->set('filterValues.roles', ['user'])
+        ->assertSet('filterValues.roles', ['user'])
+        ->assertSee('Alice Johnson')
+        ->assertDontSee('Admin User');
 });
 
 it('prompts delete modal and deletes user', function () {

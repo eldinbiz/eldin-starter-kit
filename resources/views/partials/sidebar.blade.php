@@ -48,13 +48,13 @@
     <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar flex-1">
         {{-- Sidebar Menu --}}
         <nav x-data="{ selectedGroup: 'Menu', selectedItem: 'Dashboard' }">
-            {{-- Group 1: MENU --}}
+            {{-- Group 1: OVERVIEW --}}
             <div class="mb-6">
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
-                        MENU
+                        OVERVIEW
                     </span>
-                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">MENU</span>
+                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">OVER</span>
                 </h3>
 
                 <ul class="flex flex-col gap-1.5">
@@ -208,13 +208,14 @@
             @endcanany
             @endfeature
 
-            {{-- Group 3: SYSTEM ADMINISTRATION --}}
-            <div>
+            {{-- Group 3: ADMINISTRATION --}}
+            @canany(['manage-users', 'manage-roles', 'manage-companies', 'view-companies', 'manage-org-chart', 'view-org-chart'])
+            <div class="mb-6">
                 <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
                     <span x-show="!sidebarToggle || sidebarHover" x-cloak>
-                        SYSTEM ADMINISTRATION
+                        ADMINISTRATION
                     </span>
-                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">SYS</span>
+                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">ADMIN</span>
                 </h3>
 
                 <ul class="flex flex-col gap-1.5">
@@ -294,6 +295,21 @@
                         </a>
                     </li>
                     @endcanany
+                </ul>
+            </div>
+            @endcanany
+
+            {{-- Group 4: SYSTEM --}}
+            @canany(['manage-system-settings', 'manage-auth-providers', 'manage-api-tokens', 'view-audit-logs'])
+            <div class="mb-6">
+                <h3 class="mb-4 text-xs uppercase leading-[20px] text-gray-400">
+                    <span x-show="!sidebarToggle || sidebarHover" x-cloak>
+                        SYSTEM
+                    </span>
+                    <span x-show="sidebarToggle && !sidebarHover" x-cloak class="text-center text-[10px]">SYS</span>
+                </h3>
+
+                <ul class="flex flex-col gap-1.5">
 
                     {{-- System Settings --}}
                     @can('manage-system-settings')
@@ -394,6 +410,7 @@
                     @endfeature
                 </ul>
             </div>
+            @endcanany
         </nav>
     </div>
 </aside>

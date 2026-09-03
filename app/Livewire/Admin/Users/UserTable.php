@@ -35,6 +35,40 @@ final class UserTable extends DataTableComponent
 
     public ?string $flashError = null;
 
+    public function mount(): void
+    {
+        $this->ensureRolesFilterIsArray();
+    }
+
+    public function resetFilters(): void
+    {
+        parent::resetFilters();
+        $this->ensureRolesFilterIsArray();
+    }
+
+    public function removeFilter(string $key): void
+    {
+        parent::removeFilter($key);
+        if ($key === 'roles') {
+            $this->ensureRolesFilterIsArray();
+        }
+    }
+
+    public function updatedFilterValues(): void
+    {
+        $this->ensureRolesFilterIsArray();
+        parent::updatedFilterValues();
+    }
+
+    private function ensureRolesFilterIsArray(): void
+    {
+        if (! isset($this->filterValues['roles']) || ! is_array($this->filterValues['roles'])) {
+            $this->filterValues['roles'] = is_string($this->filterValues['roles'] ?? null)
+                ? [$this->filterValues['roles']]
+                : [];
+        }
+    }
+
     /**
      * Define the base Eloquent query builder.
      */
