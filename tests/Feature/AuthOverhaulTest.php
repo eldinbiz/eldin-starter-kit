@@ -15,8 +15,9 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->company = Company::factory()->create(['name' => 'Main Company']);
     $this->platformAdminRole = Role::factory()->create([
-        'name' => 'platform-admin',
+        'name' => 'sysadmin',
         'is_active' => true,
+        'is_system' => true,
         'permissions' => ['manage-auth-providers', 'manage-users'],
     ]);
     $this->userRole = Role::factory()->create([

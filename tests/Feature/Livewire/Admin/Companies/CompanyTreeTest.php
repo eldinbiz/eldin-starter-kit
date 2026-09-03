@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->holding = Company::factory()->create(['name' => 'Mega Corp Holding', 'type' => 'holding', 'is_active' => true]);
     $this->subsidiary = Company::factory()->create(['name' => 'Tech Subsidiary', 'type' => 'operating', 'parent_id' => $this->holding->id, 'is_active' => true]);
 
-    $this->adminRole = Role::firstOrCreate(['name' => 'platform-admin', 'label' => 'Platform Administrator', 'permissions' => ['*'], 'is_active' => true]);
+    $this->adminRole = Role::firstOrCreate(['name' => 'sysadmin'], ['permissions' => Role::allPermissions(), 'is_active' => true, 'is_system' => true]);
     $this->admin = User::factory()->create(['name' => 'Super Admin', 'email' => 'admin@megacorp.com']);
     $this->admin->companies()->attach($this->holding->id, ['status' => 'active']);
     $this->admin->companyRoles()->attach($this->adminRole->id, ['company_id' => $this->holding->id]);

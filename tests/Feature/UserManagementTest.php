@@ -87,8 +87,8 @@ it('allows admin to view the user listing page', function () {
 
 it('allows filtering users by company id without type error', function () {
     [$user, $company] = actAsAdmin($this);
-    Role::factory()->create(['name' => 'platform-admin', 'permissions' => ['*']]);
-    $user->companyRoles()->attach(Role::where('name', 'platform-admin')->value('id'), ['company_id' => $company->id]);
+    Role::factory()->sysadmin()->create();
+    $user->companyRoles()->attach(Role::where('name', 'sysadmin')->value('id'), ['company_id' => $company->id]);
 
     $response = $this->get('/admin/users?filter_company_id='.$company->id);
 

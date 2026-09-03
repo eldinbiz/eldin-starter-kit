@@ -145,7 +145,7 @@ final class RoleTable extends DataTableComponent
     {
         $role = Role::find($roleId);
 
-        if (! $role) {
+        if (! $role || $role->is_system) {
             return;
         }
 

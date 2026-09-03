@@ -93,7 +93,7 @@ Our application is strictly multi-company. For any tenant-specific API endpoint:
 2. The client must supply the `X-Company-ID: <id>` header.
 3. The `ApiSetActiveCompany` middleware verifies that:
    - The user is an attached member of the requested company, **OR**
-   - The user possesses the `platform-admin` role (which has cross-company access).
+   - The user possesses the `sysadmin` role (which has cross-company access).
 4. Once verified, the active company ID is bound in Laravel's container: `App::get('active_company_id')`.
 
 ---

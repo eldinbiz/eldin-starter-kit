@@ -157,3 +157,14 @@ it('prompts delete modal and soft-deletes a disabled role with type-to-confirm',
     expect(Role::find($roleToDelete->id))->toBeNull();
     expect(Role::withTrashed()->find($roleToDelete->id))->not->toBeNull();
 });
+
+it('prevents promptDelete and deletion of system roles', function () {
+    $this->actingAs($this->admin);
+    session(['active_company_id' => $this->company->id]);
+
+    $sysadminRole = Role::factory()->sysadmin()->create();
+
+    Livewire::test('admin.roles.role-table')
+        ->call('promptDelete', $sysadminRole->id)
+        ->assertSet('roleToDeleteId', null);
+});

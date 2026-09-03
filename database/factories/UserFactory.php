@@ -65,7 +65,7 @@ class UserFactory extends Factory
             $user->companies()->attach($company->id, ['status' => 'active']);
             $role = Role::firstOrCreate(
                 ['name' => 'sysadmin'],
-                ['permissions' => ['*'], 'is_active' => true]
+                ['permissions' => Role::allPermissions(), 'is_active' => true, 'is_system' => true]
             );
             $user->companyRoles()->attach($role->id, ['company_id' => $company->id]);
         });
@@ -99,18 +99,10 @@ class UserFactory extends Factory
     }
 
     /**
-     * Give the user the platform-admin role.
+     * Give the user the platform-admin role (deprecated: aliases to sysadmin).
      */
     public function platformAdmin(): static
     {
-        return $this->afterCreating(function (User $user) {
-            $company = Company::factory()->create();
-            $user->companies()->attach($company->id, ['status' => 'active']);
-            $role = Role::firstOrCreate(
-                ['name' => 'platform-admin'],
-                ['permissions' => ['*'], 'is_active' => true]
-            );
-            $user->companyRoles()->attach($role->id, ['company_id' => $company->id]);
-        });
+        return $this->sysadmin();
     }
 }

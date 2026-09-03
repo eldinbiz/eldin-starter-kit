@@ -29,7 +29,8 @@ class RoleFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'name' => 'sysadmin',
-            'permissions' => ['*'],
+            'permissions' => Role::allPermissions(),
+            'is_system' => true,
         ]);
     }
 
@@ -59,7 +60,7 @@ class RoleFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'name' => 'admin',
-            'permissions' => ['*'],
+            'permissions' => Role::allPermissions(),
         ]);
     }
 

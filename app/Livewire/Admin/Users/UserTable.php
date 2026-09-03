@@ -271,7 +271,7 @@ final class UserTable extends DataTableComponent
     public function roleColorClasses(string $roleName): string
     {
         return match ($roleName) {
-            'sysadmin', 'platform-admin' => 'bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400',
+            'sysadmin' => 'bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400',
             'company-admin', 'admin' => 'bg-[#f2f7ff] text-[#465fff] dark:bg-[#465fff]/10 dark:text-[#7592ff]',
             'manager' => 'bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-500',
             default => 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',

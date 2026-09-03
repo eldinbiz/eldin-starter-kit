@@ -17,8 +17,9 @@ beforeEach(function (): void {
     $this->company = Company::factory()->create(['name' => 'HQ Corporation']);
 
     $this->platformAdminRole = Role::create([
-        'name' => 'platform-admin',
-        'permissions' => ['*'],
+        'name' => 'sysadmin',
+        'permissions' => Role::allPermissions(),
+        'is_system' => true,
     ]);
 
     $this->companyAdminRole = Role::create([

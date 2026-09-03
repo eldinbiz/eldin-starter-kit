@@ -22,19 +22,17 @@ Route::prefix('v1')->middleware(['auth:sanctum', 'throttle:api.v1'])->group(func
     Route::get('notifications', [NotificationController::class, 'index'])->middleware('ability:notifications:index');
 
     // Admin / Platform Routes
-    Route::middleware('can:manage-platform')->group(function () {
-        Route::get('users', [UserController::class, 'index'])->middleware('ability:users:index');
-        Route::get('users/{user}', [UserController::class, 'show'])->middleware('ability:users:show');
+    Route::get('users', [UserController::class, 'index'])->middleware('ability:users:index');
+    Route::get('users/{user}', [UserController::class, 'show'])->middleware('ability:users:show');
 
-        Route::get('roles', [RoleController::class, 'index'])->middleware('ability:roles:index');
-        Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('ability:roles:show');
+    Route::get('roles', [RoleController::class, 'index'])->middleware('ability:roles:index');
+    Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('ability:roles:show');
 
-        Route::get('companies', [CompanyController::class, 'index'])->middleware('ability:companies:index');
-        Route::get('companies/hierarchy', [CompanyController::class, 'hierarchy'])->middleware('ability:companies:hierarchy');
-        Route::get('companies/{company}', [CompanyController::class, 'show'])->middleware('ability:companies:show');
+    Route::get('companies', [CompanyController::class, 'index'])->middleware('ability:companies:index');
+    Route::get('companies/hierarchy', [CompanyController::class, 'hierarchy'])->middleware('ability:companies:hierarchy');
+    Route::get('companies/{company}', [CompanyController::class, 'show'])->middleware('ability:companies:show');
 
-        Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('ability:audit-logs:index');
-    });
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('ability:audit-logs:index');
 
     // Company Scoped Routes (Require X-Company-ID header and Membership)
     Route::middleware(['api.company', 'feature:api_access'])->group(function () {

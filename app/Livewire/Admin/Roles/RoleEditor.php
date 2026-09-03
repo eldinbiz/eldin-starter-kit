@@ -27,6 +27,8 @@ final class RoleEditor extends Component
 
     public bool $is_active = true;
 
+    public bool $is_system = false;
+
     public ?string $flashSuccess = null;
 
     public ?string $flashError = null;
@@ -40,6 +42,7 @@ final class RoleEditor extends Component
             $this->name = $role->name;
             $this->selectedPermissions = $role->permissions ?? [];
             $this->is_active = (bool) $role->is_active;
+            $this->is_system = (bool) ($role->is_system ?? false);
         } else {
             $this->selectedPermissions = [];
         }
@@ -199,6 +202,9 @@ final class RoleEditor extends Component
 
         if ($this->roleId !== null) {
             $role = Role::withTrashed()->findOrFail($this->roleId);
+            if ($role->is_system) {
+                $data['name'] = $role->name;
+            }
             $updateAction->execute($role, $data);
             session()->flash('success', 'Role updated successfully.');
         } else {

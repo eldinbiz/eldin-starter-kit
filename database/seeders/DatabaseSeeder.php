@@ -73,25 +73,8 @@ class DatabaseSeeder extends Seeder
 
         $sysAdminRole = Role::create([
             'name' => 'sysadmin',
-            'permissions' => array_values(array_unique(array_merge(
-                [
-                    'manage-users',
-                    'user-impersonation',
-                    'manage-roles',
-                    'manage-companies',
-                    'view-companies',
-                    'manage-org-chart',
-                    'view-org-chart',
-                    'manage-platform',
-                    'manage-system-settings',
-                    'manage-company-settings',
-                    'manage-auth-providers',
-                    'manage-api-tokens',
-                    'view-audit-logs',
-                ],
-                $adminApprovalPermissions,
-                $alwaysEnabledPermissions,
-            ))),
+            'permissions' => Role::allPermissions(),
+            'is_system' => true,
         ]);
 
         $companyAdminRole = Role::create([
@@ -107,6 +90,7 @@ class DatabaseSeeder extends Seeder
                 $adminApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
+            'is_system' => false,
         ]);
 
         $userRole = Role::create([
@@ -118,6 +102,7 @@ class DatabaseSeeder extends Seeder
                 $userApprovalPermissions,
                 $alwaysEnabledPermissions,
             ))),
+            'is_system' => true,
         ]);
 
         // ─────────────────────────────────────────────

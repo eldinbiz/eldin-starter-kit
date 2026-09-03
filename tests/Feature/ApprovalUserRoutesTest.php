@@ -412,9 +412,9 @@ it('resolves previous manager step successfully for platform admin', function ()
 
     $adminCompany = Company::factory()->create(['is_active' => true]);
     $admin = User::factory()->create();
-    Role::factory()->create(['name' => 'platform-admin', 'permissions' => ['*']]);
+    Role::factory()->sysadmin()->create();
     $admin->companies()->attach($adminCompany->id, ['status' => 'active']);
-    $admin->companyRoles()->attach(Role::where('name', 'platform-admin')->value('id'), ['company_id' => $adminCompany->id]);
+    $admin->companyRoles()->attach(Role::where('name', 'sysadmin')->value('id'), ['company_id' => $adminCompany->id]);
     actAsApprovalUser($this, $admin, $adminCompany);
 
     $this->get(route('approvals.show', $request))->assertForbidden();

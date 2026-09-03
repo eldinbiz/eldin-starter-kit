@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\ApiTokens;
 
 use App\Models\Company;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -55,23 +54,11 @@ final class CreateApiTokenAction
             $bot->update(['is_system' => true]);
         }
 
-        $platformRole = Role::firstOrCreate(
-            ['name' => 'platform-admin'],
-            [
-                'permissions' => ['*'],
-                'is_active' => true,
-            ]
-        );
-
         $activeCompany = $actingUser?->getActiveCompany() ?? Company::first();
 
         if ($activeCompany) {
             if (! $bot->companies()->where('company_id', $activeCompany->id)->exists()) {
                 $bot->companies()->attach($activeCompany->id, ['status' => 'active']);
-            }
-
-            if (! $bot->hasPlatformAccess()) {
-                $bot->companyRoles()->attach($platformRole->id, ['company_id' => $activeCompany->id]);
             }
         }
 

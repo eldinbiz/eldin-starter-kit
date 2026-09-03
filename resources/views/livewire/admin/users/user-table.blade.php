@@ -86,7 +86,6 @@
                             <span>{{ match($role->name) {
                                 'sysadmin' => 'SysAdmin',
                                 'company-admin' => 'Company Admin',
-                                'platform-admin' => 'Admin',
                                 default => ucfirst(str_replace('-', ' ', $role->name))
                             } }}</span>
                         </label>
@@ -199,7 +198,6 @@
                                                             {{ match($role->name) {
                                                                 'sysadmin' => 'SysAdmin',
                                                                 'company-admin' => 'Company Admin',
-                                                                'platform-admin' => 'Admin',
                                                                 default => ucfirst(str_replace('-', ' ', $role->name))
                                                             } }}
                                                         </span>
@@ -297,7 +295,6 @@
                                             {{ match($role->name) {
                                                 'sysadmin' => 'SysAdmin',
                                                 'company-admin' => 'Company Admin',
-                                                'platform-admin' => 'Admin',
                                                 default => ucfirst(str_replace('-', ' ', $role->name))
                                             } }}
                                         </span>

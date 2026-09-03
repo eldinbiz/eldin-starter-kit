@@ -16,8 +16,8 @@ final class DeleteRoleAction
      */
     public function execute(Role $role): void
     {
-        if ($role->name === 'user') {
-            throw new InvalidArgumentException('The "user" role cannot be deleted.');
+        if ($role->is_system || in_array($role->name, ['user', 'sysadmin'], true)) {
+            throw new InvalidArgumentException('The "'.$role->name.'" role cannot be deleted.');
         }
 
         if ($role->is_active) {

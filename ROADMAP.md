@@ -9,7 +9,7 @@ Covers authentication, company hierarchy, role-based access, Livewire v4 SPA rea
 |---|---|
 | **Auth** | Login, register, password reset |
 | **Multi-tenancy** | Companies with parent/child hierarchy (subsidiary tree), per-company session scoping via middleware |
-| **Roles & Permissions** | Platform-admin bypass role, per-company role assignment via `company_user_role` pivot, `hasRole()` / `hasAnyRole()` methods |
+| **Roles & Permissions** | Sysadmin bypass role, per-company role assignment via `company_user_role` pivot, `hasRole()` / `hasAnyRole()` methods |
 | **Admin Panel** | Companies CRUD, Roles CRUD, User management, Org chart (recursive nested tree with user counts) |
 | **DataTable** | Reusable server-rendered component + modern reactive Livewire v4 DataTable standard |
 | **Approval Module** | Polymorphic approval engine with sequential/parallel workflow templates, runtime delegation & cancellation |

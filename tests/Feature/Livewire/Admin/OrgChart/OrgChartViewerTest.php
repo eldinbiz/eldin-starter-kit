@@ -16,7 +16,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->company = Company::factory()->create(['name' => 'Acme Global', 'is_active' => true]);
 
-    $this->adminRole = Role::firstOrCreate(['name' => 'platform-admin', 'label' => 'Admin', 'permissions' => ['*'], 'is_active' => true]);
+    $this->adminRole = Role::firstOrCreate(['name' => 'sysadmin'], ['permissions' => Role::allPermissions(), 'is_active' => true, 'is_system' => true]);
     $this->admin = User::factory()->create(['name' => 'CEO Admin', 'email' => 'ceo@acme.com']);
     $this->admin->companies()->attach($this->company->id, ['status' => 'active']);
     $this->admin->companyRoles()->attach($this->adminRole->id, ['company_id' => $this->company->id]);

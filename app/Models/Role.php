@@ -13,7 +13,17 @@ class Role extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['name', 'permissions', 'is_active'];
+    protected $fillable = ['name', 'permissions', 'is_active', 'is_system'];
+
+    /**
+     * Get all configured permission keys.
+     *
+     * @return array<int, string>
+     */
+    public static function allPermissions(): array
+    {
+        return array_keys(config('permissions.list', []));
+    }
 
     /**
      * The users that have this role within specific companies.
@@ -35,6 +45,7 @@ class Role extends Model
         return [
             'permissions' => 'array',
             'is_active' => 'boolean',
+            'is_system' => 'boolean',
             'deleted_at' => 'datetime',
         ];
     }
