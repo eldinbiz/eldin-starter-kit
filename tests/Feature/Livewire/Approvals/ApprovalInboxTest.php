@@ -85,7 +85,7 @@ it('renders approval inbox with pending steps for logged in approver', function 
 
     Livewire::test('approvals.approval-inbox')
         ->assertSuccessful()
-        ->assertSee('Pending Approvals')
+        ->assertSee('Manager Review')
         ->assertSee('Requester User')
         ->assertSee('Awaiting Your Action');
 });
