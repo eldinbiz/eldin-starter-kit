@@ -175,7 +175,7 @@ new class extends Component
 };
 ?>
 
-<div x-data="{ deleteModalOpen: false, targetId: null, targetName: '', actionType: '' }" class="w-full">
+<div x-data="{ filterPanelOpen: $wire.entangle('filterPanelOpen'), deleteModalOpen: false, targetId: null, targetName: '', actionType: '' }" class="w-full">
     {{-- Header with Search, Filter toggle, and Actions --}}
     @include('livewire.datatables.header', [
         'placeholder' => 'Search template name, description...',
@@ -184,74 +184,82 @@ new class extends Component
     ])
 
     {{-- Filter Drawer --}}
-    @if ($this->filterPanelOpen)
-        <div class="mb-4 p-4 rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-white/[0.02] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div
+        x-show="filterPanelOpen"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 -translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-2"
+        class="mb-4 p-4 rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-white/[0.02] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+    >
+        <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Applies To (Module)</label>
+            <select
+                wire:model.live="filterValues.type"
+                class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+                <option value="">All Approvable Modules</option>
+                <option value="__null__">Universal / Any Module</option>
+                @foreach ($this->approvableTypeOptions as $class => $label)
+                    <option value="{{ $class }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+            <select
+                wire:model.live="filterValues.is_active"
+                class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+                <option value="">All Statuses</option>
+                <option value="1">Active</option>
+                <option value="0">Disabled</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Scope</label>
+            <select
+                wire:model.live="filterValues.scope"
+                class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+                <option value="">All Scopes</option>
+                <option value="this_company">This Company</option>
+                <option value="subsidiaries">This Company & Subsidiaries</option>
+                <option value="global">Global (All Companies)</option>
+            </select>
+        </div>
+
+        @if (count($this->companies) > 0)
             <div>
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Applies To (Module)</label>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Company</label>
                 <select
-                    wire:model.live="filterValues.type"
+                    wire:model.live="filterValues.company_id"
                     class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                 >
-                    <option value="">All Approvable Modules</option>
-                    <option value="__null__">Universal / Any Module</option>
-                    @foreach ($this->approvableTypeOptions as $class => $label)
-                        <option value="{{ $class }}">{{ $label }}</option>
+                    <option value="">All Companies</option>
+                    @foreach ($this->companies as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
                 </select>
             </div>
-
-            <div>
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                <select
-                    wire:model.live="filterValues.is_active"
-                    class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                >
-                    <option value="">All Statuses</option>
-                    <option value="1">Active</option>
-                    <option value="0">Disabled</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Scope</label>
-                <select
-                    wire:model.live="filterValues.scope"
-                    class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                >
-                    <option value="">All Scopes</option>
-                    <option value="this_company">This Company</option>
-                    <option value="subsidiaries">This Company & Subsidiaries</option>
-                    <option value="global">Global (All Companies)</option>
-                </select>
-            </div>
-
-            @if (count($this->companies) > 0)
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Company</label>
-                    <select
-                        wire:model.live="filterValues.company_id"
-                        class="h-9 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-800 shadow-theme-xs focus:border-brand-500 focus:outline-hidden dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                    >
-                        <option value="">All Companies</option>
-                        @foreach ($this->companies as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
-        </div>
-    @endif
+        @endif
+    </div>
 
     {{-- Active Filter Chips --}}
     @include('livewire.datatables.active-chips')
 
     {{-- Loading Skeleton --}}
-    <div wire:loading.delay.shortest class="w-full">
+    <div wire:loading.delay.shortest wire:target="search, sortBy, gotoPage, nextPage, previousPage, perPage, filterValues, resetFilters, removeFilter" class="w-full">
         @include('livewire.datatables.loading', ['columns' => 6, 'rows' => 5])
     </div>
 
     {{-- Table Content --}}
-    <div wire:loading.remove.delay.shortest>
+    <div wire:loading.remove.delay.shortest wire:target="search, sortBy, gotoPage, nextPage, previousPage, perPage, filterValues, resetFilters, removeFilter">
         @if ($this->rows->isNotEmpty())
             <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-left text-sm">

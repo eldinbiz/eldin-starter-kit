@@ -36,8 +36,12 @@
         @if ($hasFilters)
             <button
                 type="button"
-                wire:click="toggleFilterPanel"
-                class="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border text-sm font-medium transition cursor-pointer {{ $this->filterPanelOpen || $this->activeFilterCount() > 0 ? 'border-brand-500 bg-brand-50 text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                @click="typeof filterPanelOpen !== 'undefined' ? filterPanelOpen = !filterPanelOpen : null"
+                :class="{
+                    'border-brand-500 bg-brand-50 text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400': (typeof filterPanelOpen !== 'undefined' && filterPanelOpen) || {{ $this->activeFilterCount() > 0 ? 'true' : 'false' }},
+                    'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700': !(typeof filterPanelOpen !== 'undefined' && filterPanelOpen) && {{ $this->activeFilterCount() === 0 ? 'true' : 'false' }}
+                }"
+                class="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border text-sm font-medium transition cursor-pointer"
             >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />

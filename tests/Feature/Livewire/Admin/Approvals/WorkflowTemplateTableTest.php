@@ -135,3 +135,17 @@ it('trashes and restores workflow templates', function () {
     $template->refresh();
     expect($template->trashed())->toBeFalse();
 });
+
+it('renders filter drawer with client-side alpine bindings', function () {
+    $this->actingAs($this->admin);
+    session(['active_company_id' => $this->company->id]);
+
+    Livewire::test('admin.approvals.workflow-template-table')
+        ->assertSuccessful()
+        ->assertSeeHtml('x-show="filterPanelOpen"')
+        ->assertSeeHtml('filterPanelOpen = !filterPanelOpen')
+        ->assertSee('All Approvable Modules')
+        ->assertSee('All Statuses')
+        ->assertSee('All Scopes');
+});
+

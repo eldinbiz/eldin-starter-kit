@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ filterPanelOpen: $wire.entangle('filterPanelOpen') }">
     {{-- Flash Notifications --}}
     @if ($flashSuccess)
         <div class="mb-4 flex items-center justify-between rounded-lg bg-success-50 p-4 text-sm text-success-700 dark:bg-success-500/10 dark:text-success-400">
@@ -99,37 +99,54 @@
     ])
 
     {{-- Collapsible Filter Panel --}}
-    @if ($this->filterPanelOpen)
-        <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50/75 p-4 dark:border-gray-800 dark:bg-gray-800/40">
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Token Status
-                    </label>
-                    <select
-                        wire:model.live="filterValues.status"
-                        class="h-9.5 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                    >
-                        <option value="">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="expiring_soon">Expiring Soon (<= 7 days)</option>
-                        <option value="expired">Expired</option>
-                        <option value="never">Never Expires</option>
-                    </select>
-                </div>
+    <div
+        x-show="filterPanelOpen"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 -translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 -translate-y-2"
+        class="mb-4 rounded-xl border border-gray-200 bg-gray-50/75 p-4 dark:border-gray-800 dark:bg-gray-800/40"
+    >
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Token Status
+                </label>
+                <select
+                    wire:model.live="filterValues.status"
+                    class="h-9.5 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                >
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="expiring_soon">Expiring Soon (<= 7 days)</option>
+                    <option value="expired">Expired</option>
+                    <option value="never">Never Expires</option>
+                </select>
             </div>
+        </div>
 
-            <div class="mt-3 flex justify-end">
+        <div class="mt-4 flex items-center justify-end gap-2 border-t border-gray-200/60 pt-3 dark:border-gray-700/60">
+            @if ($this->activeFilterCount() > 0)
                 <button
                     type="button"
                     wire:click="resetFilters"
-                    class="text-xs font-medium text-error-600 hover:text-error-700 dark:text-error-400 dark:hover:text-error-300 cursor-pointer"
+                    class="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
                 >
-                    Reset all filters
+                    Reset Filters
                 </button>
-            </div>
+            @endif
+            <button
+                type="button"
+                @click="filterPanelOpen = false"
+                class="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 cursor-pointer"
+            >
+                Close
+            </button>
         </div>
-    @endif
+    </div>
 
     {{-- Active Filter Chips --}}
     @include('livewire.datatables.active-chips', [
@@ -139,12 +156,12 @@
     ])
 
     {{-- Loading Skeleton --}}
-    <div wire:loading.delay.shortest class="w-full">
+    <div wire:loading.delay.shortest wire:target="search, sortBy, gotoPage, nextPage, previousPage, perPage, filterValues, resetFilters, removeFilter" class="w-full">
         @include('livewire.datatables.loading', ['columns' => 6, 'rows' => 5])
     </div>
 
     {{-- Table Content --}}
-    <div wire:loading.remove.delay.shortest>
+    <div wire:loading.remove.delay.shortest wire:target="search, sortBy, gotoPage, nextPage, previousPage, perPage, filterValues, resetFilters, removeFilter">
         @if ($this->rows->isNotEmpty())
             {{-- Desktop Table View --}}
             <div class="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
