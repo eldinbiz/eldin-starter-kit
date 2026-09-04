@@ -55,6 +55,7 @@
                 <div>
                     <x-ui::button
                         type="submit"
+                        data-testid="next-button"
                         variant="primary"
                         ::disabled="loading"
                         class="w-full py-3"
@@ -104,6 +105,7 @@
                     <div>
                         <x-ui::button
                             type="submit"
+                            data-testid="login-button"
                             variant="primary"
                             class="w-full py-3"
                         >

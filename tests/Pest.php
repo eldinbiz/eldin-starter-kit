@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Bootstrap\LoadConfiguration;
 use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 /*
@@ -33,6 +34,8 @@ $app->bootstrapWith([
     LoadConfiguration::class,
 ]);
 
+$app->instance('request', Request::create('/'));
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -45,7 +48,7 @@ $app->bootstrapWith([
 */
 
 pest()->extend(TestCase::class)
-    ->in('Feature', '../app-modules/*/tests');
+    ->in('Feature', 'Browser', '../app-modules/*/tests');
 
 /*
 |--------------------------------------------------------------------------
