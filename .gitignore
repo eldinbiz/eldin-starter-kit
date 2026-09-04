@@ -39,5 +39,4 @@ Thumbs.db
 
 .pest/test-results
 tests/Browser/Screenshots
-test-browser
 .pest/test-results

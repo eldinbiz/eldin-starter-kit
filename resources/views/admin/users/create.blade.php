@@ -118,6 +118,7 @@
                 <x-ui::button
                     type="submit"
                     variant="primary"
+                    data-testid="create-user-submit-button"
                     class="w-full py-3"
                 >
                     Create User

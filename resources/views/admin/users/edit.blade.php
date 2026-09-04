@@ -136,6 +136,7 @@
                     <x-ui::button
                         type="submit"
                         variant="primary"
+                        data-testid="update-user-submit-button"
                         class="w-full py-3"
                     >
                         Update User
@@ -192,6 +193,7 @@
                                 <div x-data="{ confirming: false, typedName: '' }">
                                     <button type="button"
                                             @click="confirming = true; typedName = ''"
+                                            data-testid="remove-company-button-{{ $company->id }}"
                                             class="text-xs text-error-500 hover:text-error-700 font-medium cursor-pointer">
                                         Remove
                                     </button>
@@ -215,6 +217,7 @@
                                                 <x-ui::input
                                                     type="text"
                                                     x-model="typedName"
+                                                    data-testid="confirm-company-name-input-{{ $company->id }}"
                                                     placeholder="Type {{ $company->name }}"
                                                     class="mb-4"
                                                 />
@@ -223,6 +226,7 @@
                                                         type="button"
                                                         variant="outline"
                                                         size="sm"
+                                                        data-testid="cancel-remove-company-button-{{ $company->id }}"
                                                         @click="confirming = false; typedName = ''"
                                                     >
                                                         Cancel
@@ -231,6 +235,7 @@
                                                         type="submit"
                                                         variant="destructive"
                                                         size="sm"
+                                                        data-testid="confirm-remove-company-button-{{ $company->id }}"
                                                         ::disabled="typedName !== '{{ addslashes($company->name) }}'"
                                                     >
                                                         Remove
@@ -266,6 +271,7 @@
                         @foreach($roles as $role)
                             <x-ui::checkbox
                                 name="roles[]"
+                                id="assign_role_{{ $role->id }}"
                                 value="{{ $role->id }}"
                                 label="{{ ucfirst($role->name) }}"
                             />
@@ -297,6 +303,7 @@
                             type="submit"
                             variant="primary"
                             size="sm"
+                            data-testid="assign-company-submit-button"
                         >
                             Assign to Company
                         </x-ui::button>

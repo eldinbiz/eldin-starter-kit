@@ -1,0 +1,12 @@
+#!/bin/sh
+mkdir -p .pest
+rm -rf vendor/pestphp/pest-plugin-browser/.temp
+php artisan config:clear
+php artisan view:clear
+if [ $# -gt 0 ] && [ -f "$1" ]; then
+    TARGET="$1"
+    shift
+    php -d memory_limit=1024M -d output_buffering=0 vendor/pestphp/pest/bin/pest "$TARGET" --colors=always "$@" 2>&1 | tee ".pest/browser_test_$(date +%Y%m%d_%H%M%S).log"
+else
+    php -d memory_limit=1024M -d output_buffering=0 vendor/pestphp/pest/bin/pest tests/Browser --colors=always "$@" 2>&1 | tee ".pest/browser_test_$(date +%Y%m%d_%H%M%S).log"
+fi

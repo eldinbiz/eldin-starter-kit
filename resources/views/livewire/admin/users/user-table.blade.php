@@ -123,6 +123,7 @@
                 <button
                     type="button"
                     wire:click="resetFilters"
+                    data-testid="reset-filters-button"
                     class="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
                 >
                     Reset Filters
@@ -242,6 +243,7 @@
                                         <a
                                             href="{{ route('admin.users.edit', $user->id) }}"
                                             wire:navigate
+                                            data-testid="edit-user-link-{{ $user->id }}"
                                             title="Edit user"
                                             class="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-white transition"
                                         >
@@ -255,6 +257,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="promptDelete({{ $user->id }})"
+                                                data-testid="delete-user-button-{{ $user->id }}"
                                                 title="Delete user"
                                                 class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer transition"
                                             >
@@ -331,6 +334,7 @@
                                 <a
                                     href="{{ route('admin.users.edit', $user->id) }}"
                                     wire:navigate
+                                    data-testid="edit-user-link-mobile-{{ $user->id }}"
                                     class="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-white transition"
                                 >
                                     <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -342,6 +346,7 @@
                                     <button
                                         type="button"
                                         wire:click="promptDelete({{ $user->id }})"
+                                        data-testid="delete-user-button-mobile-{{ $user->id }}"
                                         class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer transition"
                                     >
                                         <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -399,6 +404,7 @@
                     <button
                         type="button"
                         wire:click="cancelDelete"
+                        data-testid="cancel-delete-button"
                         class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 cursor-pointer transition"
                     >
                         Cancel
@@ -406,6 +412,7 @@
                     <button
                         type="button"
                         wire:click="deleteUser"
+                        data-testid="confirm-delete-button"
                         class="inline-flex items-center justify-center rounded-lg bg-error-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-700 shadow-theme-xs transition cursor-pointer"
                     >
                         Delete User

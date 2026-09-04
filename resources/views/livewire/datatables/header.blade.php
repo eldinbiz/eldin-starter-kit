@@ -15,6 +15,7 @@
             </span>
             <input
                 type="text"
+                data-testid="datatable-search-input"
                 wire:model.live.debounce.300ms="search"
                 placeholder="{{ $placeholder }}"
                 class="h-10 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-9 text-sm text-gray-800 placeholder-gray-400 focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500"
@@ -36,6 +37,7 @@
         @if ($hasFilters)
             <button
                 type="button"
+                data-testid="datatable-filter-toggle"
                 @click="typeof filterPanelOpen !== 'undefined' ? filterPanelOpen = !filterPanelOpen : null"
                 :class="{
                     'border-brand-500 bg-brand-50 text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-400': (typeof filterPanelOpen !== 'undefined' && filterPanelOpen) || {{ $this->activeFilterCount() > 0 ? 'true' : 'false' }},
