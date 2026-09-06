@@ -83,6 +83,8 @@ function createRegularUserWithCompany(): array
  */
 function loginAdmin(User $admin): mixed
 {
+    session()->forget('url.intended');
+
     return visit('/login')
         ->assertSee('Sign In')
         ->type('#email', $admin->email)
@@ -127,17 +129,21 @@ test('admin can view user list, search by name, and toggle filter panel', functi
         ->assertSee('Alice Wonder')
         ->assertSee('Bob Builder')
         // Livewire Search: search for "Bob"
-        ->type('@datatable-search-input', 'Bob')
+        ->wait(0.5)
+        ->typeSlowly('@datatable-search-input', 'Bob')
+        ->wait(1)
         ->assertSee('Bob Builder')
         ->assertDontSee('Alice Wonder')
         // Clear search to restore all records
         ->type('@datatable-search-input', '')
+        ->wait(1)
         ->assertSee('Alice Wonder')
         ->assertSee('Bob Builder')
         // Toggle filters panel
         ->click('@datatable-filter-toggle')
         ->assertSee('Roles')
-        ->click('@datatable-filter-toggle');
+        ->click('@datatable-filter-toggle')
+        ->wait(0.5);
 })->group('browser');
 
 test('admin can create a new user', function (): void {
@@ -376,12 +382,15 @@ test('user datatable displays empty state when search query matches no users and
         ->assertPathIs('/admin/users')
         ->assertSee('Zachary Taylor')
         // Search for non-existent user query
-        ->type('@datatable-search-input', 'NonExistentUserXYZ999')
+        ->wait(0.5)
+        ->typeSlowly('@datatable-search-input', 'NonExistentUserXYZ999', 50)
+        ->wait(1)
         ->assertSee('No users found')
         ->assertSee('No user records matched your search query or filter selection.')
         ->assertDontSee('Zachary Taylor')
         // Clear search input restores original user list
         ->type('@datatable-search-input', '')
+        ->wait(1)
         ->assertSee('Zachary Taylor')
         ->assertDontSee('No users found');
 })->group('browser');
