@@ -50,6 +50,30 @@ $app->instance('request', Request::create('/'));
 pest()->extend(TestCase::class)
     ->in('Feature', 'Browser', '../app-modules/*/tests');
 
+// Ensure Browsable trait is stripped from Pest's dynamic test classes
+// so that Tests\TestCase::visit() can intercept visit() and track active browser page.
+try {
+    $usesProp = new \ReflectionProperty(\Pest\Repositories\TestRepository::class, 'uses');
+    $usesProp->setAccessible(true);
+    $uses = $usesProp->getValue(\Pest\TestSuite::getInstance()->tests);
+    foreach ($uses as $path => &$config) {
+        if (isset($config[0]) && is_array($config[0])) {
+            $config[0] = array_values(array_filter($config[0], fn ($c) => $c !== \Pest\Browser\Browsable::class));
+        }
+    }
+    unset($config);
+    $usesProp->setValue(\Pest\TestSuite::getInstance()->tests, $uses);
+} catch (\Throwable) {
+    //
+}
+
+// Automatic hook to capture the final rendered page snapshot at the end of every browser test case
+uses()->afterEach(function (): void {
+    if (method_exists($this, 'captureBrowserSnapshot')) {
+        $this->captureBrowserSnapshot();
+    }
+})->in('Browser');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
