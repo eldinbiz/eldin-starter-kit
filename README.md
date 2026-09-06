@@ -165,6 +165,7 @@ Comprehensive architectural guides and specifications are located in the [`docs/
 |---|---|
 | 🎓 [**Tutorial: Building Your First Module**](docs/TUTORIAL_BUILDING_YOUR_FIRST_MODULE.md) | **Recommended starting point.** Step-by-step tutorial building a complete domain module (`purchase-requests`) integrated with all core subsystems. |
 | 🚀 [**Environment Setup & Development Modes**](docs/ENVIRONMENT_SETUP_GUIDE.md) | Complete guide for Docker + MariaDB and Local PHP + SQLite workflows, branch switching, queue workers, and image rebuilds. |
+| 🔄 [**Local ⇋ Docker Transition Manual**](docs/ENVIRONMENT_SWITCHING_MANUAL.md) | Exhaustive transition playbooks, dual-sync workflows, side-by-side CLI command equivalency matrix, and troubleshooting. |
 | 📐 [**Developer & Architecture Handbook**](docs/DEVELOPER_GUIDE.md) | Foundational 3-Layer + Livewire v4 SPA architecture, shared domain actions, coding standards, and blueprint checklist. |
 | 📦 [**Modular Architecture Guide (`internachi/modular`)**](docs/MODULAR_ARCHITECTURE_GUIDE.md) | Module lifecycle, directory anatomy, Composer path repositories, Artisan `--module` CLI, and scaffolding steps. |
 | ⚡ [**REST API Developer Guide & OpenAPI**](docs/API_LAYER_GUIDE.md) | REST API v1 architecture, multi-tenant headers (`X-Company-ID`), Sanctum tokens, Dedoc Scramble, and Bruno test collections. |
@@ -195,7 +196,7 @@ composer dev
 ```
 👉 Open **http://localhost:8000** *(API docs: http://localhost:8000/docs/api)*
 
-> For detailed environment switching, queue scaling, and container rebuild instructions, see the [Environment Setup Guide](docs/ENVIRONMENT_SETUP_GUIDE.md).
+> For detailed environment switching, dual-sync workflows, queue scaling, and container rebuild instructions, see the [Environment Transition Manual](docs/ENVIRONMENT_SWITCHING_MANUAL.md) and [Environment Setup Guide](docs/ENVIRONMENT_SETUP_GUIDE.md).
 
 ---
 

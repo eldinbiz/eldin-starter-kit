@@ -92,13 +92,23 @@ composer dev
 
 ## 4. Switching Between Development Modes
 
+> [!IMPORTANT]
+> **Looking for the complete transition manual, dual-sync workflows, and full CLI matrix?**  
+> See the dedicated [**Development Environment Transition Manual: Local ⇋ Docker**](ENVIRONMENT_SWITCHING_MANUAL.md) for pre-flight checklists, side-by-side CLI command equivalency tables, and cross-platform gotchas.
+
 ### Switching from Local Mode to Docker
 
 ```bash
+# 1. Terminate local server (Ctrl+C on composer dev) and clean stale Vite pointer
+rm -f public/hot
+php artisan optimize:clear
+
+# 2. Build and launch Docker containers
 docker compose up -d --build
 ```
-*If running for the first time in Docker, initialize the MariaDB database:*
+*If running for the first time in Docker, initialize the MariaDB database and dependencies:*
 ```bash
+docker compose exec app composer install --no-interaction
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan storage:link
 docker compose exec app php artisan migrate:fresh --seed
@@ -107,13 +117,20 @@ docker compose exec app php artisan audit-log:ui enable
 
 ### Switching from Docker to Local Mode
 
-1. Stop Docker containers:
+1. Stop Docker containers to release ports `8080`, `5173`, and `3306`:
    ```bash
    docker compose down
    ```
-2. If switching back to local mode after pulling dependencies:
+2. Clean stale container cache manifests and Vite pointer:
    ```bash
-   composer setup
+   rm -f public/hot
+   rm -f bootstrap/cache/*.php
+   ```
+3. Synchronize host dependencies and launch local dev server:
+   ```bash
+   composer install
+   npm install
+   php artisan migrate
    composer dev
    ```
 
