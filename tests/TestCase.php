@@ -44,6 +44,22 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
+     * Get the categorized snapshot subdirectory name derived from the test class name.
+     */
+    public function getBrowserSnapshotSubdirectory(?string $customClassName = null): string
+    {
+        $className = $customClassName ?? (method_exists($this, 'getPrintableTestCaseName')
+            ? $this::getPrintableTestCaseName()
+            : static::class);
+
+        $className = ltrim((string) preg_replace('/^P\\\\/', '', $className), '\\');
+        $subDir = str_replace(['\\', '/'], '-', $className);
+        $subDir = (string) preg_replace('/[^a-zA-Z0-9_-]/', '-', $subDir);
+
+        return trim((string) preg_replace('/-+/', '-', $subDir), '-');
+    }
+
+    /**
      * Capture the final snapshot of the active browser page.
      */
     public function captureBrowserSnapshot(?string $targetDir = null): ?string
@@ -75,23 +91,29 @@ abstract class TestCase extends BaseTestCase
                 return null;
             }
 
-            $targetDir ??= getenv('BROWSER_SNAPSHOT_DIR') ?: base_path('tests/Browser/Screenshots');
-            if (! is_dir($targetDir)) {
-                @mkdir($targetDir, 0755, true);
+            $subDir = $this->getBrowserSnapshotSubdirectory();
+            $targetBaseDir = $targetDir ?? (getenv('BROWSER_SNAPSHOT_DIR') ?: base_path('tests/Browser/Screenshots'));
+            $targetFullDir = str_ends_with(str_replace('\\', '/', $targetBaseDir), '/'.$subDir)
+                ? $targetBaseDir
+                : rtrim($targetBaseDir, '/\\').DIRECTORY_SEPARATOR.$subDir;
+
+            if (! is_dir($targetFullDir)) {
+                @mkdir($targetFullDir, 0755, true);
             }
 
             $testName = str_replace('__pest_evaluable_', '', $this->name());
             $testName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $testName);
             $testName = trim((string) preg_replace('/_+/', '_', (string) $testName), '_');
-            $filePath = rtrim($targetDir, '/\\').DIRECTORY_SEPARATOR.$testName.'.png';
+            $filePath = rtrim($targetFullDir, '/\\').DIRECTORY_SEPARATOR.$testName.'.png';
 
             file_put_contents($filePath, (string) base64_decode($binary, true));
 
-            $screenshotsDir = base_path('tests/Browser/Screenshots');
-            if (! is_dir($screenshotsDir)) {
-                @mkdir($screenshotsDir, 0755, true);
+            $screenshotsBaseDir = base_path('tests/Browser/Screenshots');
+            $screenshotsFullDir = rtrim($screenshotsBaseDir, '/\\').DIRECTORY_SEPARATOR.$subDir;
+            if (! is_dir($screenshotsFullDir)) {
+                @mkdir($screenshotsFullDir, 0755, true);
             }
-            file_put_contents(rtrim($screenshotsDir, '/\\').DIRECTORY_SEPARATOR.$testName.'.png', (string) base64_decode($binary, true));
+            file_put_contents(rtrim($screenshotsFullDir, '/\\').DIRECTORY_SEPARATOR.$testName.'.png', (string) base64_decode($binary, true));
 
             return $filePath;
         } catch (Throwable) {

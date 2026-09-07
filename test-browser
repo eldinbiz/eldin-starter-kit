@@ -42,6 +42,7 @@ restore_hot() {
 trap restore_hot EXIT INT TERM
 
 rm -rf vendor/pestphp/pest-plugin-browser/.temp
+rm -rf tests/Browser/Screenshots/*
 php artisan config:clear
 php artisan view:clear
 
