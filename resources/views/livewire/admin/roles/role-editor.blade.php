@@ -26,6 +26,7 @@
                 <x-ui::input
                     type="text"
                     id="role_name"
+                    data-testid="role-name-input"
                     wire:model="name"
                     label="Role Name"
                     required
@@ -51,6 +52,7 @@
                     <div class="w-full sm:w-64">
                         <x-ui::input
                             type="text"
+                            data-testid="permission-search-input"
                             wire:model.live.debounce.150ms="permissionSearch"
                             placeholder="Filter permissions..."
                         />
@@ -76,6 +78,7 @@
                                     <button
                                         type="button"
                                         wire:click="toggleGroup('{{ $group }}')"
+                                        data-testid="toggle-group-{{ Str::slug($group) }}"
                                         class="text-xs font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 cursor-pointer"
                                     >
                                         {{ $this->isGroupFullySelected($group) ? 'Deselect All' : 'Select All' }}
@@ -92,11 +95,13 @@
                                     @endphp
                                     <label
                                         wire:click.prevent="togglePermission('{{ $key }}')"
+                                        data-testid="permission-checkbox-{{ $key }}"
                                         class="flex items-start gap-3 rounded-lg border p-3 transition select-none cursor-pointer {{ $isChecked ? 'border-brand-200 bg-brand-50/20 dark:border-brand-800/40 dark:bg-brand-500/5' : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700/60 dark:bg-white/[0.02] dark:hover:bg-white/[0.04]' }} {{ $alwaysEnabled ? 'opacity-85 cursor-not-allowed' : '' }}"
                                     >
                                         <input
                                             type="checkbox"
                                             value="{{ $key }}"
+                                            data-testid="permission-input-{{ $key }}"
                                             @checked($isChecked)
                                             @disabled($alwaysEnabled)
                                             class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-white/[0.05]"
@@ -142,13 +147,14 @@
             {{-- Form Footer Actions --}}
             <div class="flex items-center justify-end gap-3 border-t border-gray-100 pt-6 dark:border-gray-800">
                 <a href="{{ route('admin.roles.index') }}" wire:navigate>
-                    <x-ui::button variant="outline">
+                    <x-ui::button variant="outline" data-testid="cancel-role-button">
                         Cancel
                     </x-ui::button>
                 </a>
                 <x-ui::button
                     type="submit"
                     variant="primary"
+                    data-testid="role-submit-button"
                     wire:loading.attr="disabled"
                 >
                     <svg wire:loading wire:target="save" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">

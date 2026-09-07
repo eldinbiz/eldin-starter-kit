@@ -246,6 +246,7 @@
                         <a
                             href="{{ route('admin.roles.index') }}"
                             wire:navigate.hover
+                            data-testid="nav-user-roles"
                             class="menu-item group {{ Request::is('admin/roles*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">

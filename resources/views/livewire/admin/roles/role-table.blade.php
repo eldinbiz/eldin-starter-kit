@@ -58,6 +58,7 @@
                 </label>
                 <select
                     wire:model.live="filterValues.status"
+                    data-testid="status-filter-select"
                     class="h-9.5 w-full rounded-lg border border-gray-300 bg-white px-3 text-xs text-gray-700 focus:border-brand-500 focus:outline-hidden focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                 >
                     <option value="">All Statuses</option>
@@ -76,6 +77,7 @@
                         type="checkbox"
                         value="1"
                         wire:model.live="filterValues.trashed"
+                        data-testid="trashed-filter-checkbox"
                         class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800"
                     />
                     <span>Show deleted roles only</span>
@@ -215,6 +217,7 @@
                                             <a
                                                 href="{{ route('admin.roles.edit', $role->id) }}"
                                                 wire:navigate
+                                                data-testid="edit-role-link-{{ $role->id }}"
                                                 title="Edit role"
                                                 class="text-gray-500 hover:text-brand-500 dark:text-gray-400 dark:hover:text-white transition"
                                             >
@@ -227,6 +230,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="toggleStatus({{ $role->id }})"
+                                                data-testid="toggle-role-status-button-{{ $role->id }}"
                                                 title="{{ $role->is_active ? 'Disable role' : 'Enable role' }}"
                                                 class="cursor-pointer transition {{ $role->is_active ? 'text-gray-500 hover:text-warning-500 dark:text-gray-400 dark:hover:text-warning-400' : 'text-gray-500 hover:text-success-500 dark:text-gray-400 dark:hover:text-success-400' }}"
                                             >
@@ -246,6 +250,7 @@
                                                 <button
                                                     type="button"
                                                     wire:click="promptDelete({{ $role->id }})"
+                                                    data-testid="delete-role-button-{{ $role->id }}"
                                                     title="Delete role"
                                                     class="text-gray-500 hover:text-error-500 dark:text-gray-400 dark:hover:text-error-400 cursor-pointer transition"
                                                 >
@@ -259,6 +264,7 @@
                                             <button
                                                 type="button"
                                                 wire:click="restoreRole({{ $role->id }})"
+                                                data-testid="restore-role-button-{{ $role->id }}"
                                                 title="Restore role"
                                                 class="text-gray-500 hover:text-success-500 dark:text-gray-400 dark:hover:text-success-400 cursor-pointer transition"
                                             >
@@ -445,6 +451,7 @@
                 <input
                     type="text"
                     wire:model.live="deleteConfirmTypedName"
+                    data-testid="delete-confirm-name-input"
                     placeholder="Type role name"
                     class="mb-4 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-error-500 focus:outline-none focus:ring-1 focus:ring-error-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500"
                 />
@@ -454,6 +461,7 @@
                     <button
                         type="button"
                         wire:click="cancelDelete"
+                        data-testid="cancel-delete-role-button"
                         class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 cursor-pointer transition"
                     >
                         Cancel
@@ -461,6 +469,7 @@
                     <button
                         type="button"
                         wire:click="deleteRole"
+                        data-testid="confirm-delete-role-button"
                         @disabled($deleteConfirmTypedName !== $roleToDeleteName)
                         class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium text-white transition {{ $deleteConfirmTypedName === $roleToDeleteName ? 'bg-error-600 hover:bg-error-700 shadow-theme-xs cursor-pointer' : 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-60' }}"
                     >

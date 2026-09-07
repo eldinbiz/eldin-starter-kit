@@ -196,6 +196,7 @@
                 <a
                     href="{{ route('admin.roles.index') }}"
                     wire:navigate.hover
+                    data-testid="nav-user-roles"
                     :class="sidebarCollapsed ? 'justify-center px-2' : 'px-2.5'"
                     class="group flex items-center gap-2.5 rounded-md py-1.5 text-sm transition-colors {{ Request::is('admin/roles*') ? 'bg-zinc-100 text-zinc-900 font-semibold dark:bg-zinc-800 dark:text-zinc-100' : 'text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-200' }}"
                     title="User Roles"

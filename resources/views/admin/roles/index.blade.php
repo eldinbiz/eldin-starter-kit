@@ -17,6 +17,7 @@
             <a
                 href="{{ route('admin.roles.create') }}"
                 wire:navigate
+                data-testid="create-role-button"
                 class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 focus:outline-hidden"
             >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -26,6 +27,18 @@
             </a>
         </div>
     </div>
+
+    @if (session('success'))
+        <x-ui::alert type="success" class="mb-4">
+            {{ session('success') }}
+        </x-ui::alert>
+    @endif
+
+    @if (session('error'))
+        <x-ui::alert type="error" class="mb-4">
+            {{ session('error') }}
+        </x-ui::alert>
+    @endif
 
     @livewire('admin.roles.role-table')
 </div>
