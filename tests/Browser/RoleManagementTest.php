@@ -226,7 +226,9 @@ test('admin can create a new role with permissions matrix and always-enabled per
         ->typeSlowly('@role-name-input', 'compliance_officer')
         // Toggle user management group permissions via Select All button
         ->click('@toggle-group-user-management')
+        ->wait(0.5)
         ->click('@role-submit-button')
+        ->wait(0.5)
         // Verify redirected to listing with flash message and role listed
         ->assertPathIs('/admin/roles')
         ->assertSee('Role created successfully.')

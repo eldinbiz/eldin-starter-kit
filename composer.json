@@ -27,6 +27,7 @@
         "socialiteproviders/saml2": "^4.9"
     },
     "require-dev": {
+        "eldinbiz/unit-tester-documenter": "@dev",
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.5",
@@ -111,6 +112,13 @@
         {
             "type": "path",
             "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../laravel-unit-test-documenter",
             "options": {
                 "symlink": true
             }
