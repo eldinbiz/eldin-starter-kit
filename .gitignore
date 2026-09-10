@@ -41,3 +41,4 @@ Thumbs.db
 tests/Browser/Screenshots
 /browser-test-results/
 
+doctest-reports/*
