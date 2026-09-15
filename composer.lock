@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0708684e6d983f7c7a7423567621cb40",
+    "content-hash": "217bb93bed7a5f94cf5bd26e5fe35400",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -10806,11 +10806,11 @@
         },
         {
             "name": "eldinbiz/unit-tester-documenter",
-            "version": "dev-main",
+            "version": "dev-master",
             "dist": {
                 "type": "path",
                 "url": "../laravel-unit-test-documenter",
-                "reference": "f20bf8616bfce703f8a886f6349dd163b791bbdb"
+                "reference": "4d56ee6e8244d95986d96a54dafaa5381bd3ca7d"
             },
             "require": {
                 "illuminate/support": "^12.0||^13.0",
@@ -10882,7 +10882,7 @@
                     "vendor/bin/pest --type-coverage --min=100"
                 ],
                 "test:unit": [
-                    "vendor/bin/pest --parallel"
+                    "vendor/bin/pest"
                 ],
                 "test": [
                     "@analyse",
