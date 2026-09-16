@@ -202,14 +202,35 @@ composer dev
 
 ## 🧪 Testing & Quality Assurance
 
-We enforce Test-Driven Development (TDD) using **Pest 5**. Tests execute against an isolated in-memory SQLite database:
+We enforce Test-Driven Development (TDD) using **Pest 5**. Test execution, real-time log streaming, automated visual snapshot capturing, and print-ready corporate HTML audit reports are powered by the **`eldinbiz/unit-tester-documenter`** package (`composer require --dev eldinbiz/unit-tester-documenter`).
 
+### 1. Fast In-Memory Tests (Unit, Feature & Domain Modules)
 ```bash
-# Run the complete test suite (430+ tests)
-./test
+# Local execution
+php artisan doctest:features
 
 # Or in Docker mode:
-docker compose exec app ./test
+docker compose exec app php artisan doctest:features
+```
+*(Standard `php artisan test` is also fully supported)*
+
+### 2. End-to-End Browser Testing (Playwright & Visual Snapshots)
+Executes real browser interactions via Microsoft Playwright, performs self-health diagnostics (`--doctor`), automatically isolates visual snapshots per test case, and generates corporate HTML audit reports in `doctest-reports/`:
+```bash
+# Run complete browser suite
+php artisan doctest:browser
+
+# Run targeted test file
+php artisan doctest:browser tests/Browser/LoginTest.php
+
+# Run Playwright environment doctor
+php artisan doctest:browser --doctor
+```
+
+### 3. Test Artifact Maintenance & Pruning
+```bash
+# Reclaim storage by purging old test logs, screenshots, and corporate reports
+php artisan doctest:prune --all --force
 ```
 
 ---

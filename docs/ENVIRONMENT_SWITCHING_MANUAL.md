@@ -262,7 +262,7 @@ composer dev
 ### Step 8: Verify Local Environment
 - **Web App**: Open [http://localhost:8000](http://localhost:8000)
 - **API Docs (Scramble)**: Open [http://localhost:8000/docs/api](http://localhost:8000/docs/api)
-- **Pest Tests**: Run `./test` or `vendor/bin/pest` to verify full suite passes
+- **Pest Tests**: Run `php artisan doctest:features` (or `php artisan test`) to verify full suite passes
 
 ---
 
@@ -291,8 +291,9 @@ Bookmark this quick-reference table for common development tasks across both env
 | **Re-enable Audit Log UI** | `php artisan audit-log:ui enable` | `docker compose exec app php artisan audit-log:ui enable` |
 | **Execute Artisan CLI** | `php artisan <command>` | `docker compose exec app php artisan <command>` |
 | **Open Interactive Tinker** | `php artisan tinker` | `docker compose exec -it app php artisan tinker` |
-| **Run Pest 5 Test Suite** | `./test` or `vendor/bin/pest` | `docker compose exec app ./test` |
-| **Run Filtered Pest Test** | `./test --filter=PurchaseRequestTest` | `docker compose exec app ./test --filter=PurchaseRequestTest` |
+| **Run Pest 5 Test Suite** | `php artisan doctest:features` | `docker compose exec app php artisan doctest:features` |
+| **Run Filtered Pest Test** | `php artisan doctest:features --filter=PurchaseRequestTest` | `docker compose exec app php artisan doctest:features --filter=PurchaseRequestTest` |
+| **Run Browser Tests (Playwright)**| `php artisan doctest:browser` | `docker compose exec app php artisan doctest:browser` |
 | **Scale Queue Workers** | Open separate terminal: `php artisan queue:work` | `docker compose up -d --scale queue=3` |
 | **Access Database CLI** | `sqlite3 database/database.sqlite` | `docker compose exec mariadb mariadb -ularavel -plaravel laravel` |
 | **Container Bash Shell** | N/A | `docker compose exec -it app sh` |

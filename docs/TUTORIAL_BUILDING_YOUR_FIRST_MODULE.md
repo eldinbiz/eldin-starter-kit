@@ -1298,7 +1298,7 @@ test('cross-company isolation forbids unauthorized access', function (): void {
 
 Run tests via Pest 5:
 ```bash
-./test --filter=PurchaseRequestTest
+php artisan doctest:features --filter=PurchaseRequestTest
 ```
 
 ---

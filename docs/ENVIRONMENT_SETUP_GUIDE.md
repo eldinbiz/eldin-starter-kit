@@ -224,12 +224,15 @@ docker compose up -d
 Tests execute against an isolated in-memory SQLite database and never touch your active MariaDB or development SQLite database:
 
 ```bash
-# Run all Pest 5 test suites
-./test
+# Run in-memory Unit, Feature & Module tests
+php artisan doctest:features
 
 # Run tests in Docker mode
-docker compose exec app ./test
+docker compose exec app php artisan doctest:features
 
 # Filter specific test class or method
-./test --filter=PurchaseRequestTest
+php artisan doctest:features --filter=PurchaseRequestTest
+
+# Run End-to-End Browser tests with snapshots & corporate HTML report
+php artisan doctest:browser
 ```

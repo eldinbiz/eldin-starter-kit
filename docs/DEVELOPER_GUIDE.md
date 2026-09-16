@@ -355,15 +355,44 @@ event(new NotificationRequested(
 
 We enforce Test-Driven Development (TDD) using **Pest 5 / PHPUnit 12**.
 
-- **Running the Test Suite**:
-  Always run tests from inside the Docker container using the `./test` runner script:
-  ```bash
-  docker compose exec app ./test
-  ```
-- **Targeting Specific Tests**:
-  ```bash
-  docker compose exec app ./test --filter=UserManagementTest
-  ```
+Test execution, real-time logging, snapshot isolation, and formal audit reports are powered by the **`eldinbiz/unit-tester-documenter`** package (`composer require --dev eldinbiz/unit-tester-documenter`).
+
+### In-Memory Unit, Feature & Module Tests
+Run fast feature and unit tests against an isolated in-memory SQLite database:
+```bash
+# Local execution
+php artisan doctest:features
+
+# Or in Docker mode:
+docker compose exec app php artisan doctest:features
+
+# Targeting specific test classes:
+php artisan doctest:features --filter=UserManagementTest
+```
+*(Standard `php artisan test` is also supported)*
+
+### End-to-End Browser Testing (`eldinbiz/unit-tester-documenter`)
+Browser tests run real browser interactions via Microsoft Playwright:
+```bash
+# Run all browser tests
+php artisan doctest:browser
+
+# Target a specific browser test
+php artisan doctest:browser tests/Browser/LoginTest.php
+
+# Run Playwright environment self-check
+php artisan doctest:browser --doctor
+```
+- **Automated Visual Snapshots**: Every test case automatically captures an end-of-test visual snapshot into `doctest-reports/browser-test-log/browser_test_{timestamp}/<Suite-Name>/<test_slug>.png`. Developers do not need to add manual `$page->screenshot()` calls at test end.
+- **Corporate HTML Audit Reports**: Generates formal, print-ready HTML test documentation at `doctest-reports/browser_test_{timestamp}.html` with embedded visual evidence galleries and clickable camera links.
+- **Post-Navigation Settle Time**: For multi-step login flows or Livewire SPA redirects, add a brief settle wait (`->wait(2)` or `->waitForText(...)`) before the final assertion so the snapshot captures the fully hydrated page.
+
+### Artifact Maintenance & Pruning
+```bash
+# Clean up old test execution logs, screenshots, and HTML reports
+php artisan doctest:prune --all --force
+```
+
 - **Testing Rules**:
   - Test every Form Request authorization gate (guest redirect, forbidden user, authorized user).
   - Test Domain Actions directly or via feature tests for database assertions.
@@ -397,6 +426,6 @@ When creating a new feature in either root `app/` or `app-modules/<module>/`:
 7. **Format & Verify**:
    ```bash
    docker compose exec app vendor/bin/pint --format agent
-   docker compose exec app ./test
+   docker compose exec app php artisan doctest:features
    ```
 
