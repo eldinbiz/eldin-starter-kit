@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "217bb93bed7a5f94cf5bd26e5fe35400",
+    "content-hash": "44e38f79f59618a583e106186c398e65",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -10805,12 +10805,12 @@
             "time": "2026-02-07T07:09:04+00:00"
         },
         {
-            "name": "eldinbiz/unit-tester-documenter",
+            "name": "eldinbiz/laravel-rubberstamp",
             "version": "dev-master",
             "dist": {
                 "type": "path",
                 "url": "../laravel-unit-test-documenter",
-                "reference": "4d56ee6e8244d95986d96a54dafaa5381bd3ca7d"
+                "reference": "707e0ec9b5785bbb3bf27470e96b5341a0b353d3"
             },
             "require": {
                 "illuminate/support": "^12.0||^13.0",
@@ -10833,20 +10833,23 @@
             "extra": {
                 "laravel": {
                     "providers": [
-                        "UnitTesterDocumenter\\UnitTesterDocumenter\\UnitTesterDocumenterServiceProvider"
+                        "Eldinbiz\\RubberStamp\\RubberStampServiceProvider"
                     ],
                     "aliases": {
+                        "RubberStamp": "Eldinbiz\\RubberStamp\\Facades\\RubberStamp",
                         "UnitTesterDocumenter": "UnitTesterDocumenter\\UnitTesterDocumenter\\Facades\\UnitTesterDocumenter"
                     }
                 }
             },
             "autoload": {
                 "psr-4": {
+                    "Eldinbiz\\RubberStamp\\": "src/",
                     "UnitTesterDocumenter\\UnitTesterDocumenter\\": "src/"
                 }
             },
             "autoload-dev": {
                 "psr-4": {
+                    "Eldinbiz\\RubberStamp\\Tests\\": "tests/",
                     "UnitTesterDocumenter\\UnitTesterDocumenter\\Tests\\": "tests/",
                     "Workbench\\App\\": "workbench/app/",
                     "Workbench\\Database\\Factories\\": "workbench/database/factories/",
@@ -10899,17 +10902,20 @@
             ],
             "authors": [
                 {
-                    "name": "Vendor Name",
+                    "name": "Eldin Akbar",
                     "email": "author@example.com",
                     "role": "Developer"
                 }
             ],
-            "description": "Run Pest browser tests with Playwright self-health diagnostics, Vite protection, and snapshot documentation.",
-            "homepage": "https://github.com/vendor-name/unit-tester-documenter",
+            "description": "Helping You, corporate slave programmer, to make Test Report your manager will blindly sign without reading.",
+            "homepage": "https://github.com/eldinbiz/laravel-rubberstamp",
             "keywords": [
+                "audit-trail",
+                "compliance",
                 "laravel",
-                "unit-tester-documenter",
-                "vendor-name"
+                "pest-reports",
+                "rubberstamp",
+                "unit-tester-documenter"
             ],
             "transport-options": {
                 "symlink": true,
@@ -14851,7 +14857,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "eldinbiz/unit-tester-documenter": 20
+        "eldinbiz/laravel-rubberstamp": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
