@@ -35,6 +35,7 @@ test('user can log in successfully through the 2-step authentication flow', func
         ->click('@login-button')
         // Verify dashboard reached
         ->assertPathIs('/')
+        ->wait(3)
         ->assertSee('Dashboard');
 })->group('browser');
 
@@ -76,4 +77,3 @@ test('user sees warning alert when authentication provider is disabled', functio
         ->click('@next-button')
         ->assertSee('is currently disabled by system administrator');
 })->group('browser');
-

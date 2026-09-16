@@ -50,19 +50,6 @@ $app->instance('request', Request::create('/'));
 pest()->extend(TestCase::class)
     ->in('Feature', 'Browser', '../app-modules/*/tests');
 
-/*
-|--------------------------------------------------------------------------
-| Browser Testing & Corporate Documentation Hooks
-|--------------------------------------------------------------------------
-|
-| Register automatic visual snapshot capture hooks provided by the
-| unit-tester-documenter package.
-|
-*/
-
-if (class_exists(\UnitTesterDocumenter\UnitTesterDocumenter\Concerns\CapturesBrowserSnapshots::class)) {
-    \UnitTesterDocumenter\UnitTesterDocumenter\Concerns\CapturesBrowserSnapshots::registerPestHooks();
-}
 
 /*
 |--------------------------------------------------------------------------

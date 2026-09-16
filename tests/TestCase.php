@@ -7,12 +7,10 @@ namespace Tests;
 use App\Services\FeatureService;
 use App\Services\SettingService;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use UnitTesterDocumenter\UnitTesterDocumenter\Concerns\CapturesBrowserSnapshots;
 
 abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
-    // use CapturesBrowserSnapshots;
 
     protected function setUp(): void
     {
