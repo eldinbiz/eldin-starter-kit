@@ -225,14 +225,14 @@ Tests execute against an isolated in-memory SQLite database and never touch your
 
 ```bash
 # Run in-memory Unit, Feature & Module tests
-php artisan doctest:features
+php artisan rubberstamp:features
 
 # Run tests in Docker mode
-docker compose exec app php artisan doctest:features
+docker compose exec app php artisan rubberstamp:features
 
 # Filter specific test class or method
-php artisan doctest:features --filter=PurchaseRequestTest
+php artisan rubberstamp:features --filter=PurchaseRequestTest
 
 # Run End-to-End Browser tests with snapshots & corporate HTML report
-php artisan doctest:browser
+php artisan rubberstamp:browser
 ```

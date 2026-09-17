@@ -12,14 +12,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Defines where Pest raw logs and test snapshot images will be stored.
-    | Non-browser test execution logs (from doctest:features) are stored in the
+    | Non-browser test execution logs (from rubberstamp:features) are stored in the
     | test-log directory. Browser test execution logs and Playwright visual
-    | snapshots (from doctest:browser) are stored in the browser-test-log directory.
+    | snapshots (from rubberstamp:browser) are stored in the browser-test-log directory.
     |
     */
-    'results_dir' => env('BROWSER_TEST_RESULTS_DIR', env('DOCTEST_REPORTS_DIR', 'doctest-reports').'/browser-test-log'),
-    'test_log_dir' => env('DOCTEST_LOG_DIR', env('PEST_LOG_DIR', env('DOCTEST_REPORTS_DIR', 'doctest-reports').'/test-log')),
-    'pest_log_dir' => env('PEST_LOG_DIR', env('DOCTEST_LOG_DIR', env('DOCTEST_REPORTS_DIR', 'doctest-reports').'/test-log')),
+    'results_dir' => env('RUBBERSTAMP_RESULTS_DIR', 'doctest-reports/browser-test-log'),
+    'test_log_dir' => env('RUBBERSTAMP_LOG_DIR', 'doctest-reports/test-log'),
+    'pest_log_dir' => env('RUBBERSTAMP_LOG_DIR', 'doctest-reports/test-log'),
 
     /*
     |--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ return [
     | The memory limit passed to the PHP process when invoking Pest.
     |
     */
-    'memory_limit' => env('PEST_MEMORY_LIMIT', env('BROWSER_TEST_MEMORY_LIMIT', '1024M')),
+    'memory_limit' => env('RUBBERSTAMP_MEMORY_LIMIT', '1024M'),
 
     /*
     |--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ return [
     */
     'chromium_binary' => env('PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH'),
     'skip_browser_download' => (bool) env('PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD', true),
-    'browser_timeout' => (int) env('BROWSER_TEST_TIMEOUT', 10_000),
+    'browser_timeout' => (int) env('RUBBERSTAMP_BROWSER_TIMEOUT', 10_000),
 
     /*
     |--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ return [
     | directory while preserving both the .pest and results logs.
     |
     */
-    'cleanup_snapshots_on_failure' => (bool) env('BROWSER_TEST_CLEANUP_ON_FAILURE', true),
+    'cleanup_snapshots_on_failure' => (bool) env('RUBBERSTAMP_CLEANUP_ON_FAILURE', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ return [
     | vendor/bin/pest or vendor/pestphp/pest/bin/pest automatically.
     |
     */
-    'pest_binary' => env('PEST_BINARY', env('BROWSER_TEST_PEST_BINARY')),
+    'pest_binary' => env('RUBBERSTAMP_PEST_BINARY'),
 
     /*
     |--------------------------------------------------------------------------
@@ -75,14 +75,14 @@ return [
     | generated for corporate SOP, QA compliance, and audit sign-offs.
     |
     */
-    'reports_dir' => env('DOCTEST_REPORTS_DIR', 'doctest-reports'),
-    'report_view' => env('DOCTEST_REPORT_VIEW', 'unit-tester-documenter::report'),
-    'auto_document' => (bool) env('DOCTEST_AUTO_DOCUMENT', true),
-    'document_id_prefix' => env('DOCTEST_DOCUMENT_ID_PREFIX', 'DOC-TEST-'),
-    'company_name' => env('DOCTEST_COMPANY_NAME'),
-    'classification' => env('DOCTEST_CLASSIFICATION', 'INTERNAL USE ONLY'),
-    'author_name' => env('DOCTEST_AUTHOR_NAME'),
-    'logo_path' => env('DOCTEST_LOGO_PATH'),
+    'reports_dir' => env('RUBBERSTAMP_REPORTS_DIR', 'doctest-reports'),
+    'report_view' => env('RUBBERSTAMP_REPORT_VIEW', 'rubberstamp::report'),
+    'auto_document' => (bool) env('RUBBERSTAMP_AUTO_DOCUMENT', true),
+    'document_id_prefix' => env('RUBBERSTAMP_DOCUMENT_ID_PREFIX', 'DOC-TEST-'),
+    'company_name' => env('RUBBERSTAMP_COMPANY_NAME'),
+    'classification' => env('RUBBERSTAMP_CLASSIFICATION', 'INTERNAL USE ONLY'),
+    'author_name' => env('RUBBERSTAMP_AUTHOR_NAME'),
+    'logo_path' => env('RUBBERSTAMP_LOGO_PATH'),
 
     /*
     |--------------------------------------------------------------------------
@@ -105,9 +105,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Default number of days to retain test logs, generated reports, and
-    | Playwright visual snapshot directories when running doctest:prune.
+    | Playwright visual snapshot directories when running rubberstamp:prune.
     |
     */
-    'prune_retention_days' => (int) env('DOCTEST_PRUNE_RETENTION_DAYS', 7),
+    'prune_retention_days' => (int) env('RUBBERSTAMP_PRUNE_RETENTION_DAYS', 7),
 
 ];

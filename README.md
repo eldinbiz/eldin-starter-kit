@@ -202,15 +202,15 @@ composer dev
 
 ## 🧪 Testing & Quality Assurance
 
-We enforce Test-Driven Development (TDD) using **Pest 5**. Test execution, real-time log streaming, automated visual snapshot capturing, and print-ready corporate HTML audit reports are powered by the **`eldinbiz/unit-tester-documenter`** package (`composer require --dev eldinbiz/unit-tester-documenter`).
+We enforce Test-Driven Development (TDD) using **Pest 5**. Test execution, real-time log streaming, automated visual snapshot capturing, and print-ready corporate HTML audit reports are powered by the **`eldinbiz/laravel-rubberstamp`** package (`composer require --dev eldinbiz/laravel-rubberstamp`).
 
 ### 1. Fast In-Memory Tests (Unit, Feature & Domain Modules)
 ```bash
 # Local execution
-php artisan doctest:features
+php artisan rubberstamp:features
 
 # Or in Docker mode:
-docker compose exec app php artisan doctest:features
+docker compose exec app php artisan rubberstamp:features
 ```
 *(Standard `php artisan test` is also fully supported)*
 
@@ -218,19 +218,19 @@ docker compose exec app php artisan doctest:features
 Executes real browser interactions via Microsoft Playwright, performs self-health diagnostics (`--doctor`), automatically isolates visual snapshots per test case, and generates corporate HTML audit reports in `doctest-reports/`:
 ```bash
 # Run complete browser suite
-php artisan doctest:browser
+php artisan rubberstamp:browser
 
 # Run targeted test file
-php artisan doctest:browser tests/Browser/LoginTest.php
+php artisan rubberstamp:browser tests/Browser/LoginTest.php
 
 # Run Playwright environment doctor
-php artisan doctest:browser --doctor
+php artisan rubberstamp:browser --doctor
 ```
 
 ### 3. Test Artifact Maintenance & Pruning
 ```bash
 # Reclaim storage by purging old test logs, screenshots, and corporate reports
-php artisan doctest:prune --all --force
+php artisan rubberstamp:prune --all --force
 ```
 
 ---

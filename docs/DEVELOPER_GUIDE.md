@@ -355,33 +355,33 @@ event(new NotificationRequested(
 
 We enforce Test-Driven Development (TDD) using **Pest 5 / PHPUnit 12**.
 
-Test execution, real-time logging, snapshot isolation, and formal audit reports are powered by the **`eldinbiz/unit-tester-documenter`** package (`composer require --dev eldinbiz/unit-tester-documenter`).
+Test execution, real-time logging, snapshot isolation, and formal audit reports are powered by the **`eldinbiz/laravel-rubberstamp`** package (`composer require --dev eldinbiz/laravel-rubberstamp`).
 
 ### In-Memory Unit, Feature & Module Tests
 Run fast feature and unit tests against an isolated in-memory SQLite database:
 ```bash
 # Local execution
-php artisan doctest:features
+php artisan rubberstamp:features
 
 # Or in Docker mode:
-docker compose exec app php artisan doctest:features
+docker compose exec app php artisan rubberstamp:features
 
 # Targeting specific test classes:
-php artisan doctest:features --filter=UserManagementTest
+php artisan rubberstamp:features --filter=UserManagementTest
 ```
 *(Standard `php artisan test` is also supported)*
 
-### End-to-End Browser Testing (`eldinbiz/unit-tester-documenter`)
+### End-to-End Browser Testing (`eldinbiz/laravel-rubberstamp`)
 Browser tests run real browser interactions via Microsoft Playwright:
 ```bash
 # Run all browser tests
-php artisan doctest:browser
+php artisan rubberstamp:browser
 
 # Target a specific browser test
-php artisan doctest:browser tests/Browser/LoginTest.php
+php artisan rubberstamp:browser tests/Browser/LoginTest.php
 
 # Run Playwright environment self-check
-php artisan doctest:browser --doctor
+php artisan rubberstamp:browser --doctor
 ```
 - **Automated Visual Snapshots**: Every test case automatically captures an end-of-test visual snapshot into `doctest-reports/browser-test-log/browser_test_{timestamp}/<Suite-Name>/<test_slug>.png`. Developers do not need to add manual `$page->screenshot()` calls at test end.
 - **Corporate HTML Audit Reports**: Generates formal, print-ready HTML test documentation at `doctest-reports/browser_test_{timestamp}.html` with embedded visual evidence galleries and clickable camera links.
@@ -390,7 +390,7 @@ php artisan doctest:browser --doctor
 ### Artifact Maintenance & Pruning
 ```bash
 # Clean up old test execution logs, screenshots, and HTML reports
-php artisan doctest:prune --all --force
+php artisan rubberstamp:prune --all --force
 ```
 
 - **Testing Rules**:
@@ -426,6 +426,6 @@ When creating a new feature in either root `app/` or `app-modules/<module>/`:
 7. **Format & Verify**:
    ```bash
    docker compose exec app vendor/bin/pint --format agent
-   docker compose exec app php artisan doctest:features
+   docker compose exec app php artisan rubberstamp:features
    ```
 
