@@ -118,7 +118,7 @@
         },
         {
             "type": "path",
-            "url": "../laravel-unit-test-documenter",
+            "url": "../laravel-rubberstamp",
             "options": {
                 "symlink": true
             }

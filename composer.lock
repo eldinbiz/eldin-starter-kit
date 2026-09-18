@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "44e38f79f59618a583e106186c398e65",
+    "content-hash": "e6d63b34ef1b97905943a56d32ba5f27",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -10809,8 +10809,8 @@
             "version": "dev-master",
             "dist": {
                 "type": "path",
-                "url": "../laravel-unit-test-documenter",
-                "reference": "707e0ec9b5785bbb3bf27470e96b5341a0b353d3"
+                "url": "../laravel-rubberstamp",
+                "reference": "71d7bd9741ed09773304bbefab038ca6ec332447"
             },
             "require": {
                 "illuminate/support": "^12.0||^13.0",
@@ -10836,21 +10836,18 @@
                         "Eldinbiz\\RubberStamp\\RubberStampServiceProvider"
                     ],
                     "aliases": {
-                        "RubberStamp": "Eldinbiz\\RubberStamp\\Facades\\RubberStamp",
-                        "UnitTesterDocumenter": "UnitTesterDocumenter\\UnitTesterDocumenter\\Facades\\UnitTesterDocumenter"
+                        "RubberStamp": "Eldinbiz\\RubberStamp\\Facades\\RubberStamp"
                     }
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "Eldinbiz\\RubberStamp\\": "src/",
-                    "UnitTesterDocumenter\\UnitTesterDocumenter\\": "src/"
+                    "Eldinbiz\\RubberStamp\\": "src/"
                 }
             },
             "autoload-dev": {
                 "psr-4": {
                     "Eldinbiz\\RubberStamp\\Tests\\": "tests/",
-                    "UnitTesterDocumenter\\UnitTesterDocumenter\\Tests\\": "tests/",
                     "Workbench\\App\\": "workbench/app/",
                     "Workbench\\Database\\Factories\\": "workbench/database/factories/",
                     "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -10914,8 +10911,7 @@
                 "compliance",
                 "laravel",
                 "pest-reports",
-                "rubberstamp",
-                "unit-tester-documenter"
+                "rubberstamp"
             ],
             "transport-options": {
                 "symlink": true,
