@@ -294,12 +294,15 @@ test('user creation fails with validation error for duplicate email', function (
 
     loginAdmin($admin)
         ->click('@nav-user-management')
+        ->assertPathIs('/admin/users')
         ->click('@create-user-button')
         ->assertPathIs('/admin/users/create')
+        ->assertSee('Create New User')
         ->type('#name', 'Duplicate Dave')
         ->type('#email', $admin->email)
         ->type('#password', 'password123')
         ->click('@create-user-submit-button')
+        ->wait(1)
         ->assertSee('The email has already been taken.');
 
     expect(User::where('name', 'Duplicate Dave')->exists())->toBeFalse();
@@ -310,12 +313,15 @@ test('user creation fails with validation error for short password', function ()
 
     loginAdmin($admin)
         ->click('@nav-user-management')
+        ->assertPathIs('/admin/users')
         ->click('@create-user-button')
         ->assertPathIs('/admin/users/create')
+        ->assertSee('Create New User')
         ->type('#name', 'Short Sam')
         ->type('#email', 'short.sam@example.com')
         ->type('#password', '12345')
         ->click('@create-user-submit-button')
+        ->wait(1)
         ->assertSee('The password field must be at least 8 characters.');
 
     expect(User::where('email', 'short.sam@example.com')->exists())->toBeFalse();
@@ -419,12 +425,15 @@ test('editing user email to an existing email triggers validation error', functi
 
     loginAdmin($admin)
         ->click('@nav-user-management')
+        ->assertPathIs('/admin/users')
+        ->assertSee('Edit Candidate')
         ->click('@edit-user-link-'.$userToEdit->id)
         ->assertPathIs('/admin/users/'.$userToEdit->id.'/edit')
         ->assertSee('Edit User Details')
         // Attempt to change email to userA's email
         ->type('#email', 'existing.person@example.com')
         ->click('@update-user-submit-button')
+        ->wait(1)
         // Assert validation error appears on edit page
         ->assertSee('The email has already been taken.');
 
