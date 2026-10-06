@@ -19,9 +19,9 @@ final class RemoveCompanyUserAction
         return DB::transaction(function () use ($company, $userId): int {
             // Reassign direct reports to the company level before removing the user
             $affectedCount = $company->users()
-                ->wherePivot('manager_id', $userId)
                 ->newPivotStatement()
                 ->where('company_id', $company->id)
+                ->where('manager_id', $userId)
                 ->update(['manager_id' => null]);
 
             $company->users()->detach($userId);

@@ -2,39 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Foundation\Bootstrap\LoadConfiguration;
-use Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables;
-use Illuminate\Http\Request;
 use Tests\TestCase;
-
-/*
-|--------------------------------------------------------------------------
-| Eager Application Bootstrap (for Browser Tests)
-|--------------------------------------------------------------------------
-|
-| The pest-plugin-browser fires its __markAsBrowserTest() filter during
-| test discovery, which calls config() before createApplication() runs
-| in setUp(). We force-boot the Laravel container at file-level so that
-| the config() facade is available when the filter executes.
-|
-*/
-
-foreach (['APP_ENV' => 'testing', 'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => ':memory:', 'CACHE_STORE' => 'array', 'SESSION_DRIVER' => 'array', 'QUEUE_CONNECTION' => 'sync', 'MAIL_MAILER' => 'array'] as $key => $value) {
-    putenv("{$key}={$value}");
-    $_ENV[$key] = $value;
-    $_SERVER[$key] = $value;
-}
-
-ini_set('memory_limit', '1024M');
-
-$app = require __DIR__.'/../bootstrap/app.php';
-
-$app->bootstrapWith([
-    LoadEnvironmentVariables::class,
-    LoadConfiguration::class,
-]);
-
-$app->instance('request', Request::create('/'));
 
 /*
 |--------------------------------------------------------------------------

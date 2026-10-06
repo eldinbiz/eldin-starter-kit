@@ -212,7 +212,7 @@ final class RoleEditor extends Component
             session()->flash('success', 'Role created successfully.');
         }
 
-        $this->redirect(route('admin.roles.index'), navigate: true);
+        $this->redirect(route('admin.roles.index'), navigate: false);
     }
 
     #[Computed]

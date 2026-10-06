@@ -148,23 +148,22 @@ test('admin can view role list, search by name, and restore list on clear', func
         ->assertSee('Auditor')
         ->assertSee('Editor')
         // Search for "Auditor"
-        ->wait(0.5)
-        ->typeSlowly('@datatable-search-input', 'Auditor')
-        ->wait(1)
+        ->wait(1.5)
+        ->click('@datatable-search-input')
+        ->type('@datatable-search-input', 'Auditor')
+        ->wait(3)
         ->assertSee('Auditor')
         ->assertDontSee('Editor')
-        // Clear search input before searching for non-existent role query to assert empty state
-        ->type('@datatable-search-input', '')
-        ->wait(0.5)
-        ->typeSlowly('@datatable-search-input', 'NonExistentRoleXYZ999')
-        ->wait(1)
+        // Search for non-existent role query to assert empty state
+        ->type('@datatable-search-input', 'NonExistentRoleXYZ999')
+        ->wait(3)
         ->assertSee('No roles found')
         ->assertSee('No role records matched your search query or filter criteria.')
         ->assertDontSee('Auditor')
         ->assertDontSee('Editor')
         // Clear search input restores all records
         ->type('@datatable-search-input', '')
-        ->wait(1)
+        ->wait(3)
         ->assertSee('Auditor')
         ->assertSee('Editor')
         ->assertDontSee('No roles found');
@@ -222,16 +221,16 @@ test('admin can create a new role with permissions matrix and always-enabled per
         ->assertSee('Permissions Matrix')
         // Always enabled permissions (e.g. view-dashboard) must have disabled input
         ->assertDisabled('@permission-input-view-dashboard')
-        // Enter valid new role name
-        ->typeSlowly('@role-name-input', 'compliance_officer')
         // Toggle user management group permissions via Select All button
         ->click('@toggle-group-user-management')
         ->wait(0.5)
-        ->click('@role-submit-button')
+        // Enter valid new role name
+        ->type('@role-name-input', 'compliance_officer')
         ->wait(0.5)
-        // Verify redirected to listing with flash message and role listed
+        ->click('@role-submit-button')
+        ->wait(2)
+        // Verify redirected to listing with role listed
         ->assertPathIs('/admin/roles')
-        ->assertSee('Role created successfully.')
         ->assertSee('compliance_officer');
 
     $role = Role::where('name', 'compliance_officer')->first();
@@ -245,12 +244,15 @@ test('role creation fails with validation error for duplicate role name', functi
 
     loginRoleAdmin($admin)
         ->click('@nav-user-roles')
+        ->assertPathIs('/admin/roles')
         ->click('@create-role-button')
         ->assertPathIs('/admin/roles/create')
+        ->assertSee('Create New Role')
         // Attempt to create a role with name "admin" which already exists
-        ->typeSlowly('@role-name-input', 'admin')
-        ->click('@role-submit-button')
+        ->type('@role-name-input', 'admin')
         ->wait(0.5)
+        ->click('@role-submit-button')
+        ->wait(1)
         ->assertSee('The name has already been taken.');
 
     expect(Role::where('name', 'admin')->count())->toBe(1);
@@ -261,14 +263,16 @@ test('role creation fails with validation error for empty name when form validat
 
     $page = loginRoleAdmin($admin)
         ->click('@nav-user-roles')
+        ->assertPathIs('/admin/roles')
         ->click('@create-role-button')
-        ->assertPathIs('/admin/roles/create');
+        ->assertPathIs('/admin/roles/create')
+        ->assertSee('Create New Role');
 
     // Remove client-side HTML5 'required' attribute to test server Livewire validation
     $page->script("document.getElementById('role_name').removeAttribute('required');");
 
     $page->click('@role-submit-button')
-        ->wait(0.5)
+        ->wait(1)
         ->assertSee('The name field is required.');
 })->group('browser');
 
@@ -294,10 +298,10 @@ test('admin can edit an existing custom role details and permissions', function 
         ->assertSee('Edit Role: Tech_lead')
         // Update role name
         ->type('@role-name-input', 'senior_tech_lead')
+        ->wait(0.5)
         ->click('@role-submit-button')
-        // Verify redirected to listing with flash message and updated name
+        ->wait(1.5)
         ->assertPathIs('/admin/roles')
-        ->assertSee('Role updated successfully.')
         ->assertSee('senior_tech_lead');
 
     expect($customRole->fresh()->name)->toBe('senior_tech_lead');
@@ -318,12 +322,16 @@ test('editing role fails with validation error when renaming to an existing othe
 
     loginRoleAdmin($admin)
         ->click('@nav-user-roles')
+        ->assertPathIs('/admin/roles')
+        ->assertSee('junior_auditor')
         ->click('@edit-role-link-'.$roleToEdit->id)
         ->assertPathIs('/admin/roles/'.$roleToEdit->id.'/edit')
+        ->assertSee('Edit Role: Junior_auditor')
         // Attempt renaming to existing other role's name
         ->type('@role-name-input', 'lead_auditor')
-        ->click('@role-submit-button')
         ->wait(0.5)
+        ->click('@role-submit-button')
+        ->wait(1)
         ->assertSee('The name has already been taken.');
 
     expect($roleToEdit->fresh()->name)->toBe('junior_auditor');

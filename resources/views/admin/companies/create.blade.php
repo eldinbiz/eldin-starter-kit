@@ -78,10 +78,10 @@
         </div>
 
         <div class="flex items-center gap-3 pt-2">
-            <button type="submit" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
+            <button type="submit" data-testid="create-company-submit-button" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
                 Create Company
             </button>
-            <a href="{{ route('admin.companies.index') }}" class="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
+            <a href="{{ route('admin.companies.index') }}" data-testid="create-company-cancel-button" class="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
                 Cancel
             </a>
         </div>

@@ -92,10 +92,10 @@
         </div>
 
         <div class="flex items-center gap-3 pt-2">
-            <button type="submit" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
+            <button type="submit" data-testid="update-company-submit-button" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
                 Save Changes
             </button>
-            <a href="{{ route('admin.companies.index') }}" class="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
+            <a href="{{ route('admin.companies.index') }}" data-testid="update-company-cancel-button" class="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
                 Cancel
             </a>
         </div>
@@ -130,7 +130,7 @@
                                 class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-xs text-error-500 hover:text-error-700 font-medium">Remove</button>
+                                <button type="submit" data-testid="remove-company-user-button-{{ $user->id }}" class="text-xs text-error-500 hover:text-error-700 font-medium">Remove</button>
                             </form>
                         </td>
                     </tr>
@@ -173,7 +173,7 @@
                     @endforeach
                 </select>
                 <div class="sm:col-span-4 pt-1">
-                    <button type="submit" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
+                    <button type="submit" data-testid="assign-user-submit-button" class="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
                         Assign User
                     </button>
                 </div>

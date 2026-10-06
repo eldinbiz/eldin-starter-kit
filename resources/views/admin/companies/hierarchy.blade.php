@@ -40,18 +40,19 @@
                     </svg>
                 </span>
                 <input type="text" x-model="searchQuery" placeholder="Search companies..."
+                    data-testid="company-search-input"
                     x-on:input.debounce.300ms="doSearch()"
                     class="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500" />
             </div>
             {{-- Reset View --}}
-            <button @click="resetView()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
+            <button @click="resetView()" data-testid="reset-view-button" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
                 </svg>
                 Reset View
             </button>
             @if($canManage)
-            <a href="{{ route('admin.companies.create') }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
+            <a href="{{ route('admin.companies.create') }}" data-testid="add-company-button" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
@@ -315,10 +316,13 @@ function companyHierarchy() {
                 ${this.canManage ? `
                 <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;display:flex;gap:5px;">
                     <button onclick="event.stopPropagation();event.preventDefault();window.__companyTree.toggleCompanyActive(${data.id});return false;"
+                        data-testid="toggle-company-status-button-${data.id}"
                         style="flex:1;padding:3px 5px;font-size:10px;font-weight:500;border-radius:6px;border:none;cursor:pointer;${toggleBtnColor}">${data.is_active ? 'Disable' : 'Enable'}</button>
                     <a href="/admin/companies/${data.id}/edit" onclick="event.stopPropagation();"
+                        data-testid="edit-company-link-${data.id}"
                         style="flex:1;padding:3px 5px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#f3f4f6;color:#374151;cursor:pointer;text-align:center;text-decoration:none;">Edit</a>
                     <a href="/admin/companies/create?parent_id=${data.id}" onclick="event.stopPropagation();"
+                        data-testid="add-child-company-link-${data.id}"
                         style="flex:1;padding:3px 5px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#ede9fe;color:#7c3aed;cursor:pointer;text-align:center;text-decoration:none;">+Child</a>
                 </div>` : ''}
             </div>`;

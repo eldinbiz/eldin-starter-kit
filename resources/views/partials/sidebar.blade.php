@@ -266,6 +266,7 @@
                         <a
                             href="{{ route('admin.companies.index') }}"
                             wire:navigate.hover
+                            data-testid="nav-company-management"
                             class="menu-item group {{ Request::is('admin/companies*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">

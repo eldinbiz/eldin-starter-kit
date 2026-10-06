@@ -26,6 +26,7 @@
     {{-- Livewire Styles --}}
     @livewireStyles
 
+
     {{-- Tailwind CSS and custom scripts via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 

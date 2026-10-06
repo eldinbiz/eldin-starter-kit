@@ -129,14 +129,15 @@ test('admin can view user list, search by name, and toggle filter panel', functi
         ->assertSee('Alice Wonder')
         ->assertSee('Bob Builder')
         // Livewire Search: search for "Bob"
-        ->wait(0.5)
-        ->typeSlowly('@datatable-search-input', 'Bob')
-        ->wait(1)
+        ->wait(1.5)
+        ->click('@datatable-search-input')
+        ->type('@datatable-search-input', 'Bob')
+        ->wait(3)
         ->assertSee('Bob Builder')
         ->assertDontSee('Alice Wonder')
         // Clear search to restore all records
         ->type('@datatable-search-input', '')
-        ->wait(1)
+        ->wait(3)
         ->assertSee('Alice Wonder')
         ->assertSee('Bob Builder')
         // Toggle filters panel
@@ -153,6 +154,7 @@ test('admin can create a new user', function (): void {
         ->click('@nav-user-management')
         ->assertPathIs('/admin/users')
         ->click('@create-user-button')
+        ->wait(1)
         ->assertPathIs('/admin/users/create')
         ->assertSee('Create New User')
         // Fill valid new user details
@@ -160,6 +162,7 @@ test('admin can create a new user', function (): void {
         ->type('#email', 'charlie.brown@example.com')
         ->type('#password', 'password123')
         ->click('@create-user-submit-button')
+        ->wait(2)
         // Verify redirected to user listing with new user shown in datatable
         ->assertPathIs('/admin/users')
         ->assertSee('Charlie Brown')
@@ -186,12 +189,14 @@ test('admin can edit an existing user details', function (): void {
         ->assertPathIs('/admin/users')
         ->assertSee('Diana Prince')
         ->click('@edit-user-link-'.$userToEdit->id)
+        ->wait(1)
         ->assertPathIs('/admin/users/'.$userToEdit->id.'/edit')
         ->assertSee('Edit User Details')
         // Update user name and email
         ->type('#name', 'Diana Updated')
         ->type('#email', 'diana.updated@example.com')
         ->click('@update-user-submit-button')
+        ->wait(2)
         // Verify redirected back to listing with updated details in datatable
         ->assertPathIs('/admin/users')
         ->assertSee('Diana Updated')
@@ -222,6 +227,7 @@ test('admin can assign and remove a company in user edit view', function (): voi
     loginAdmin($admin)
         ->click('@nav-user-management')
         ->click('@edit-user-link-'.$targetUser->id)
+        ->wait(1)
         ->assertPathIs('/admin/users/'.$targetUser->id.'/edit')
         ->assertSee('Company Assignments')
         // Assign to second company
@@ -229,6 +235,7 @@ test('admin can assign and remove a company in user edit view', function (): voi
         ->check('#assign_role_'.$userRoleId)
         ->type('job_title', 'Operations Lead')
         ->click('@assign-company-submit-button')
+        ->wait(2)
         ->assertSee('Beta Logistics')
         ->assertSee('Operations Lead')
         // Remove second company via type-to-confirm modal
@@ -296,13 +303,16 @@ test('user creation fails with validation error for duplicate email', function (
         ->click('@nav-user-management')
         ->assertPathIs('/admin/users')
         ->click('@create-user-button')
+        ->wait(1)
         ->assertPathIs('/admin/users/create')
         ->assertSee('Create New User')
         ->type('#name', 'Duplicate Dave')
         ->type('#email', $admin->email)
         ->type('#password', 'password123')
+        ->wait(0.5)
         ->click('@create-user-submit-button')
-        ->wait(1)
+        ->wait(3)
+        ->assertPathIs('/admin/users/create')
         ->assertSee('The email has already been taken.');
 
     expect(User::where('name', 'Duplicate Dave')->exists())->toBeFalse();
@@ -315,13 +325,16 @@ test('user creation fails with validation error for short password', function ()
         ->click('@nav-user-management')
         ->assertPathIs('/admin/users')
         ->click('@create-user-button')
+        ->wait(1)
         ->assertPathIs('/admin/users/create')
         ->assertSee('Create New User')
         ->type('#name', 'Short Sam')
         ->type('#email', 'short.sam@example.com')
         ->type('#password', '12345')
+        ->wait(0.5)
         ->click('@create-user-submit-button')
-        ->wait(1)
+        ->wait(3)
+        ->assertPathIs('/admin/users/create')
         ->assertSee('The password field must be at least 8 characters.');
 
     expect(User::where('email', 'short.sam@example.com')->exists())->toBeFalse();
@@ -350,6 +363,7 @@ test('company removal modal button remains disabled until exact company name is 
     loginAdmin($admin)
         ->click('@nav-user-management')
         ->click('@edit-user-link-'.$targetUser->id)
+        ->wait(1)
         ->assertPathIs('/admin/users/'.$targetUser->id.'/edit')
         ->assertSee('Beta Logistics')
         // Trigger remove company modal
@@ -388,15 +402,16 @@ test('user datatable displays empty state when search query matches no users and
         ->assertPathIs('/admin/users')
         ->assertSee('Zachary Taylor')
         // Search for non-existent user query
-        ->wait(0.5)
-        ->typeSlowly('@datatable-search-input', 'NonExistentUserXYZ999', 50)
-        ->wait(1)
+        ->wait(1.5)
+        ->click('@datatable-search-input')
+        ->type('@datatable-search-input', 'NonExistentUserXYZ999')
+        ->wait(3)
         ->assertSee('No users found')
         ->assertSee('No user records matched your search query or filter selection.')
         ->assertDontSee('Zachary Taylor')
         // Clear search input restores original user list
         ->type('@datatable-search-input', '')
-        ->wait(1)
+        ->wait(3)
         ->assertSee('Zachary Taylor')
         ->assertDontSee('No users found');
 })->group('browser');
@@ -428,13 +443,18 @@ test('editing user email to an existing email triggers validation error', functi
         ->assertPathIs('/admin/users')
         ->assertSee('Edit Candidate')
         ->click('@edit-user-link-'.$userToEdit->id)
+        ->wait(1)
         ->assertPathIs('/admin/users/'.$userToEdit->id.'/edit')
         ->assertSee('Edit User Details')
         // Attempt to change email to userA's email
+        ->clear('#email')
         ->type('#email', 'existing.person@example.com')
+        ->wait(0.5)
         ->click('@update-user-submit-button')
-        ->wait(1)
+        ->wait(3)
         // Assert validation error appears on edit page
+        ->assertPathIs('/admin/users/'.$userToEdit->id.'/edit')
+        ->assertSee('Edit User Details')
         ->assertSee('The email has already been taken.');
 
     expect($userToEdit->fresh()->email)->toBe('edit.candidate@example.com');
@@ -462,6 +482,7 @@ test('assigning user to an already assigned company is prevented by UI and rejec
     $page = loginAdmin($admin)
         ->click('@nav-user-management')
         ->click('@edit-user-link-'.$targetUser->id)
+        ->wait(1)
         ->assertPathIs('/admin/users/'.$targetUser->id.'/edit')
         ->assertSourceInHas('select[name="company_id"]', 'Beta Logistics')
         ->assertSourceInMissing('select[name="company_id"]', 'Acme Corporation');

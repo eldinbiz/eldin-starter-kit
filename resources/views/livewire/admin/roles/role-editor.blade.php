@@ -156,6 +156,7 @@
                     variant="primary"
                     data-testid="role-submit-button"
                     wire:loading.attr="disabled"
+                    wire:target="save"
                 >
                     <svg wire:loading wire:target="save" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

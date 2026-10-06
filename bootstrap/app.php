@@ -31,9 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'feature' => EnsureFeatureEnabled::class,
         ]);
 
-        $middleware->web(append: [
-            SetActiveCompany::class,
-        ]);
+        $middleware->web(
+            append: [
+                SetActiveCompany::class,
+            ],
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
