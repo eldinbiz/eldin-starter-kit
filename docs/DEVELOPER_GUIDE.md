@@ -355,26 +355,34 @@ event(new NotificationRequested(
 
 We enforce Test-Driven Development (TDD) using **Pest 5 / PHPUnit 12**.
 
-Test execution, real-time logging, snapshot isolation, and formal audit reports are powered by the **`eldinbiz/laravel-rubberstamp`** package (`composer require --dev eldinbiz/laravel-rubberstamp`).
+> [!TIP]
+> For complete tutorials, 3-layer testing recipes, Livewire v4 component testing, and our **Browser Testing Anti-Flakiness Handbook**, see the comprehensive [Starter Kit Testing Guide](TESTING_GUIDE.md).
 
-### In-Memory Unit, Feature & Module Tests
-Run fast feature and unit tests against an isolated in-memory SQLite database:
+### Running Tests
+
 ```bash
-# Local execution
+# Run entire test suite via Pest
+php artisan test
+
+# Run tests with compact output
+php artisan test --compact
+
+# Filter by test class or method
+php artisan test --filter=UserManagementTest
+```
+
+### Running with RubberStamp (Diagnostic Runner with Snapshots)
+
+Test execution, real-time logging, snapshot isolation, and formal audit reports can also be run via the **`eldinbiz/laravel-rubberstamp`** package (`composer require --dev eldinbiz/laravel-rubberstamp`):
+
+```bash
+# Run unit & feature tests with streamed logs
 php artisan rubberstamp:features
 
-# Or in Docker mode:
+# In Docker mode:
 docker compose exec app php artisan rubberstamp:features
 
-# Targeting specific test classes:
-php artisan rubberstamp:features --filter=UserManagementTest
-```
-*(Standard `php artisan test` is also supported)*
-
-### End-to-End Browser Testing (`eldinbiz/laravel-rubberstamp`)
-Browser tests run real browser interactions via Microsoft Playwright:
-```bash
-# Run all browser tests
+# Run end-to-end browser tests via Playwright
 php artisan rubberstamp:browser
 
 # Target a specific browser test
@@ -382,21 +390,16 @@ php artisan rubberstamp:browser tests/Browser/LoginTest.php
 
 # Run Playwright environment self-check
 php artisan rubberstamp:browser --doctor
-```
-- **Automated Visual Snapshots**: Every test case automatically captures an end-of-test visual snapshot into `doctest-reports/browser-test-log/browser_test_{timestamp}/<Suite-Name>/<test_slug>.png`. Developers do not need to add manual `$page->screenshot()` calls at test end.
-- **Corporate HTML Audit Reports**: Generates formal, print-ready HTML test documentation at `doctest-reports/browser_test_{timestamp}.html` with embedded visual evidence galleries and clickable camera links.
-- **Post-Navigation Settle Time**: For multi-step login flows or Livewire SPA redirects, add a brief settle wait (`->wait(2)` or `->waitForText(...)`) before the final assertion so the snapshot captures the fully hydrated page.
 
-### Artifact Maintenance & Pruning
-```bash
 # Clean up old test execution logs, screenshots, and HTML reports
 php artisan rubberstamp:prune --all --force
 ```
 
-- **Testing Rules**:
-  - Test every Form Request authorization gate (guest redirect, forbidden user, authorized user).
-  - Test Domain Actions directly or via feature tests for database assertions.
-  - Verify tenant isolation (ensure Company A cannot view or mutate Company B records).
+### Key Testing Rules
+- **Layer 1 (Actions)**: Test Domain Actions directly for database persistence (`assertDatabaseHas`) inside `DB::transaction()`.
+- **Layer 2 (Livewire & Requests)**: Test Form Requests for authorization and validation rules. Test Livewire v4 components reactively with `Livewire::test()`.
+- **Layer 3 (Browser)**: Follow the [Anti-Flakiness Handbook](TESTING_GUIDE.md#5-the-browser-testing-anti-flakiness-handbook): assert route paths and database invariants across redirects instead of transient flash messages, use `data-testid` with `@` shorthand, and allow `wait(0.5)` for Livewire reactive debouncing.
+- **Tenant Isolation**: Always verify multi-tenant isolation (`active_company_id`) ensuring Company A cannot access Company B resources.
 
 ---
 

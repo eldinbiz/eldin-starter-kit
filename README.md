@@ -202,7 +202,11 @@ composer dev
 
 ## 🧪 Testing & Quality Assurance
 
-We enforce Test-Driven Development (TDD) using **Pest 5**. Test execution, real-time log streaming, automated visual snapshot capturing, and print-ready corporate HTML audit reports are powered by the **`eldinbiz/laravel-rubberstamp`** package (`composer require --dev eldinbiz/laravel-rubberstamp`).
+We enforce Test-Driven Development (TDD) using **Pest 5**. 
+
+> For full tutorials, 3-layer architecture testing recipes, Livewire v4 component testing, and our **Browser Testing Anti-Flakiness Handbook**, see the comprehensive [Starter Kit Testing Guide](docs/TESTING_GUIDE.md).
+
+Test execution, real-time log streaming, automated visual snapshot capturing, and print-ready corporate HTML audit reports are powered by the **`eldinbiz/laravel-rubberstamp`** package (`composer require --dev eldinbiz/laravel-rubberstamp`).
 
 ### 1. Fast In-Memory Tests (Unit, Feature & Domain Modules)
 ```bash
