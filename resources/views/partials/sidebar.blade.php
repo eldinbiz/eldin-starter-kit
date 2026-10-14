@@ -286,6 +286,7 @@
                         <a
                             href="{{ route('admin.org-chart.index') }}"
                             wire:navigate.hover
+                            data-testid="nav-org-structure"
                             class="menu-item group {{ Request::is('admin/org-chart*') ? 'menu-item-active' : 'menu-item-inactive' }}"
                         >
                             <span class="flex items-center gap-3">

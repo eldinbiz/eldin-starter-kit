@@ -6,11 +6,19 @@ namespace App\Actions\OrgChart;
 
 use App\Models\Company;
 use App\Models\User;
+use Closure;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 final class GetOrgChartTreeAction
 {
+    /**
+     * Optional testing hook to override tree dataset without subclassing final action.
+     *
+     * @var (Closure(Company): array{company: array{id: int, name: string}, users: Collection<int, array<string, mixed>>})|null
+     */
+    public static ?Closure $fakeResolver = null;
+
     /**
      * Build the org chart tree dataset for the given company, cleaning dangling references.
      *
@@ -21,6 +29,10 @@ final class GetOrgChartTreeAction
      */
     public function execute(Company $company): array
     {
+        if (self::$fakeResolver !== null) {
+            return (self::$fakeResolver)($company);
+        }
+
         $allUsers = $company->users()
             ->get()
             ->map(function (User $u): array {

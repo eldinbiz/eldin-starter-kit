@@ -43,12 +43,13 @@
                     type="text"
                     x-model="searchQuery"
                     x-on:input.debounce.300ms="doSearch()"
+                    data-testid="org-chart-search-input"
                     placeholder="Search users..."
                     class="w-64 rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-4 text-sm outline-hidden focus:border-brand-500 focus:bg-white dark:border-gray-800 dark:bg-gray-950 dark:text-white dark:focus:border-brand-500"
                 />
             </div>
             {{-- Reset View --}}
-            <button @click="resetView()" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
+            <button @click="resetView()" data-testid="org-chart-reset-button" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-800">
                 <svg class="fill-current" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
                 </svg>
@@ -85,12 +86,13 @@
 
     {{-- Reassign Parent Modal (proper centered dialog) --}}
     <div x-show="showEditParent" x-transition.opacity
+         data-testid="edit-employee-modal"
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
          @click.self="closeEditParent()">
         <div x-transition class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto text-gray-800 dark:text-white">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold">Edit Employee Details</h3>
-                <button @click="closeEditParent()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <button @click="closeEditParent()" data-testid="close-edit-parent-button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                     <svg class="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
                         <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
@@ -102,11 +104,11 @@
             </p>
             {{-- Job Title --}}
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job Title</label>
-            <input type="text" x-model="editParentJobTitle" placeholder="Enter job title..."
+            <input type="text" x-model="editParentJobTitle" data-testid="edit-job-title-input" placeholder="Enter job title..."
                 class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm outline-hidden focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white mb-3" />
             {{-- Status --}}
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-            <select x-model="editParentStatus"
+            <select x-model="editParentStatus" data-testid="edit-status-select"
                 class="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 px-3 text-sm outline-hidden focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white mb-4">
                 <option value="active">Active</option>
                 <option value="on_leave">On Leave</option>
@@ -122,11 +124,12 @@
             <div class="max-h-48 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
                 <template x-for="candidate in parentCandidates" :key="candidate.id">
                     <div @click="selectManager(candidate.id)"
+                        :data-testid="'candidate-manager-' + candidate.id"
                         class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 flex items-center justify-between"
                         :class="{ 'bg-brand-50 dark:bg-brand-900/20': editParentNewManager === candidate.id }">
                         <div class="flex items-center gap-2">
                             <span x-text="candidate.name"></span>
-                            <span x-show="candidate.isDescendant" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full font-medium">will be promoted</span>
+                            <span x-show="candidate.isDescendant" data-testid="badge-will-be-promoted" class="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full font-medium">will be promoted</span>
                         </div>
                         <span class="text-xs text-gray-400" x-text="candidate.title || ''"></span>
                     </div>
@@ -136,6 +139,7 @@
                 </template>
                 {{-- Remove Manager option --}}
                 <div @click="selectManager(null)"
+                    data-testid="remove-manager-button"
                     :class="{ 'bg-red-50 dark:bg-red-900/20': editParentNewManager === null }"
                     class="px-3 py-2 text-sm cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
                     <svg class="fill-current" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -143,8 +147,8 @@
                 </div>
             </div>
             <div class="flex gap-3 mt-4">
-                <button @click="saveEmployee()" class="flex-1 py-2 text-sm font-medium rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors">Save Changes</button>
-                <button @click="closeEditParent()" class="flex-1 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+                <button @click="saveEmployee()" data-testid="save-employee-button" class="flex-1 py-2 text-sm font-medium rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors">Save Changes</button>
+                <button @click="closeEditParent()" data-testid="cancel-employee-button" class="flex-1 py-2 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">Cancel</button>
             </div>
         </div>
     </div>
@@ -276,6 +280,7 @@ function orgChart() {
             const editBtnHtml = this.canManage ? `
                 <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f3f4f6;">
                     <button onclick="event.stopPropagation();event.preventDefault();window.__orgChart.openEditParent('${data.id}');return false;"
+                        data-testid="edit-node-button-${data.id}"
                         style="width:100%;padding:4px 6px;font-size:10px;font-weight:500;border-radius:6px;border:none;background:#e0e7ff;color:#4338ca;cursor:pointer;">
                         Edit
                     </button>
