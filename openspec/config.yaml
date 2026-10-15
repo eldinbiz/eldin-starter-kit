@@ -4,7 +4,8 @@ schema: spec-driven
 # Defines non-negotiable architectural constraints and technical standards for this application.
 context: |
   Architecture & Tech Stack:
-  - Framework: Laravel 12 (PHP 8.4 with declare(strict_types=1);)
+  - Framework: Laravel (strictly adhere to dependencies in composer.json, PHP 8.4 with declare(strict_types=1);)
+  - Dependency Boundary: NEVER modify or create files in vendor/ or node_modules/
   - Modular Monolith: app-modules/<module>/ managed by internachi/modular
   - Presentation Layer: Thin Controllers and Livewire v4 Single-File Components (SFC)
   - Navigation: wire:navigate and wire:navigate.hover for all internal SPA navigation
