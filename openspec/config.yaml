@@ -1,0 +1,37 @@
+schema: spec-driven
+
+# Project context
+# Defines non-negotiable architectural constraints and technical standards for this application.
+context: |
+  Architecture & Tech Stack:
+  - Framework: Laravel 12 (PHP 8.4 with declare(strict_types=1);)
+  - Modular Monolith: app-modules/<module>/ managed by internachi/modular
+  - Presentation Layer: Thin Controllers and Livewire v4 Single-File Components (SFC)
+  - Navigation: wire:navigate and wire:navigate.hover for all internal SPA navigation
+  - UI Component Standard: Consume abstract <x-ui::*> components (never raw theme classes)
+  - Domain Business Layer: Domain Actions under app/Actions/ or Modules/<Module>/Actions/
+    Mutations and database updates MUST be encapsulated inside DB::transaction() in Action execute()
+  - Validation: Form Requests under app/Http/Requests/ or Modules/<Module>/Http/Requests/
+  - Multi-Tenancy: Scoped by Company ID (api.company middleware / X-Company-ID header)
+  - Testing: Pest 5 mandatory test coverage for all features (Unit, Feature, Browser tests)
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Specify affected layers (Presentation, Validation, Domain Action, Database/Migration, Tests)
+    - Clarify whether changes apply to Core (app/) or a Domain Module (app-modules/<module>/)
+  design:
+    - Adhere strictly to the 3-layer architecture standard
+    - Document data flows and Eloquent mutations inside Domain Actions
+  tasks:
+    - Break implementation into granular, verifiable steps
+    - Include mandatory Pest 5 test creation before or alongside implementation
+
+# Per-operation guidance
+operations:
+  apply:
+    guidance:
+      - Always run corresponding Pest tests to verify task completion before marking done
+  archive:
+    guidance:
+      - Update living specs in openspec/specs/ with all newly added capabilities
