@@ -3,6 +3,7 @@
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ApiSetActiveCompany;
 use App\Http\Middleware\EnsureFeatureEnabled;
+use App\Http\Middleware\HandleMultipartTestRequests;
 use App\Http\Middleware\SetActiveCompany;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(HandleMultipartTestRequests::class);
+
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'active.company' => SetActiveCompany::class,
