@@ -36,6 +36,7 @@ Thumbs.db
 /.github/
 /.kilo/
 /.opencode/
+/openspec
 
 .pest/test-results
 tests/Browser/Screenshots
