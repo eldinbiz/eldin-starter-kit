@@ -14,7 +14,17 @@ RUN apk add --no-cache \
     sqlite-dev \
     icu-dev \
     nodejs npm \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
+    font-noto-emoji \
     && rm -rf /var/cache/apk/*
+
+# Chromium / Playwright container configuration
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # PHP extensions
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
@@ -34,6 +44,7 @@ WORKDIR /var/www/html
 # Dependencies first (cached layer)
 COPY composer.json composer.lock ./
 COPY app-modules/ ./app-modules/
+COPY --from=rubberstamp . /var/www/laravel-rubberstamp/
 RUN composer install --no-interaction --no-progress --no-scripts
 
 # App code

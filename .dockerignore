@@ -6,6 +6,7 @@ storage/logs/*
 !storage/logs/.gitkeep
 public/build/
 public/hot
+public/storage
 tests/
 .dockerignore
 Dockerfile

@@ -1,13 +1,17 @@
 services:
   app:
-    build: .
-    container_name: laravel-app
+    build:
+      context: .
+      additional_contexts:
+        rubberstamp: ../laravel-rubberstamp
+    container_name: eldin-starter-kit
     restart: unless-stopped
     env_file:
       - .env.docker
     volumes:
       - .:/var/www/html       # live code (hot reload)
       - /var/www/html/vendor  # keep container's vendor
+      - ../laravel-rubberstamp:/var/www/laravel-rubberstamp
     depends_on:
       mariadb:
         condition: service_healthy
@@ -51,7 +55,10 @@ services:
       start_period: 30s
 
   queue:
-    build: .
+    build:
+      context: .
+      additional_contexts:
+        rubberstamp: ../laravel-rubberstamp
     container_name: laravel-queue
     restart: unless-stopped
     env_file:
@@ -59,6 +66,7 @@ services:
     volumes:
       - .:/var/www/html
       - /var/www/html/vendor
+      - ../laravel-rubberstamp:/var/www/laravel-rubberstamp
     depends_on:
       mariadb:
         condition: service_healthy
