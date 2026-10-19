@@ -363,7 +363,6 @@ new class extends Component
                                     @else
                                         <a
                                             href="{{ route('admin.approval-workflows.edit', $template->id) }}"
-                                            wire:navigate
                                             class="text-brand-600 hover:text-brand-700 dark:text-brand-400"
                                         >
                                             Edit

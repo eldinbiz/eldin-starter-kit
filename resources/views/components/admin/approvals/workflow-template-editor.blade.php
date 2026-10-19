@@ -343,6 +343,19 @@ new class extends Component
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <a
+                        href="{{ $templateId ? route('admin.approval-workflows.edit', ['workflow' => $templateId, 'mode' => 'canvas']) : route('admin.approval-workflows.create', ['mode' => 'canvas']) }}"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition"
+                        title="Switch to Graphical WYSIWYG Canvas Mode"
+                    >
+                        <svg class="h-3.5 w-3.5 text-brand-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+                        </svg>
+                        <span>🎨 Canvas Mode</span>
+                    </a>
+
+                    <div class="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
+
                     <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 dark:text-gray-300">
                         <input
                             type="checkbox"

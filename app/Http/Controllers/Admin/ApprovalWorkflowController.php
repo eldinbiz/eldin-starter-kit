@@ -44,7 +44,7 @@ class ApprovalWorkflowController extends Controller
     /**
      * Show form to create a new workflow template.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
         $company = auth()->user()?->getActiveCompany();
 
@@ -54,6 +54,36 @@ class ApprovalWorkflowController extends Controller
 
         $users = $this->getCompanyAndAncestorUsers($company);
         $company->loadMissing('children');
+
+        if ($request->query('mode') !== 'form') {
+            return view('admin.approval-workflows.canvas', [
+                'template' => null,
+                'company' => $company,
+                'users' => $users,
+                'approvableTypes' => ApprovableTypes::options(),
+                'initialData' => [
+                    'name' => '',
+                    'description' => '',
+                    'approvable_type' => '',
+                    'scope' => 'this_company',
+                    'is_active' => true,
+                    'groups' => [
+                        [
+                            'name' => 'Department Review',
+                            'type' => 'sequential',
+                            'min_approvals' => null,
+                            'steps' => [
+                                [
+                                    'label' => 'Direct Line Manager (N+1)',
+                                    'resolver_type' => 'N+1',
+                                    'resolver_payload' => ['user_id' => null],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        }
 
         return view('admin.approval-workflows.create', [
             'company' => $company,
@@ -84,7 +114,7 @@ class ApprovalWorkflowController extends Controller
     /**
      * Show form to edit a workflow template.
      */
-    public function edit(WorkflowTemplate $workflow): View
+    public function edit(Request $request, WorkflowTemplate $workflow): View
     {
         /** @var User|null $user */
         $user = auth()->user();
@@ -98,6 +128,41 @@ class ApprovalWorkflowController extends Controller
         $workflow->load('company.children');
         $targetCompany = $workflow->company ?? $company;
         $users = $targetCompany ? $this->getCompanyAndAncestorUsers($targetCompany) : new Collection;
+
+        if ($request->query('mode') !== 'form') {
+            $formattedGroups = [];
+            foreach ($workflow->groups as $group) {
+                $steps = [];
+                foreach ($group->steps as $step) {
+                    $steps[] = [
+                        'label' => $step->label,
+                        'resolver_type' => $step->resolver_type->value,
+                        'resolver_payload' => $step->resolver_payload ?? ['user_id' => null],
+                    ];
+                }
+                $formattedGroups[] = [
+                    'name' => $group->name,
+                    'type' => $group->type->value,
+                    'min_approvals' => $group->min_approvals,
+                    'steps' => $steps,
+                ];
+            }
+
+            return view('admin.approval-workflows.canvas', [
+                'template' => $workflow,
+                'company' => $targetCompany,
+                'users' => $users,
+                'approvableTypes' => ApprovableTypes::options(),
+                'initialData' => [
+                    'name' => $workflow->name,
+                    'description' => $workflow->description ?? '',
+                    'approvable_type' => $workflow->approvable_type ?? '',
+                    'scope' => $workflow->scope->value,
+                    'is_active' => $workflow->is_active,
+                    'groups' => $formattedGroups,
+                ],
+            ]);
+        }
 
         return view('admin.approval-workflows.edit', [
             'template' => $workflow,
