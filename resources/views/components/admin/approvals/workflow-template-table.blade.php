@@ -87,7 +87,9 @@ new class extends Component
             }
         }
 
-        if (isset($this->filterValues['is_active']) && $this->filterValues['is_active'] !== '') {
+        if (! empty($this->filterValues['trashed'])) {
+            // Bypass is_active status filter when viewing trashed templates
+        } elseif (isset($this->filterValues['is_active']) && $this->filterValues['is_active'] !== '') {
             $query->where('is_active', (bool) $this->filterValues['is_active']);
         }
 
@@ -119,6 +121,12 @@ new class extends Component
         $template = WorkflowTemplate::findOrFail($templateId);
         $this->authorizeTemplate($template);
 
+        if ($template->is_active) {
+            $this->dispatch('notify', message: 'Only disabled templates can be moved to trash. Please disable this template first.', type: 'error');
+
+            return;
+        }
+
         $action->execute($template);
         $this->dispatch('notify', message: 'Workflow template moved to trash.', type: 'warning');
     }
@@ -128,7 +136,7 @@ new class extends Component
         $template = WorkflowTemplate::onlyTrashed()->findOrFail($templateId);
         $this->authorizeTemplate($template);
 
-        $template->restore();
+        $action->enable($template);
         $this->dispatch('notify', message: 'Workflow template restored successfully.', type: 'success');
     }
 
@@ -175,7 +183,7 @@ new class extends Component
 };
 ?>
 
-<div x-data="{ filterPanelOpen: $wire.entangle('filterPanelOpen'), deleteModalOpen: false, targetId: null, targetName: '', actionType: '' }" class="w-full">
+<div x-data="{ filterPanelOpen: $wire.entangle('filterPanelOpen'), deleteModalOpen: false, targetId: null, targetName: '', targetIsActive: false, actionType: '' }" class="w-full">
     {{-- Header with Search, Filter toggle, and Actions --}}
     @include('livewire.datatables.header', [
         'placeholder' => 'Search template name, description...',
@@ -193,7 +201,7 @@ new class extends Component
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0"
         x-transition:leave-end="opacity-0 -translate-y-2"
-        class="mb-4 p-4 rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-white/[0.02] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        class="mb-4 p-4 rounded-xl border border-gray-200 bg-gray-50/50 dark:border-gray-800 dark:bg-white/[0.02] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"
     >
         <div>
             <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Applies To (Module)</label>
@@ -248,10 +256,33 @@ new class extends Component
                 </select>
             </div>
         @endif
+
+        {{-- Include Trashed Toggle --}}
+        <div>
+            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Trash Filter</label>
+            <label class="inline-flex items-center gap-2 pt-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
+                <input
+                    type="checkbox"
+                    value="1"
+                    wire:model.live="filterValues.trashed"
+                    data-testid="trashed-filter-checkbox"
+                    class="rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-700 dark:bg-gray-800"
+                />
+                <span>Show deleted templates only</span>
+            </label>
+        </div>
     </div>
 
     {{-- Active Filter Chips --}}
-    @include('livewire.datatables.active-chips')
+    @include('livewire.datatables.active-chips', [
+        'filterLabels' => [
+            'type' => 'Applies To',
+            'is_active' => 'Status',
+            'scope' => 'Scope',
+            'company_id' => 'Company',
+            'trashed' => 'Trash Filter',
+        ],
+    ])
 
     {{-- Loading Skeleton --}}
     <div wire:loading.delay.shortest wire:target="search, sortBy, gotoPage, nextPage, previousPage, perPage, filterValues, resetFilters, removeFilter" class="w-full">
@@ -355,7 +386,7 @@ new class extends Component
                                         </button>
                                         <button
                                             type="button"
-                                            @click="deleteModalOpen = true; targetId = {{ $template->id }}; targetName = '{{ addslashes($template->name) }}'; actionType = 'forceDelete'"
+                                            @click="deleteModalOpen = true; targetId = {{ $template->id }}; targetName = '{{ addslashes($template->name) }}'; targetIsActive = false; actionType = 'forceDelete'"
                                             class="text-rose-600 hover:text-rose-700 dark:text-rose-400 cursor-pointer"
                                         >
                                             Delete Permanently
@@ -369,7 +400,7 @@ new class extends Component
                                         </a>
                                         <button
                                             type="button"
-                                            @click="deleteModalOpen = true; targetId = {{ $template->id }}; targetName = '{{ addslashes($template->name) }}'; actionType = 'trash'"
+                                            @click="deleteModalOpen = true; targetId = {{ $template->id }}; targetName = '{{ addslashes($template->name) }}'; targetIsActive = {{ $template->is_active ? 'true' : 'false' }}; actionType = 'trash'"
                                             class="text-amber-600 hover:text-amber-700 dark:text-amber-400 cursor-pointer"
                                         >
                                             Trash
@@ -429,25 +460,44 @@ new class extends Component
                 class="relative inline-block transform overflow-hidden rounded-2xl bg-white p-6 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
             >
                 <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/30 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <div
+                        class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                        :class="actionType === 'trash' && targetIsActive ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-rose-100 dark:bg-rose-900/30'"
+                    >
+                        <svg
+                            class="h-6 w-6"
+                            :class="actionType === 'trash' && targetIsActive ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'"
+                            fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                        >
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                         </svg>
                     </div>
                     <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <h3 class="text-base font-semibold text-gray-900 dark:text-white" id="modal-title">
-                            <span x-text="actionType === 'forceDelete' ? 'Permanently Delete Template' : 'Trash Workflow Template'"></span>
+                            <span x-text="actionType === 'forceDelete' ? 'Permanently Delete Template' : (actionType === 'trash' && targetIsActive ? 'Template is Currently Active' : 'Trash Workflow Template')"></span>
                         </h3>
                         <div class="mt-2">
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                Are you sure you want to proceed with <strong x-text="targetName"></strong>?
-                                <span x-show="actionType === 'forceDelete'" class="block mt-1 text-rose-500 font-medium">This action cannot be undone.</span>
-                            </p>
+                            <div x-show="actionType === 'trash' && targetIsActive">
+                                <p class="text-sm text-gray-600 dark:text-gray-300">
+                                    The workflow template <strong x-text="targetName"></strong> is currently active.
+                                </p>
+                                <div class="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    <p class="font-medium">⚠️ Action Required</p>
+                                    <p class="mt-0.5">Only disabled templates can be moved to trash. Please disable this template first using the status toggle.</p>
+                                </div>
+                            </div>
+                            <div x-show="!(actionType === 'trash' && targetIsActive)">
+                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                    Are you sure you want to proceed with <strong x-text="targetName"></strong>?
+                                    <span x-show="actionType === 'forceDelete'" class="block mt-1 text-rose-500 font-medium">This action cannot be undone.</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
                     <button
+                        x-show="!(actionType === 'trash' && targetIsActive)"
                         type="button"
                         @click="
                             if (actionType === 'forceDelete') {
@@ -465,6 +515,7 @@ new class extends Component
                         type="button"
                         @click="deleteModalOpen = false"
                         class="mt-3 inline-flex w-full justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:mt-0 sm:w-auto cursor-pointer"
+                        x-text="actionType === 'trash' && targetIsActive ? 'Close' : 'Cancel'"
                     >
                         Cancel
                     </button>

@@ -565,3 +565,68 @@ it('allows sysadmin to disable, trash, restore, and soft-delete workflow templat
 
     $this->assertDatabaseMissing('approval_workflow_templates', ['id' => $template->id]);
 });
+
+it('allows company admin to restore trashed workflow template belonging to their company', function () {
+    [$user, $company] = actAsApprovalAdmin($this);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $company->id,
+        'name' => 'Own Company Trashed Template',
+        'is_active' => false,
+        'deleted_at' => now(),
+    ]);
+
+    $this->post(route('admin.approval-workflows.restore', $template->id), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success', 'Workflow template enabled.');
+
+    $fresh = $template->fresh();
+    expect($fresh->trashed())->toBeFalse()
+        ->and($fresh->is_active)->toBeTrue();
+});
+
+it('denies company admin from restoring trashed workflow template belonging to another company', function () {
+    [$user, $companyA] = actAsApprovalAdmin($this);
+    $companyB = Company::factory()->create(['is_active' => true]);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $companyB->id,
+        'name' => 'Other Company Trashed Template',
+        'is_active' => false,
+        'deleted_at' => now(),
+    ]);
+
+    $this->post(route('admin.approval-workflows.restore', $template->id), ['_token' => session()->token()])
+        ->assertForbidden();
+
+    expect($template->fresh()->trashed())->toBeTrue();
+});
+
+it('redirects with error flash message when attempting to trash an active workflow template via HTTP delete', function () {
+    [$user, $company] = actAsApprovalAdmin($this);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $company->id,
+        'name' => 'Active HTTP Workflow',
+        'is_active' => true,
+    ]);
+
+    $this->delete(route('admin.approval-workflows.trash', $template->id), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('error', 'Only disabled templates can be deleted. Please disable the template first.');
+
+    expect($template->fresh()->trashed())->toBeFalse()
+        ->and($template->fresh()->is_active)->toBeTrue();
+});
+
+it('trashes a disabled workflow template via HTTP delete', function () {
+    [$user, $company] = actAsApprovalAdmin($this);
+    $template = WorkflowTemplate::factory()->create([
+        'company_id' => $company->id,
+        'name' => 'Disabled HTTP Workflow',
+        'is_active' => false,
+    ]);
+
+    $this->delete(route('admin.approval-workflows.trash', $template->id), ['_token' => session()->token()])
+        ->assertRedirect(route('admin.approval-workflows.index'))
+        ->assertSessionHas('success', 'Workflow template deleted.');
+
+    expect($template->fresh()->trashed())->toBeTrue();
+});

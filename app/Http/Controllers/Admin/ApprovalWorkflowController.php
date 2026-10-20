@@ -219,14 +219,12 @@ class ApprovalWorkflowController extends Controller
      * Enable a workflow template (set is_active = true).
      */
     public function restore(
-        string $id,
+        WorkflowTemplate $workflow,
         ToggleWorkflowTemplateAction $action
     ): RedirectResponse {
         /** @var User|null $user */
         $user = auth()->user();
         $company = $user?->getActiveCompany();
-
-        $workflow = WorkflowTemplate::withTrashed()->findOrFail((int) $id);
 
         if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);
@@ -253,6 +251,11 @@ class ApprovalWorkflowController extends Controller
             abort(403);
         }
 
+        if ($workflow->is_active) {
+            return redirect()->route('admin.approval-workflows.index')
+                ->with('error', 'Only disabled templates can be deleted. Please disable the template first.');
+        }
+
         $action->execute($workflow);
 
         return redirect()->route('admin.approval-workflows.index')
@@ -263,14 +266,12 @@ class ApprovalWorkflowController extends Controller
      * Permanently delete a workflow template (force delete).
      */
     public function softDelete(
-        string $id,
+        WorkflowTemplate $workflow,
         ForceDeleteWorkflowTemplateAction $action
     ): RedirectResponse {
         /** @var User|null $user */
         $user = auth()->user();
         $company = $user?->getActiveCompany();
-
-        $workflow = WorkflowTemplate::withTrashed()->findOrFail((int) $id);
 
         if (! $this->canManageWorkflow($user, $company, $workflow)) {
             abort(403);

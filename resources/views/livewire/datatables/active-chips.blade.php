@@ -31,6 +31,9 @@
                 @php
                     $label = $filterLabels[$key] ?? ucfirst(str_replace(['filter_', '_'], ['', ' '], $key));
                     $displayVal = is_array($val) ? implode(', ', $val) : (string) $val;
+                    if ($key === 'trashed' && ($val === true || $val === '1' || $val === 1)) {
+                        $displayVal = 'Show deleted only';
+                    }
                 @endphp
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
                     <span>{{ $label }}: <strong>{{ $displayVal }}</strong></span>
