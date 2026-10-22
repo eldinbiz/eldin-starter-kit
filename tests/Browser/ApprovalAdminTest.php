@@ -248,7 +248,8 @@ test('admin can build and save a multi-tier approval workflow template via build
     $fixtures = createApprovalAdminFixtures();
 
     loginApprovalAdminUser($fixtures['admin'])
-        ->navigate('/admin/approval-workflows/create')
+        // The canvas builder is the default route now; pin this test to the Livewire form editor.
+        ->navigate('/admin/approval-workflows/create?mode=form')
         ->assertSee('New Workflow Template')
         ->assertSee('Define multi-tier approval steps, approver resolvers, and execution hierarchy.')
         // Attempt empty submission -> validation error
@@ -292,7 +293,8 @@ test('admin can edit an existing workflow template and update its configuration'
     $fixtures = createApprovalAdminFixtures();
 
     loginApprovalAdminUser($fixtures['admin'])
-        ->navigate('/admin/approval-workflows/'.$fixtures['template']->id.'/edit')
+        // The canvas builder is the default route now; pin this test to the Livewire form editor.
+        ->navigate('/admin/approval-workflows/'.$fixtures['template']->id.'/edit?mode=form')
         ->assertSee('Edit Workflow Template')
         ->assertValue('input[wire\:model="name"]', 'General Purchase Template')
         // Update name
