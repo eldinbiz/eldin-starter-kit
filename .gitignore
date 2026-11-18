@@ -30,7 +30,8 @@ Thumbs.db
 /.pest/
 
 # AI Configurations
-/.agents/
+/.agents/*
+!/.agents/environment.json
 /.cline/
 /.clinerules/
 /.github/
