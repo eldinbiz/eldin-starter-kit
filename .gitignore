@@ -26,18 +26,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/.kilo/plans/
 /.pest/
-
-# AI Configurations
-/.agents/*
-!/.agents/environment.json
-/.cline/
-/.clinerules/
-/.github/
-/.kilo/
-/.opencode/
-/openspec
 
 .pest/test-results
 tests/Browser/Screenshots
