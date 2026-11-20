@@ -1,0 +1,98 @@
+name: 'Publish Shields Badge JSON'
+description: 'Commit and push Shields.io endpoint JSON files to an orphan badges branch with pull-rebase concurrency retries.'
+
+inputs:
+  source_dir:
+    description: 'Directory containing *.json Shields.io endpoint files to publish.'
+    required: true
+  branch:
+    description: 'Target orphan branch name where badge JSON files are stored.'
+    required: false
+    default: 'badges'
+  commit_message:
+    description: 'Git commit message used when badge JSON files change.'
+    required: false
+    default: 'chore(badges): update status badges'
+  token:
+    description: 'GitHub token with contents:write permission.'
+    required: false
+    default: '${{ github.token }}'
+
+outputs:
+  published:
+    description: 'Whether a commit was pushed to the badges branch (true/false).'
+    value: '${{ steps.publish.outputs.published }}'
+
+runs:
+  using: 'composite'
+  steps:
+    - id: publish
+      name: Commit and push badge JSON to orphan branch
+      shell: bash
+      env:
+        SOURCE_DIR: '${{ inputs.source_dir }}'
+        TARGET_BRANCH: '${{ inputs.branch }}'
+        COMMIT_MESSAGE: '${{ inputs.commit_message }}'
+        GH_TOKEN: '${{ inputs.token }}'
+      run: |
+        set -euo pipefail
+
+        if [ ! -d "${SOURCE_DIR}" ]; then
+          echo "::error::Badge source directory does not exist: ${SOURCE_DIR}"
+          exit 1
+        fi
+
+        shopt -s nullglob
+        json_files=("${SOURCE_DIR}"/*.json)
+        shopt -u nullglob
+
+        if [ "${#json_files[@]}" -eq 0 ]; then
+          echo "::error::No *.json badge files found in ${SOURCE_DIR}"
+          exit 1
+        fi
+
+        WORK_DIR="${RUNNER_TEMP}/badges-repo"
+        rm -rf "${WORK_DIR}"
+
+        REPO_URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        if git ls-remote --exit-code --heads "${REPO_URL}" "${TARGET_BRANCH}" >/dev/null 2>&1; then
+          git clone --depth=1 --branch "${TARGET_BRANCH}" --single-branch "${REPO_URL}" "${WORK_DIR}"
+        else
+          git init "${WORK_DIR}"
+          git -C "${WORK_DIR}" remote add origin "${REPO_URL}"
+          git -C "${WORK_DIR}" checkout --orphan "${TARGET_BRANCH}"
+        fi
+
+        git -C "${WORK_DIR}" config user.name "github-actions[bot]"
+        git -C "${WORK_DIR}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        cp -f "${json_files[@]}" "${WORK_DIR}/"
+        git -C "${WORK_DIR}" add -- *.json
+
+        if git -C "${WORK_DIR}" diff --staged --quiet; then
+          echo "No badge changes detected for '${TARGET_BRANCH}'; skipping commit and push."
+          echo "published=false" >> "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
+        git -C "${WORK_DIR}" commit -m "${COMMIT_MESSAGE}"
+
+        for attempt in 1 2 3 4 5; do
+          if git -C "${WORK_DIR}" push origin "HEAD:${TARGET_BRANCH}"; then
+            echo "Published badge JSON update to '${TARGET_BRANCH}' on attempt ${attempt}."
+            echo "published=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [ "${attempt}" -lt 5 ]; then
+            echo "Push rejected on attempt ${attempt}; pulling with rebase before retry..."
+            sleep "${attempt}"
+            if git ls-remote --exit-code --heads "${REPO_URL}" "${TARGET_BRANCH}" >/dev/null 2>&1; then
+              git -C "${WORK_DIR}" pull --rebase -X theirs origin "${TARGET_BRANCH}"
+            fi
+          fi
+        done
+
+        echo "::error::Failed to push badge JSON update to '${TARGET_BRANCH}' after 5 attempts."
+        exit 1

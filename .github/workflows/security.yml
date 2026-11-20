@@ -1,0 +1,212 @@
+name: Security
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_badges:
+        description: 'Publish badge JSON even when run outside main branch'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: starter-kit
+
+jobs:
+  security:
+    name: Dependency Security Audit (Composer + NPM)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout starter kit
+        uses: actions/checkout@v4
+        with:
+          path: starter-kit
+
+      - name: Checkout laravel-rubberstamp sibling dependency
+        uses: actions/checkout@v4
+        with:
+          repository: eldinbiz/laravel-rubberstamp
+          path: laravel-rubberstamp
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, json, curl, openssl
+          coverage: none
+
+      - name: Setup Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - id: run_audits
+        name: Run Composer and NPM security audits
+        run: |
+          set +e
+          rm -f /tmp/composer-audit.json /tmp/npm-audit.json
+
+          composer audit --locked --abandoned=report --format=json > /tmp/composer-audit.json
+          composer_exit=$?
+          echo "composer_exit=${composer_exit}" >> "${GITHUB_OUTPUT}"
+
+          npm audit --json > /tmp/npm-audit.json
+          npm_exit=$?
+          echo "npm_exit=${npm_exit}" >> "${GITHUB_OUTPUT}"
+
+          echo "Composer audit exit code: ${composer_exit}"
+          echo "NPM audit exit code: ${npm_exit}"
+          exit 0
+
+      - id: evaluate_audits
+        name: Aggregate audit results and generate security badge JSON
+        if: always()
+        env:
+          COMPOSER_EXIT: '${{ steps.run_audits.outputs.composer_exit }}'
+          NPM_EXIT: '${{ steps.run_audits.outputs.npm_exit }}'
+        run: |
+          mkdir -p "${RUNNER_TEMP}/badges-out"
+          php -r '
+          $composerExit = getenv("COMPOSER_EXIT") !== "" ? (int) getenv("COMPOSER_EXIT") : 1;
+          $npmExit = getenv("NPM_EXIT") !== "" ? (int) getenv("NPM_EXIT") : 1;
+
+          $auditError = false;
+          $composerTotal = 0;
+          $npmTotal = 0;
+          $maxRank = 0;
+
+          $rankMap = [
+              "low" => 1,
+              "moderate" => 2,
+              "medium" => 2,
+              "high" => 3,
+              "critical" => 4,
+          ];
+
+          $composerRaw = is_file("/tmp/composer-audit.json") ? file_get_contents("/tmp/composer-audit.json") : false;
+          if ($composerRaw === false || trim($composerRaw) === "") {
+              $auditError = true;
+          } else {
+              try {
+                  $composerJson = json_decode($composerRaw, true, 512, JSON_THROW_ON_ERROR);
+                  if (!is_array($composerJson) || !array_key_exists("advisories", $composerJson) || !is_array($composerJson["advisories"])) {
+                      $auditError = true;
+                  } else {
+                      foreach ($composerJson["advisories"] as $pkgAdvisories) {
+                          if (!is_array($pkgAdvisories)) {
+                              continue;
+                          }
+                          foreach ($pkgAdvisories as $advisory) {
+                              $composerTotal++;
+                              $sev = strtolower((string) ($advisory["severity"] ?? "high"));
+                              $rank = $rankMap[$sev] ?? 3;
+                              if ($rank > $maxRank) {
+                                  $maxRank = $rank;
+                              }
+                          }
+                      }
+                      if ($composerExit !== 0 && $composerTotal === 0) {
+                          $auditError = true;
+                      }
+                  }
+              } catch (Throwable $e) {
+                  fwrite(STDERR, "Failed to parse Composer audit JSON: {$e->getMessage()}\n");
+                  $auditError = true;
+              }
+          }
+
+          $npmRaw = is_file("/tmp/npm-audit.json") ? file_get_contents("/tmp/npm-audit.json") : false;
+          if ($npmRaw === false || trim($npmRaw) === "") {
+              $auditError = true;
+          } else {
+              try {
+                  $npmJson = json_decode($npmRaw, true, 512, JSON_THROW_ON_ERROR);
+                  if (!is_array($npmJson) || array_key_exists("error", $npmJson) || !isset($npmJson["metadata"]["vulnerabilities"]) || !is_array($npmJson["metadata"]["vulnerabilities"])) {
+                      $auditError = true;
+                  } else {
+                      $v = $npmJson["metadata"]["vulnerabilities"];
+                      $low = (int) ($v["low"] ?? 0);
+                      $moderate = (int) ($v["moderate"] ?? 0);
+                      $high = (int) ($v["high"] ?? 0);
+                      $critical = (int) ($v["critical"] ?? 0);
+                      $npmTotal = $low + $moderate + $high + $critical;
+                      if ($critical > 0) {
+                          $maxRank = max($maxRank, 4);
+                      } elseif ($high > 0) {
+                          $maxRank = max($maxRank, 3);
+                      } elseif ($moderate > 0) {
+                          $maxRank = max($maxRank, 2);
+                      } elseif ($low > 0) {
+                          $maxRank = max($maxRank, 1);
+                      }
+                      if ($npmExit !== 0 && $npmTotal === 0) {
+                          $auditError = true;
+                      }
+                  }
+              } catch (Throwable $e) {
+                  fwrite(STDERR, "Failed to parse NPM audit JSON: {$e->getMessage()}\n");
+                  $auditError = true;
+              }
+          }
+
+          $total = $composerTotal + $npmTotal;
+          if ($auditError) {
+              $message = "audit error";
+              $color = "#ef4444";
+              $isError = true;
+              $finalExit = 1;
+          } elseif ($total === 0) {
+              $message = "0 issues";
+              $color = "#22c55e";
+              $isError = false;
+              $finalExit = 0;
+          } else {
+              $message = $total === 1 ? "1 issue" : "{$total} issues";
+              $color = $maxRank >= 3 ? "#ef4444" : "#eab308";
+              $isError = true;
+              $finalExit = 1;
+          }
+
+          $payload = [
+              "schemaVersion" => 1,
+              "label" => "Security",
+              "message" => $message,
+              "color" => $color,
+              "isError" => $isError,
+          ];
+
+          file_put_contents(
+              getenv("RUNNER_TEMP") . "/badges-out/security.json",
+              json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n"
+          );
+
+          file_put_contents(
+              getenv("GITHUB_OUTPUT"),
+              "final_exit={$finalExit}\ntotal_issues={$total}\n",
+              FILE_APPEND
+          );
+
+          echo "Security audit summary: composer={$composerTotal}, npm={$npmTotal}, total={$total}, badge=\"{$message}\" ({$color})\n";
+          '
+
+      - name: Publish security badge
+        if: always() && (github.ref == 'refs/heads/main' || inputs.publish_badges == true)
+        uses: ./starter-kit/.github/actions/publish-badge
+        with:
+          source_dir: '${{ runner.temp }}/badges-out'
+          commit_message: 'chore(badges): update security badge'
+
+      - name: Verify security audit outcome
+        if: always()
+        env:
+          FINAL_EXIT: '${{ steps.evaluate_audits.outputs.final_exit }}'
+        run: |
+          if [ "${FINAL_EXIT:-1}" -ne 0 ]; then
+            echo "::error::Security audit detected vulnerabilities or failed to complete cleanly."
+            exit "${FINAL_EXIT:-1}"
+          fi
