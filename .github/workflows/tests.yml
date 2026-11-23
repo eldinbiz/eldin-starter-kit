@@ -62,7 +62,7 @@ jobs:
         run: |
           set +e
           rm -f /tmp/junit.xml
-          php artisan test --no-interaction --log-junit /tmp/junit.xml
+          php artisan test --log-junit /tmp/junit.xml
           exit_code=$?
           echo "exit_code=${exit_code}" >> "${GITHUB_OUTPUT}"
           exit 0
