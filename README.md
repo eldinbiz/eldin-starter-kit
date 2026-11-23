@@ -1,12 +1,12 @@
 # Enterprise Business Application Starter Kit
 
 <p align="left">
-  <img src="https://img.shields.io/badge/Laravel-12.x%20%7C%2013.x-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel Version">
-  <img src="https://img.shields.io/badge/PHP-8.3%20%7C%208.4-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP Version">
-  <img src="https://img.shields.io/badge/Tests-passing-22c55e?style=flat-square&logo=pest&logoColor=white" alt="Tests Passed">
-  <img src="https://img.shields.io/badge/Pint-passing-22c55e?style=flat-square&logo=laravel&logoColor=white" alt="Pint Passing">
-  <img src="https://img.shields.io/badge/Livewire-v4-FB70A9?style=flat-square&logo=livewire&logoColor=white" alt="Livewire Version">
-  <img src="https://img.shields.io/badge/Security-pending%20audit-eab308?style=flat-square&logo=shield&logoColor=white" alt="Security Pending Audit">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/laravel.json&style=flat-square&logo=laravel&logoColor=white&cacheSeconds=300" alt="Laravel Version">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/php.json&style=flat-square&logo=php&logoColor=white&cacheSeconds=300" alt="PHP Version">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/tests.json&style=flat-square&logo=pest&logoColor=white&cacheSeconds=300" alt="Tests Status">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/pint.json&style=flat-square&logo=laravel&logoColor=white&cacheSeconds=300" alt="Pint Status">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/livewire.json&style=flat-square&logo=livewire&logoColor=white&cacheSeconds=300" alt="Livewire Version">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/security.json&style=flat-square&logo=shield&logoColor=white&cacheSeconds=300" alt="Security Audit">
 </p>
 
 A multi-tenant Starter Kit app built on **Laravel 13**, **Livewire v4**, **PHP 8.4**, **Tailwind CSS v4**, and **Pest 5**. 

@@ -1,0 +1,108 @@
+name: Versions
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_badges:
+        description: 'Publish badge JSON even when run outside main branch'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: starter-kit
+
+jobs:
+  versions:
+    name: Extract Stack Versions (PHP 8.4)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout starter kit
+        uses: actions/checkout@v4
+        with:
+          path: starter-kit
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: json
+          coverage: none
+
+      - name: Extract stack versions and generate badge JSONs
+        run: |
+          mkdir -p "${RUNNER_TEMP}/badges-out"
+          php -r '
+          $lockPath = "composer.lock";
+          if (!is_file($lockPath)) {
+              fwrite(STDERR, "composer.lock not found.\n");
+              exit(1);
+          }
+
+          $lock = json_decode((string) file_get_contents($lockPath), true, 512, JSON_THROW_ON_ERROR);
+          $allPackages = array_merge($lock["packages"] ?? [], $lock["packages-dev"] ?? []);
+          $versions = [];
+
+          foreach ($allPackages as $pkg) {
+              if (isset($pkg["name"], $pkg["version"]) && in_array($pkg["name"], ["laravel/framework", "livewire/livewire"], true)) {
+                  $ver = trim((string) $pkg["version"]);
+                  if ($ver !== "") {
+                      $versions[$pkg["name"]] = str_starts_with($ver, "v") ? $ver : "v{$ver}";
+                  }
+              }
+          }
+
+          if (empty($versions["laravel/framework"])) {
+              fwrite(STDERR, "Missing locked version for laravel/framework in composer.lock.\n");
+              exit(1);
+          }
+
+          if (empty($versions["livewire/livewire"])) {
+              fwrite(STDERR, "Missing locked version for livewire/livewire in composer.lock.\n");
+              exit(1);
+          }
+
+          $phpVersion = PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;
+
+          $badges = [
+              "laravel.json" => [
+                  "schemaVersion" => 1,
+                  "label" => "Laravel",
+                  "message" => $versions["laravel/framework"],
+                  "color" => "#FF2D20",
+              ],
+              "php.json" => [
+                  "schemaVersion" => 1,
+                  "label" => "PHP",
+                  "message" => $phpVersion,
+                  "color" => "#777BB4",
+              ],
+              "livewire.json" => [
+                  "schemaVersion" => 1,
+                  "label" => "Livewire",
+                  "message" => $versions["livewire/livewire"],
+                  "color" => "#FB70A9",
+              ],
+          ];
+
+          $outDir = getenv("RUNNER_TEMP") . "/badges-out";
+          foreach ($badges as $filename => $payload) {
+              file_put_contents(
+                  "{$outDir}/{$filename}",
+                  json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n"
+              );
+              echo "Generated {$filename}: {$payload["label"]} -> {$payload["message"]} ({$payload["color"]})\n";
+          }
+          '
+
+      - name: Publish version badges
+        if: github.ref == 'refs/heads/main' || inputs.publish_badges == true
+        uses: ./starter-kit/.github/actions/publish-badge
+        with:
+          source_dir: '${{ runner.temp }}/badges-out'
+          commit_message: 'chore(badges): update stack version badges'

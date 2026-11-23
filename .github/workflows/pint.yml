@@ -1,0 +1,93 @@
+name: Pint
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_badges:
+        description: 'Publish badge JSON even when run outside main branch'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: starter-kit
+
+jobs:
+  pint:
+    name: Laravel Pint Code Style (PHP 8.4)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout starter kit
+        uses: actions/checkout@v4
+        with:
+          path: starter-kit
+
+      - name: Checkout laravel-rubberstamp sibling dependency
+        uses: actions/checkout@v4
+        with:
+          repository: eldinbiz/laravel-rubberstamp
+          path: laravel-rubberstamp
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, dom, curl, openssl, zip, tokenizer
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - id: run_pint
+        name: Run Laravel Pint check
+        run: |
+          set +e
+          ./vendor/bin/pint --test
+          exit_code=$?
+          echo "exit_code=${exit_code}" >> "${GITHUB_OUTPUT}"
+          exit 0
+
+      - name: Generate Pint badge JSON
+        if: always()
+        env:
+          CHECK_EXIT_CODE: '${{ steps.run_pint.outputs.exit_code }}'
+        run: |
+          mkdir -p "${RUNNER_TEMP}/badges-out"
+          php -r '
+          $exitCode = (int) (getenv("CHECK_EXIT_CODE") !== "" ? getenv("CHECK_EXIT_CODE") : 1);
+          $passed = $exitCode === 0;
+          $payload = [
+              "schemaVersion" => 1,
+              "label" => "Pint",
+              "message" => $passed ? "passing" : "failing",
+              "color" => $passed ? "#22c55e" : "#ef4444",
+              "isError" => !$passed,
+          ];
+          file_put_contents(
+              getenv("RUNNER_TEMP") . "/badges-out/pint.json",
+              json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n"
+          );
+          echo "Generated pint.json: {$payload["message"]} ({$payload["color"]})\n";
+          '
+
+      - name: Publish Pint badge
+        if: always() && (github.ref == 'refs/heads/main' || inputs.publish_badges == true)
+        uses: ./starter-kit/.github/actions/publish-badge
+        with:
+          source_dir: '${{ runner.temp }}/badges-out'
+          commit_message: 'chore(badges): update pint badge'
+
+      - name: Verify Pint outcome
+        if: always()
+        env:
+          CHECK_EXIT_CODE: '${{ steps.run_pint.outputs.exit_code }}'
+        run: |
+          if [ "${CHECK_EXIT_CODE:-1}" -ne 0 ]; then
+            echo "::error::Laravel Pint style check failed with exit code ${CHECK_EXIT_CODE:-1}."
+            exit "${CHECK_EXIT_CODE:-1}"
+          fi
