@@ -6,7 +6,6 @@ namespace App\Livewire\Admin\ApiDocs;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -20,6 +19,7 @@ class ApiDocsViewer extends Component
     public string $selectedEndpointKey = 'auth_me';
 
     public string $selectedToken = '';
+
     public string $snippetLanguage = 'curl'; // 'curl' | 'js' | 'php' | 'python'
 
     // Interactive Request Runner Form
@@ -27,14 +27,20 @@ class ApiDocsViewer extends Component
         'Accept' => 'application/json',
         'X-Company-ID' => '',
     ];
+
     public array $queryParams = [];
+
     public array $pathParams = [];
+
     public string $requestBodyJson = '';
 
     // Response State
     public ?int $responseStatus = null;
+
     public ?float $responseDurationMs = null;
+
     public ?array $responseHeaders = null;
+
     public ?string $responseBody = null;
 
     public function mount(): void
@@ -235,17 +241,17 @@ class ApiDocsViewer extends Component
         $ep = $this->currentEndpoint;
         $url = url($this->buildResolvedPath());
         if (! empty($this->queryParams)) {
-            $url .= '?' . http_build_query(array_filter($this->queryParams));
+            $url .= '?'.http_build_query(array_filter($this->queryParams));
         }
 
         $token = $this->selectedToken ?: 'YOUR_SANCTUM_TOKEN_HERE';
         $companyId = $this->requestHeaders['X-Company-ID'] ?? '';
 
         return match ($this->snippetLanguage) {
-            'js' => "fetch('{$url}', {\n  method: '{$ep['method']}',\n  headers: {\n    'Authorization': 'Bearer {$token}',\n    'Accept': 'application/json'" . ($companyId ? ",\n    'X-Company-ID': '{$companyId}'" : '') . "\n  }\n})\n.then(res => res.json())\n.then(data => console.log(data));",
-            'php' => "\$client = new \\GuzzleHttp\\Client();\n\$response = \$client->request('{$ep['method']}', '{$url}', [\n    'headers' => [\n        'Authorization' => 'Bearer {$token}',\n        'Accept' => 'application/json'," . ($companyId ? "\n        'X-Company-ID' => '{$companyId}'," : '') . "\n    ],\n]);\n\$data = json_decode(\$response->getBody(), true);",
-            'python' => "import requests\n\nheaders = {\n    'Authorization': 'Bearer {$token}',\n    'Accept': 'application/json'," . ($companyId ? "\n    'X-Company-ID': '{$companyId}'," : '') . "\n}\nresponse = requests.{$this->getLowerMethod()}('{$url}', headers=headers)\nprint(response.json())",
-            default => "curl -X {$ep['method']} \"{$url}\" \\\n  -H \"Authorization: Bearer {$token}\" \\\n  -H \"Accept: application/json\"" . ($companyId ? " \\\n  -H \"X-Company-ID: {$companyId}\"" : ''),
+            'js' => "fetch('{$url}', {\n  method: '{$ep['method']}',\n  headers: {\n    'Authorization': 'Bearer {$token}',\n    'Accept': 'application/json'".($companyId ? ",\n    'X-Company-ID': '{$companyId}'" : '')."\n  }\n})\n.then(res => res.json())\n.then(data => console.log(data));",
+            'php' => "\$client = new \\GuzzleHttp\\Client();\n\$response = \$client->request('{$ep['method']}', '{$url}', [\n    'headers' => [\n        'Authorization' => 'Bearer {$token}',\n        'Accept' => 'application/json',".($companyId ? "\n        'X-Company-ID' => '{$companyId}'," : '')."\n    ],\n]);\n\$data = json_decode(\$response->getBody(), true);",
+            'python' => "import requests\n\nheaders = {\n    'Authorization': 'Bearer {$token}',\n    'Accept': 'application/json',".($companyId ? "\n    'X-Company-ID': '{$companyId}'," : '')."\n}\nresponse = requests.{$this->getLowerMethod()}('{$url}', headers=headers)\nprint(response.json())",
+            default => "curl -X {$ep['method']} \"{$url}\" \\\n  -H \"Authorization: Bearer {$token}\" \\\n  -H \"Accept: application/json\"".($companyId ? " \\\n  -H \"X-Company-ID: {$companyId}\"" : ''),
         };
     }
 
@@ -260,6 +266,7 @@ class ApiDocsViewer extends Component
         foreach ($this->pathParams as $param => $val) {
             $path = str_replace("{{$param}}", (string) $val, $path);
         }
+
         return $path;
     }
 

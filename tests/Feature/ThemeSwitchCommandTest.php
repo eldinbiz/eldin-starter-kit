@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Config;
-
 it('switches to shadcn theme via artisan command', function (): void {
     $this->artisan('ui:theme', ['theme' => 'shadcn'])
         ->expectsOutputToContain('Theme successfully switched to [shadcn/ui] (shadcn)')

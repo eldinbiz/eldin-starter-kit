@@ -238,4 +238,3 @@ it('renders modal template markup with conditional notice and single close butto
         ->assertSeeHtml('x-show="!(actionType === \'trash\' && targetIsActive)"')
         ->assertSeeHtml("x-text=\"actionType === 'trash' && targetIsActive ? 'Close' : 'Cancel'\"");
 });
-

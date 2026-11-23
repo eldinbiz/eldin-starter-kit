@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Auth\ImpersonationSessionGuard;
 use App\Enums\BrandTheme;
 use App\Events\Approval\ApprovalCanceled;
 use App\Events\Approval\ApprovalCompleted;
@@ -17,7 +18,6 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
-use App\Auth\ImpersonationSessionGuard;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

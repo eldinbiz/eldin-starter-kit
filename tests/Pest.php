@@ -18,7 +18,6 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->in('Feature', 'Browser', '../app-modules/*/tests');
 
-
 /*
 |--------------------------------------------------------------------------
 | Expectations

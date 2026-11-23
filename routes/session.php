@@ -59,4 +59,3 @@ Route::middleware(EncryptCookies::class)
 
         return response()->json(['authenticated' => false]);
     })->name('session.status');
-

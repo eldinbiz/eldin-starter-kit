@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Enums\ApprovalStatus;
 use App\Enums\ResolverType;
 use App\Enums\StepState;
-use App\Models\Approval\ApprovalRequest;
-use App\Models\Approval\ApprovalRequestStep;
 use App\Models\Approval\WorkflowGroup;
 use App\Models\Approval\WorkflowStep;
 use App\Models\Approval\WorkflowTemplate;

@@ -7,11 +7,12 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 test('passes through non-multipart requests untouched', function (): void {
-    $middleware = new HandleMultipartTestRequests();
+    $middleware = new HandleMultipartTestRequests;
     $request = Request::create('/test', 'POST', ['name' => 'Existing']);
 
     $response = $middleware->handle($request, function (Request $req): Response {
         expect($req->input('name'))->toBe('Existing');
+
         return new Response('OK');
     });
 
@@ -68,7 +69,7 @@ test('parses multipart content and populates request parameters and spoofed meth
         $rawBody
     );
 
-    $middleware = new HandleMultipartTestRequests();
+    $middleware = new HandleMultipartTestRequests;
     $handled = false;
 
     $middleware->handle($request, function (Request $req) use (&$handled): Response {

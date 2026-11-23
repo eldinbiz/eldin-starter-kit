@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+
 use function Laravel\Prompts\select;
 
 final class ThemeSwitchCommand extends Command
@@ -101,7 +102,7 @@ final class ThemeSwitchCommand extends Command
         if (preg_match($pattern, $content)) {
             $updated = preg_replace($pattern, "{$key}={$value}", $content);
         } else {
-            $updated = rtrim($content) . "\n{$key}={$value}\n";
+            $updated = rtrim($content)."\n{$key}={$value}\n";
         }
 
         if ($updated !== null) {

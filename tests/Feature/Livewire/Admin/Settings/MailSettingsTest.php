@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Admin\Settings;
 
+use App\Mail\TestEmail;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -71,7 +72,7 @@ it('dispatches live test email successfully', function (): void {
         ->call('sendTestEmail')
         ->assertSet('testStatus', 'success');
 
-    Mail::assertSent(\App\Mail\TestEmail::class, function ($mail) {
+    Mail::assertSent(TestEmail::class, function ($mail) {
         return $mail->hasTo('tester@example.com');
     });
 });

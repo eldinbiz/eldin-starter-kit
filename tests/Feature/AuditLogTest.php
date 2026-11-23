@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\SettingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Yammi\AuditLog\Infrastructure\Facade\AuditLog;
@@ -121,7 +122,7 @@ it('denies audit trail access when user with sysadmin role switches active role 
 });
 
 it('displays configured general branding app name and logo in audit log dashboard', function (): void {
-    $settingService = app(\App\Services\SettingService::class);
+    $settingService = app(SettingService::class);
     $settingService->set('app_name', 'Acme Enterprise', 'text', 'general');
     $settingService->set('app_logo', 'https://example.com/branding-logo.png', 'text', 'general');
 
@@ -141,4 +142,3 @@ it('displays configured general branding app name and logo in audit log dashboar
         ->assertSee('Acme Enterprise')
         ->assertSee('https://example.com/branding-logo.png');
 });
-
