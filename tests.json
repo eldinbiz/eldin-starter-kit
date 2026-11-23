@@ -1,7 +1,7 @@
 {
     "schemaVersion": 1,
     "label": "Tests",
-    "message": "failing",
-    "color": "#ef4444",
-    "isError": true
+    "message": "480 passed",
+    "color": "#22c55e",
+    "isError": false
 }
