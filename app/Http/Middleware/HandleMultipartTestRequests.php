@@ -43,7 +43,7 @@ final class HandleMultipartTestRequests
         }
 
         $rawBody = (string) $request->getContent();
-        $parts = explode('--' . $boundary, $rawBody);
+        $parts = explode('--'.$boundary, $rawBody);
 
         /** @var array<string, mixed> $parsedInputs */
         $parsedInputs = [];
@@ -115,6 +115,7 @@ final class HandleMultipartTestRequests
                         $this->assignNestedValue($parsedFiles, $fieldName, $file);
                     }
                 }
+
                 continue;
             }
 
@@ -142,7 +143,7 @@ final class HandleMultipartTestRequests
     /**
      * Assign a value to a potentially nested or array-notated key (e.g. "roles[]" or "data[user][name]").
      *
-     * @param array<string, mixed> $target
+     * @param  array<string, mixed>  $target
      */
     private function assignNestedValue(array &$target, string $key, mixed $value): void
     {

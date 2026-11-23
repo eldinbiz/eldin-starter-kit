@@ -39,6 +39,7 @@ class MetricsDashboard extends Component
     {
         /** @var User|null $user */
         $user = auth()->user();
+
         return $user?->getActiveCompany();
     }
 
@@ -150,7 +151,7 @@ class MetricsDashboard extends Component
             foreach ($logs as $log) {
                 $activities[] = [
                     'id' => $log->id,
-                    'title' => ucfirst($log->event) . ' ' . class_basename($log->auditable_type ?? 'Entity') . ' #' . $log->auditable_id,
+                    'title' => ucfirst($log->event).' '.class_basename($log->auditable_type ?? 'Entity').' #'.$log->auditable_id,
                     'actor' => $log->actor_label ?? 'System',
                     'time' => Carbon::parse($log->occurred_at)->diffForHumans(),
                     'type' => $log->event,

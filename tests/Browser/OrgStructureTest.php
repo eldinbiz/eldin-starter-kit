@@ -443,7 +443,7 @@ test('admin reassigning supervisor to subordinate sees will be promoted badge an
 test('admin sees empty state message when company has no members', function (): void {
     $data = createOrgHierarchyScenario();
 
-    GetOrgChartTreeAction::$fakeResolver = fn (\App\Models\Company $company): array => [
+    GetOrgChartTreeAction::$fakeResolver = fn (Company $company): array => [
         'company' => [
             'id' => $company->id,
             'name' => $company->name,

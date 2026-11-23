@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -136,7 +137,7 @@ test('session status route accurately reports authenticated state when session h
         'login_web_59ba36addc2b2f9401580f014c7f58ea4e30989d' => 2,
     ];
 
-    \Illuminate\Support\Facades\DB::table(config('session.table'))->insert([
+    DB::table(config('session.table'))->insert([
         'id' => $sessionId,
         'user_id' => null, // simulates database session where user_id column is null
         'ip_address' => '127.0.0.1',
@@ -164,7 +165,7 @@ test('session status route returns unauthenticated when session is missing or ex
 
     // Expired session
     $expiredSessionId = 'expired_session_99999';
-    \Illuminate\Support\Facades\DB::table(config('session.table'))->insert([
+    DB::table(config('session.table'))->insert([
         'id' => $expiredSessionId,
         'user_id' => 1,
         'ip_address' => '127.0.0.1',
@@ -235,4 +236,3 @@ test('impersonated user can navigate across multiple menu routes without session
     $this->get(route('admin.users.index'))
         ->assertOk();
 });
-

@@ -237,4 +237,3 @@ it('renders user directory palette with isUserInWorkflow binding and toast notif
     $response->assertSee('Added');
     $response->assertSee('step._uid');
 });
-

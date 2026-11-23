@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Users\AssignCompanyUserAction;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
@@ -485,8 +486,8 @@ test('assigning user to an already assigned company is prevented by UI and rejec
         ->assertNotPresent('@assign-company-submit-button');
 
     // 3. Server-side Domain Action guard rejects duplicate company assignment
-    expect(fn () => app(\App\Actions\Users\AssignCompanyUserAction::class)->execute(
+    expect(fn () => app(AssignCompanyUserAction::class)->execute(
         $targetUser,
         ['company_id' => $company->id, 'roles' => [$userRoleId]]
-    ))->toThrow(\InvalidArgumentException::class, 'This user is already assigned to that company.');
+    ))->toThrow(InvalidArgumentException::class, 'This user is already assigned to that company.');
 })->group('browser');
