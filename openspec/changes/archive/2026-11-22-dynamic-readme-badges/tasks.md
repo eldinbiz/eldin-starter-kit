@@ -18,7 +18,7 @@
 ## 4. End-to-End Integration & Bootstrap Verification
 
 - [x] 4.1 Validate all YAML files in `.github/` (YAML syntax check and workflow trigger/permission/path checks) and confirm `.gitignore` / `.gitattributes` allow tracking `.github/` cleanly in Git.
-- [ ] 4.2 After pushing to GitHub (via `development` with `publish_badges=true` or after promoting to `main`), manually dispatch all four workflows (`tests.yml`, `pint.yml`, `security.yml`, `versions.yml`) from GitHub Actions, verify the orphan `badges` branch serves valid JSON at `raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/{laravel,php,tests,pint,livewire,security}.json`, and confirm all six badges render accurately in `README.md`.
+- [x] 4.2 After pushing to GitHub (via `development` with `publish_badges=true` or after promoting to `main`), manually dispatch all four workflows (`tests.yml`, `pint.yml`, `security.yml`, `versions.yml`) from GitHub Actions, verify the orphan `badges` branch serves valid JSON at `raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/{laravel,php,tests,pint,livewire,security}.json`, and confirm all six badges render accurately in `README.md`.
 
 ## Workflow follow-up
 
