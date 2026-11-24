@@ -1,7 +1,7 @@
 {
     "schemaVersion": 1,
     "label": "Browser Test",
-    "message": "2 failed",
-    "color": "#ef4444",
-    "isError": true
+    "message": "78 passed",
+    "color": "#22c55e",
+    "isError": false
 }
