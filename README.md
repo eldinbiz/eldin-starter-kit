@@ -3,7 +3,8 @@
 <p align="left">
   <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/laravel.json&style=flat-square&logo=laravel&logoColor=white&cacheSeconds=300" alt="Laravel Version">
   <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/php.json&style=flat-square&logo=php&logoColor=white&cacheSeconds=300" alt="PHP Version">
-  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/tests.json&style=flat-square&logo=pest&logoColor=white&cacheSeconds=300" alt="Tests Status">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/tests.json&style=flat-square&logo=pest&logoColor=white&cacheSeconds=300" alt="Unit Test Status">
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/browser-tests.json&style=flat-square&logo=googlechrome&logoColor=white&cacheSeconds=300" alt="Browser Test Status">
   <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/pint.json&style=flat-square&logo=laravel&logoColor=white&cacheSeconds=300" alt="Pint Status">
   <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/livewire.json&style=flat-square&logo=livewire&logoColor=white&cacheSeconds=300" alt="Livewire Version">
   <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/eldinbiz/eldin-starter-kit/badges/security.json&style=flat-square&logo=shield&logoColor=white&cacheSeconds=300" alt="Security Audit">

@@ -67,7 +67,7 @@ jobs:
           echo "exit_code=${exit_code}" >> "${GITHUB_OUTPUT}"
           exit 0
 
-      - name: Generate tests badge JSON
+      - name: Generate unit test badge JSON
         if: always()
         env:
           CHECK_EXIT_CODE: '${{ steps.run_tests.outputs.exit_code }}'
@@ -111,7 +111,7 @@ jobs:
 
           $payload = [
               "schemaVersion" => 1,
-              "label" => "Tests",
+              "label" => "Unit Test",
               "message" => $message,
               "color" => $color,
               "isError" => $isError,
@@ -124,12 +124,12 @@ jobs:
           echo "Generated tests.json: {$message} ({$color})\n";
           '
 
-      - name: Publish tests badge
+      - name: Publish unit test badge
         if: always() && (github.ref == 'refs/heads/main' || inputs.publish_badges == true)
         uses: ./starter-kit/.github/actions/publish-badge
         with:
           source_dir: '${{ runner.temp }}/badges-out'
-          commit_message: 'chore(badges): update tests badge'
+          commit_message: 'chore(badges): update unit test badge'
 
       - name: Verify test outcome
         if: always()
