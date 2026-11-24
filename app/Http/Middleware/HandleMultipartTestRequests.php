@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 final class HandleMultipartTestRequests
@@ -16,15 +17,100 @@ final class HandleMultipartTestRequests
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->isMethod('POST')
-            && str_contains((string) $request->header('content-type', ''), 'multipart/form-data')
-            && $request->request->count() === 0
-            && ! empty($request->getContent())
-        ) {
-            $this->parseMultipartContent($request);
+        $contentType = strtolower((string) $request->header('content-type', ''));
+
+        if (str_contains($contentType, 'multipart/form-data')) {
+            if (! in_array(strtoupper($request->getRealMethod()), ['GET', 'HEAD'], true)
+                && $request->request->count() === 0
+                && $request->files->count() === 0
+                && $request->getContent() !== ''
+            ) {
+                $this->parseMultipartContent($request);
+            }
+
+            if ($request->files->count() > 0) {
+                $this->stripEmptyUploadedFiles($request);
+            }
         }
 
         return $next($request);
+    }
+
+    /**
+     * Strip empty file upload placeholders (e.g. from unselected file inputs in browser tests).
+     */
+    private function stripEmptyUploadedFiles(Request $request): void
+    {
+        $modified = false;
+        $filtered = $this->filterFilesBag($request->files->all(), $modified);
+
+        if ($modified) {
+            $request->files->replace($filtered);
+        }
+    }
+
+    /**
+     * Recursively remove empty UploadedFile placeholders from a files array.
+     *
+     * @param  array<array-key, mixed>  $files
+     * @return array<array-key, mixed>
+     */
+    private function filterFilesBag(array $files, bool &$modified): array
+    {
+        $filtered = [];
+        $wasList = array_is_list($files);
+
+        foreach ($files as $key => $value) {
+            if ($value instanceof SymfonyUploadedFile) {
+                if ($this->isEmptyUpload($value)) {
+                    $modified = true;
+
+                    continue;
+                }
+
+                $filtered[$key] = $value;
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $nested = $this->filterFilesBag($value, $modified);
+
+                if ($nested === []) {
+                    $modified = true;
+
+                    continue;
+                }
+
+                $filtered[$key] = $nested;
+
+                continue;
+            }
+
+            $filtered[$key] = $value;
+        }
+
+        return $wasList ? array_values($filtered) : $filtered;
+    }
+
+    /**
+     * Determine whether an UploadedFile represents an unselected (empty) file input.
+     */
+    private function isEmptyUpload(SymfonyUploadedFile $file): bool
+    {
+        if ($file->getError() === UPLOAD_ERR_NO_FILE) {
+            return true;
+        }
+
+        if (! $file->isValid()) {
+            return false;
+        }
+
+        if ($file->getClientOriginalName() !== '') {
+            return false;
+        }
+
+        return $file->isFile() && $file->getSize() === 0;
     }
 
     /**
