@@ -1,6 +1,6 @@
 {
     "schemaVersion": 1,
-    "label": "Tests",
+    "label": "Unit Test",
     "message": "480 passed",
     "color": "#22c55e",
     "isError": false
