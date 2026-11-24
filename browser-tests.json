@@ -1,0 +1,7 @@
+{
+    "schemaVersion": 1,
+    "label": "Browser Test",
+    "message": "2 failed",
+    "color": "#ef4444",
+    "isError": true
+}
